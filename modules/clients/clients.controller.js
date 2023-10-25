@@ -61,8 +61,8 @@ exports.create = async (req, res) => {
 exports.updateImage = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			image: Joi.any(),
-			clientId: Joi.string().required()
+			clientId: Joi.string().required(),
+			image: Joi.any()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -72,14 +72,16 @@ exports.updateImage = async (req, res) => {
 				message: message
 			});
 		} else {
-			const file = req.file;
-			// console.log(file);
-			let clientId = req.body.clientId;
-			let logoURL = req.file.filename;
+			let clientId = crypto.decrypt(req.body.clientId);
+			let logoURL = "uploads/clients/" + req.file.filename;
 			var updateClient = await Client.update({ logoURL }, { where: { id: clientId, isActive: "Y" } });
 
-			if (updateClient) {
-				res.status(200).send({ message: "Client Logo Image is Updated" });
+			if (updateClient == 1) {
+				res.status(200).send({ message: "Client logo Updated" });
+			} else {
+				res.send({
+					message: "Failed to update client logo."
+				});
 			}
 		}
 	} catch (err) {

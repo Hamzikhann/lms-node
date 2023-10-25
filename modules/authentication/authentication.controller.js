@@ -4,7 +4,7 @@ const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const Joi = require("@hapi/joi");
 const Users = db.users;
-const UserProfile = db.userProfiles;
+const UserProfile = db.userProfile;
 const Roles = db.roles;
 
 const Op = db.Sequelize.Op;
@@ -37,6 +37,7 @@ exports.login = async (req, res) => {
 				attributes: ["id", "firstName", "lastName", "email"]
 			});
 			if (user) {
+				console.log(user);
 				encryptHelper(user);
 				const token = jwt.signToken({
 					userId: user.id,

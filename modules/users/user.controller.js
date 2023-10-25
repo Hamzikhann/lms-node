@@ -19,8 +19,7 @@ exports.create = async (req, res) => {
 			email: Joi.string().required(),
 			roleId: Joi.string().required(),
 			password: Joi.string().required(),
-			clientId: Joi.string().required(),
-			image: Joi.any()
+			clientId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -87,8 +86,7 @@ exports.create = async (req, res) => {
 exports.updateImage = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			image: Joi.any(),
-			userId: Joi.string().required()
+			image: Joi.any()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -98,14 +96,16 @@ exports.updateImage = async (req, res) => {
 				message: message
 			});
 		} else {
-			const file = req.file;
-			// console.log(file);
-			let userId = req.body.userId;
-			let image = req.file.filename;
-			var updateUser = await Users.update({ image }, { where: { id: userId, isActive: "Y" } });
+			let userId = crypto.decrypt(req.userId);
+			let imageUrl = "uploads/users/" + req.file.filename;
+			var updateUser = await UserProfile.update({ imageUrl }, { where: { userId: userId, isActive: "Y" } });
 
-			if (updateUser) {
+			if (updateUser == 1) {
 				res.status(200).send({ message: "User Profile Image is Updated" });
+			} else {
+				res.send({
+					message: "Failed to update user profile image."
+				});
 			}
 		}
 	} catch (err) {
