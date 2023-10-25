@@ -5,7 +5,8 @@ const crypto = require("../../utils/crypto");
 
 const Users = db.users;
 const Roles = db.roles;
-const UserProfile = db.userProfiles;
+const UserProfile = db.userProfile;
+const UserDepartments = db.userDepartments;
 const Op = db.Sequelize.Op;
 const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
@@ -21,17 +22,14 @@ exports.create = async (req, res) => {
 			clientId: Joi.string().required(),
 			image: Joi.any()
 		});
-		// const { error, value } = joiSchema.validate(req.body);
+		const { error, value } = joiSchema.validate(req.body);
 
-		if (!req.body) {
-			// emails.errorEmail(req, error);
-
+		if (error) {
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
 			});
 		} else {
-			console.log(req.body);
 			const user = await Users.findOne({ where: { email: req.body.email?.trim(), isActive: "Y" } });
 
 			if (user) {
@@ -39,51 +37,47 @@ exports.create = async (req, res) => {
 					mesage: "Email already registered."
 				});
 			} else {
-				// console.log(req);
-				let files = req.file;
-				console.log(files);
-				// const userObj = {
-				// 	firstName: req.body.firstName?.trim(),
-				// 	lastName: req.body.lastName?.trim(),
-				// 	email: req.body.email,
-				// 	password: req.body.password,
-				// 	clientId: crypto.decrypt(req.body.clientId),
-				// 	roleId: crypto.decrypt(req.body.roleId)
-				// };
-				// console.log(userObj)
+				const userObj = {
+					firstName: req.body.firstName?.trim(),
+					lastName: req.body.lastName?.trim(),
+					email: req.body.email,
+					password: req.body.password,
+					clientId: crypto.decrypt(req.body.clientId),
+					roleId: crypto.decrypt(req.body.roleId)
+				};
 
 				let transaction = await sequelize.transaction();
-				// Users.create(userObj, { transaction })
-				// 	.then(async (user) => {
-				// 		UserProfile.create({ userId: user.id }, { transaction })
-				// 			.then(async (profile) => {
-				// 				await transaction.commit();
+				Users.create(userObj, { transaction })
+					.then(async (user) => {
+						UserProfile.create({ userId: user.id }, { transaction })
+							.then(async (profile) => {
+								await transaction.commit();
 
-				// 				res.status(200).send({
-				// 					message: "User created successfully.",
-				// 					data: user
-				// 				});
-				// 			})
-				// 			.catch(async (err) => {
-				// 				if (transaction) await transaction.rollback();
-				// 				emails.errorEmail(req, err);
-				// 				res.status(500).send({
-				// 					message: err.message || "Some error occurred while creating the Quiz."
-				// 				});
-				// 			});
-				// 	})
-				// 	.catch(async (err) => {
-				// 		if (transaction) await transaction.rollback();
-				// 		// emails.errorEmail(req, err);
-				// 		res.status(500).send({
-				// 			message: err.message || "Some error occurred while creating the Quiz."
-				// 		});
-				// 	});
+								encryptHelper(user);
+								res.status(200).send({
+									message: "User created successfully.",
+									data: user
+								});
+							})
+							.catch(async (err) => {
+								if (transaction) await transaction.rollback();
+								emails.errorEmail(req, err);
+								res.status(500).send({
+									message: err.message || "Some error occurred while creating the Quiz."
+								});
+							});
+					})
+					.catch(async (err) => {
+						if (transaction) await transaction.rollback();
+						emails.errorEmail(req, err);
+						res.status(500).send({
+							message: err.message || "Some error occurred while creating the Quiz."
+						});
+					});
 			}
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
-
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -108,7 +102,6 @@ exports.update = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			emails.errorEmail(req, error);
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -151,8 +144,7 @@ exports.update = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
-
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -173,7 +165,7 @@ exports.list = (req, res) => {
 					attributes: ["title"]
 				}
 			],
-			attributes: { exclude: ["createdAt", "updatedAt"] }
+			attributes: { exclude: ["createdAt", "updatedAt", "password"] }
 		})
 			.then((data) => {
 				// encryptHelper(data);
@@ -189,8 +181,7 @@ exports.list = (req, res) => {
 				});
 			});
 	} catch (err) {
-		// emails.errorEmail(req, err);
-
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -222,14 +213,13 @@ exports.listForClient = (req, res) => {
 				});
 			})
 			.catch((err) => {
-				// emails.errorEmail(req, err);
+				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Users."
 				});
 			});
 	} catch (err) {
-		// emails.errorEmail(req, err);
-
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -238,10 +228,23 @@ exports.listForClient = (req, res) => {
 
 exports.detail = (req, res) => {
 	try {
-		// crypto.decrypt(req.params.userId)
 		Users.findOne({
-			where: { id: crypto.decrypt(req.userId), isActive: "Y" },
-			attributes: { exclude: ["isActive"] }
+			where: { id: crypto.decrypt(req.body.userId), isActive: "Y" },
+			include: [
+				{
+					model: UserProfile,
+					attributes: { exclude: ["id", "userId", "isActive", "createdAt", "updatedAt"] }
+				},
+				{
+					model: UserDepartments,
+					attributes: ["title"]
+				},
+				{
+					model: Roles,
+					attributes: ["title"]
+				}
+			],
+			attributes: { exclude: ["isActive", "password"] }
 		})
 			.then((data) => {
 				encryptHelper(data);
@@ -258,7 +261,6 @@ exports.detail = (req, res) => {
 			});
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -270,7 +272,7 @@ exports.changePassword = async (req, res) => {
 		const joiSchema = Joi.object({
 			oldPassword: Joi.string().required(),
 			password: Joi.string().min(8).max(16).required(),
-			password_confirmation: Joi.any()
+			passwordConfirmation: Joi.any()
 				.valid(Joi.ref("password"))
 				.required()
 				.label("Password and confirm password doesn't match.")
@@ -278,7 +280,6 @@ exports.changePassword = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			emails.errorEmail(req, error);
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -317,7 +318,6 @@ exports.changePassword = async (req, res) => {
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -326,7 +326,7 @@ exports.changePassword = async (req, res) => {
 
 exports.delete = (req, res) => {
 	try {
-		const userId = crypto.decrypt(req.params.userId);
+		const userId = crypto.decrypt(req.body.userId);
 
 		Users.update({ isActive: "N" }, { where: { id: userId } })
 			.then(async (num) => {
@@ -348,7 +348,6 @@ exports.delete = (req, res) => {
 			});
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});

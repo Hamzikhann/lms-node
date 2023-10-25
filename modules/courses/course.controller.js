@@ -31,6 +31,8 @@ exports.create = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -66,7 +68,7 @@ exports.create = async (req, res) => {
 						});
 					})
 					.catch(async (err) => {
-						// emails.errorEmail(req, err);
+						emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred while creating the Quiz."
 						});
@@ -74,7 +76,7 @@ exports.create = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."
@@ -109,13 +111,13 @@ exports.findAllCourses = (req, res) => {
 				res.send(data);
 			})
 			.catch((err) => {
-				// emails.errorEmail(req, err);
+				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Classes."
 				});
 			});
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."

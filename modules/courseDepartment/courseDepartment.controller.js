@@ -11,7 +11,7 @@ const create = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			// emails.errorEmail(req, error);
+			emails.errorEmail(req, error);
 
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
@@ -31,7 +31,7 @@ const create = async (req, res) => {
 								res.status(200).send({ message: "Course Department is created", data: response });
 							})
 							.catch((err) => {
-								// emails.errorEmail(req, err);
+								emails.errorEmail(req, err);
 								res.status(500).send({
 									message: err.message || "Some error occurred while creating Course Department."
 								});
@@ -39,14 +39,14 @@ const create = async (req, res) => {
 					}
 				})
 				.catch((err) => {
-					// emails.errorEmail(req, err);
+					emails.errorEmail(req, err);
 					res.status(500).send({
 						message: err.message || "Some error occurred while creating Course Department."
 					});
 				});
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."
@@ -61,13 +61,13 @@ const list = async (req, res) => {
 				res.status(200).send({ message: "All Course Departments are retrived", data: response });
 			})
 			.catch((err) => {
-				// emails.errorEmail(req, err);
+				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while creating Course Department."
 				});
 			});
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."
