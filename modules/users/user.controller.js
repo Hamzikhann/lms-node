@@ -84,6 +84,38 @@ exports.create = async (req, res) => {
 	}
 };
 
+exports.updateImage = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			image: Joi.any(),
+			userId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const file = req.file;
+			// console.log(file);
+			let userId = req.body.userId;
+			let userImage = req.file.filename;
+			var updateUser = await Users.update(userImage, { where: { id: userId, isActive: "Y" } });
+
+			if (updateUser) {
+				res.status(200).send({ message: "User Profile Image is Updated" });
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
