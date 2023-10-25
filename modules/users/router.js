@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 
 const fileUpload = require("../../utils/fileUpload");
-const { upload } = fileUpload("user");
+const { upload } = fileUpload("users");
 
 router.post("/list", (req, res) => {
 	if (req.role == "Administrator") {

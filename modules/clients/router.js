@@ -5,7 +5,7 @@ const clientController = require("./clients.controller");
 const express = require("express");
 const router = express.Router();
 const fileUpload = require("../../utils/fileUpload");
-const { upload } = fileUpload("client");
+const { upload } = fileUpload("clients");
 
 router.post("/list", upload.single("client"), (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
