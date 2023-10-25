@@ -1,5 +1,3 @@
-const { encrypt } = require("../utils/crypto");
-
 function encryptHelper(toEncrypt) {
 	function objIDsEnc(obj) {
 		Object.keys(obj).forEach(function (key) {
@@ -10,32 +8,27 @@ function encryptHelper(toEncrypt) {
 			} else if (
 				typeof obj[key] === "object" &&
 				obj[key] !== null &&
-				!(
-					key.endsWith("time") ||
-					key.endsWith("Time") ||
-					key.endsWith("At") ||
-					key.endsWith("Date") ||
-					key.endsWith("date")
-				)
+				!(key.endsWith("At") || key.endsWith("Date") || key.endsWith("date"))
 			) {
 				encryptHelper(obj[key]);
 			} else {
-				if (key.endsWith("id") || key.endsWith("Id") || key.endsWith("by") || key.endsWith("By")) {
+				if (key.endsWith("id") || key.endsWith("Id")) {
 					if (obj[key] == null || obj[key] == 0) {
 						obj[key] = null;
 					} else {
-						obj[key] = encrypt(obj[key]);
+						obj[key] = crypto.encrypt(obj[key]);
 					}
 				}
 			}
 		});
 	}
+
 	if (Array.isArray(toEncrypt)) {
 		toEncrypt.forEach(function (obj) {
-			objIDsEnc(obj);
+			objIDsEnc(obj.dataValues);
 		});
 	} else if (toEncrypt != null) {
-		objIDsEnc(toEncrypt);
+		objIDsEnc(toEncrypt.dataValues);
 	}
 
 	return toEncrypt;

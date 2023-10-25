@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
 		table.belongsTo(models.roles);
 		table.belongsTo(models.clients);
 		table.hasOne(models.userProfile);
-		table.hasOne(models.userDepartment);
+		table.hasOne(models.userDepartments);
 	};
 	return table;
 };

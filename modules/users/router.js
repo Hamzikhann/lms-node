@@ -3,7 +3,7 @@ const usersController = require("./user.controller");
 const express = require("express");
 const router = express.Router();
 
-router.post("/", (req, res) => {
+router.post("/list", (req, res) => {
 	if (req.role == "Administrator") {
 		usersController.list(req, res);
 	} else if (req.role == "Client") {
@@ -26,7 +26,7 @@ router.post("/update", usersController.update);
 router.post("/change-password", usersController.changePassword);
 
 router.post("/delete", (req, res) => {
-	if (req.role == "Admin" || req.role == "Client") {
+	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });

@@ -2,7 +2,7 @@
 
 module.exports = (sequelize, DataTypes) => {
 	const table = sequelize.define(
-		"userProfiles",
+		"userProfile",
 		{
 			jobTitle: DataTypes.STRING,
 			phoneNumber: DataTypes.STRING,

@@ -48,3 +48,8 @@ Thumbs.db
 *.mov
 *.wmv
 
+# Custom files
+config/config.json
+uploads/clients/
+uploads/documents/
+uploads/users/

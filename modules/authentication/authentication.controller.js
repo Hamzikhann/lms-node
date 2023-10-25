@@ -34,11 +34,10 @@ exports.login = async (req, res) => {
 						attributes: ["title"]
 					}
 				],
-				attributes: { exclude: ["password"] }
+				attributes: ["id", "firstName", "lastName", "email"]
 			});
 			if (user) {
-				// encryptHelper(user);
-
+				encryptHelper(user);
 				const token = jwt.signToken({
 					userId: user.id,
 					profileId: user.userProfile.id,
