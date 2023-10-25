@@ -15,8 +15,6 @@ exports.create = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			emails.errorEmail(req, error);
-
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -24,7 +22,7 @@ exports.create = async (req, res) => {
 		} else {
 			const classObj = {
 				title: req.body.title.trim(),
-                learningPathId:req.body.leaningPathId
+				learningPathId: req.body.leaningPathId
 			};
 
 			const alreadyExist = await Classes.findOne({
@@ -62,52 +60,6 @@ exports.create = async (req, res) => {
 	}
 };
 
-// Retrieve all Classes.
-exports.findAllClasses = (req, res) => {
-	try {
-		Classes.findAll({
-			where: { isActive: "Y" },
-
-            include: [
-				
-				{
-					model: Courses,
-					where: { isActive: "Y" },
-					include: [
-						{
-							model: Courses,
-							required: false,
-							where: { isActive: "Y" },
-							attributes: ["title"]
-						}
-					],
-					required: false,
-					attributes: ["courseId", "isActive"]
-				}
-			],
-			attributes: { exclude: ["createdAt", "updatedAt"] }
-		})
-			.then((data) => {
-				encryptHelper(data);
-				res.send(data);
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-				res.status(500).send({
-					message: err.message || "Some error occurred while retrieving Classes."
-				});
-			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-
-// Retrieve all Classes with courses.
 exports.findClasseswithCourses = (req, res) => {
 	try {
 		Classes.findAll({
@@ -121,7 +73,10 @@ exports.findClasseswithCourses = (req, res) => {
 		})
 			.then((data) => {
 				encryptHelper(data);
-				res.send(data);
+				res.send({
+					message: "Classes retrieved",
+					data
+				});
 			})
 			.catch((err) => {
 				emails.errorEmail(req, err);
@@ -138,9 +93,6 @@ exports.findClasseswithCourses = (req, res) => {
 	}
 };
 
-
-
-// Retrieve Class by Id.
 exports.findClassById = (req, res) => {
 	try {
 		Classes.findOne({
@@ -149,7 +101,10 @@ exports.findClassById = (req, res) => {
 		})
 			.then((data) => {
 				encryptHelper(data);
-				res.send(data);
+				res.send({
+					message: "Class retrieved",
+					data
+				});
 			})
 			.catch((err) => {
 				emails.errorEmail(req, err);
@@ -166,7 +121,6 @@ exports.findClassById = (req, res) => {
 	}
 };
 
-// Update a Class by the id in the request
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
@@ -205,7 +159,7 @@ exports.update = async (req, res) => {
 					.then((num) => {
 						if (num == 1) {
 							res.send({
-								message: "Class was updated successfully."
+								message: "Class info updated successfully."
 							});
 						} else {
 							res.send({
@@ -230,7 +184,6 @@ exports.update = async (req, res) => {
 	}
 };
 
-// Delete a Class with the specified id in the request
 exports.delete = (req, res) => {
 	try {
 		const classId = crypto.decrypt(req.params.classId);
@@ -267,69 +220,3 @@ exports.delete = (req, res) => {
 		});
 	}
 };
-
-// Retrieve all Classes with courses.
-// exports.findClasseswithCoursesForTeacher = (req, res) => {
-// 	try {
-// 		Classes.findAll({
-// 			where: { isActive: "Y" },
-// 			include: {
-// 				model: Courses,
-// 				where: { isActive: "Y" },
-// 				include: [{ model: Teaches, where: { isActive: "Y", userId: crypto.decrypt(req.userId) } }],
-// 				attributes: ["id", "title"]
-// 			},
-// 			attributes: { exclude: ["createdAt", "updatedAt"] }
-// 		})
-// 			.then((data) => {
-// 				encryptHelper(data);
-// 				res.send(data);
-// 			})
-// 			.catch((err) => {
-// 				emails.errorEmail(req, err);
-// 				res.status(500).send({
-// 					message: err.message || "Some error occurred while retrieving Classes."
-// 				});
-// 			});
-// 	} catch (err) {
-// 		emails.errorEmail(req, err);
-
-// 		res.status(500).send({
-// 			message: err.message || "Some error occurred."
-// 		});
-// 	}
-// };
-// Retrieve all Classes For Teacher.
-// exports.findAllForTeacher = (req, res) => {
-// 	try {
-// 		// console.log(crypto.decrypt(req.userId));
-// 		Classes.findAll({
-// 			where: { isActive: "Y" },
-// 			include: [
-// 				{
-// 					model: Courses,
-// 					where: { isActive: "Y" },
-// 					include: [{ model: Teaches, where: { isActive: "Y", userId: crypto.decrypt(req.userId) } }]
-// 				}
-// 			],
-// 			attributes: { exclude: ["createdAt", "updatedAt"] }
-// 		})
-// 			.then((data) => {
-// 				// console.log(data);
-// 				encryptHelper(data);
-// 				res.send(data);
-// 			})
-// 			.catch((err) => {
-// 				emails.errorEmail(req, err);
-// 				res.status(500).send({
-// 					message: err.message || "Some error occurred while retrieving Classes."
-// 				});
-// 			});
-// 	} catch (err) {
-// 		emails.errorEmail(req, err);
-
-// 		res.status(500).send({
-// 			message: err.message || "Some error occurred."
-// 		});
-// 	}
-// };
