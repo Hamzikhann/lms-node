@@ -7,7 +7,7 @@ const router = express.Router();
 const fileUpload = require("../../utils/fileUpload");
 const { upload } = fileUpload("client");
 
-router.post("/", upload.single("client"), (req, res) => {
+router.post("/list", upload.single("client"), (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		clientController.create(req, res);
 	} else {
