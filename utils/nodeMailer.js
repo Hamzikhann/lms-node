@@ -2,15 +2,16 @@ const nodemailer = require("nodemailer");
 const secrets = require("../config/secrets");
 
 const emailSend = secrets.email.send;
+const emailAPIKey = secrets.email.auth.api_key;
 
 async function nodeMailer(mailOptions) {
-	if (emailSend == 1) {
+	if (emailSend == "active") {
 		const transporter = await nodemailer.createTransport({
 			host: "smtp.sendgrid.net",
 			port: 465,
 			auth: {
 				user: "apikey",
-				pass: process.env.SENDGRID_API_KEY
+				pass: emailAPIKey
 			}
 		});
 

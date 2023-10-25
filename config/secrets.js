@@ -6,6 +6,8 @@ module.exports = {
 
 	frontend_URL: process.env.FRONTEND_URL,
 
+	dropboxToken: process.env.DROPBOX_TOKEN,
+
 	crypto: {
 		algorithm: process.env.CRYPTO_ALGORITHM,
 		password: process.env.CRYPTO_PASSWORD
@@ -13,9 +15,10 @@ module.exports = {
 
 	email: {
 		send: process.env.EMAIL_SEND,
-		sender: {
-			success: process.env.EMAIL_SEND_SUCCESS,
-			error: process.env.EMAIL__SEND_ERROR
-		}
+		auth: {
+			from: process.env.EMAIL_FROM,
+			api_key: process.env.EMAIL_API_KEY
+		},
+		error: process.env.EMAIL_TO_ERROR
 	}
 };
