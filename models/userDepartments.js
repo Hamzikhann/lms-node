@@ -2,12 +2,9 @@
 
 module.exports = (sequelize, DataTypes) => {
 	const table = sequelize.define(
-		"users",
+		"userDepartments",
 		{
-			firstName: DataTypes.STRING,
-			lastName: DataTypes.STRING,
-			email: DataTypes.STRING,
-			password: DataTypes.STRING,
+			title: DataTypes.STRING,
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,
@@ -17,10 +14,7 @@ module.exports = (sequelize, DataTypes) => {
 		{ timestamps: true }
 	);
 	table.associate = function (models) {
-		table.belongsTo(models.roles);
-		table.belongsTo(models.clients);
-		table.hasOne(models.userProfile);
-		table.hasOne(models.userDepartment);
+		table.hasMany(models.users);
 	};
 	return table;
 };
