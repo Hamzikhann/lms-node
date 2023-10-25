@@ -60,7 +60,7 @@ exports.create = async (req, res) => {
 							})
 							.catch(async (err) => {
 								if (transaction) await transaction.rollback();
-								// emails.errorEmail(req, err);
+								emails.errorEmail(req, err);
 								res.status(500).send({
 									message: err.message || "Some error occurred while creating the Quiz."
 								});
@@ -68,7 +68,7 @@ exports.create = async (req, res) => {
 					})
 					.catch(async (err) => {
 						if (transaction) await transaction.rollback();
-						// emails.errorEmail(req, err);
+						emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred while creating the Quiz."
 						});
@@ -76,7 +76,7 @@ exports.create = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -143,7 +143,7 @@ exports.update = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -174,13 +174,13 @@ exports.list = (req, res) => {
 				});
 			})
 			.catch((err) => {
-				// emails.errorEmail(req, err);
+				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Users."
 				});
 			});
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -212,13 +212,13 @@ exports.listForClient = (req, res) => {
 				});
 			})
 			.catch((err) => {
-				// emails.errorEmail(req, err);
+				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Users."
 				});
 			});
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -253,13 +253,13 @@ exports.detail = (req, res) => {
 				});
 			})
 			.catch((err) => {
-				// emails.errorEmail(req, err);
+				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving user."
 				});
 			});
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -304,7 +304,7 @@ exports.changePassword = async (req, res) => {
 						}
 					})
 					.catch((err) => {
-						// emails.errorEmail(req, err);
+						emails.errorEmail(req, err);
 						res.status(500).send({
 							message: "Error updating User password"
 						});
@@ -316,7 +316,7 @@ exports.changePassword = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -340,13 +340,13 @@ exports.delete = (req, res) => {
 				}
 			})
 			.catch((err) => {
-				// emails.errorEmail(req, err);
+				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: "Error deleting User"
 				});
 			});
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});

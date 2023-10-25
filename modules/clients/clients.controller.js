@@ -43,7 +43,7 @@ exports.create = async (req, res) => {
 						});
 					})
 					.catch(async (err) => {
-						// emails.errorEmail(req, err);
+						emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred while creating the client."
 						});
@@ -51,7 +51,7 @@ exports.create = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -87,14 +87,14 @@ exports.update = async (req, res) => {
 					});
 				})
 				.catch(async (err) => {
-					// emails.errorEmail(req, err);
+					emails.errorEmail(req, err);
 					res.status(500).send({
 						message: err.message || "Some error occurred while creating the client."
 					});
 				});
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -125,14 +125,14 @@ exports.delete = async (req, res) => {
 					});
 				})
 				.catch(async (err) => {
-					// emails.errorEmail(req, err);
+					emails.errorEmail(req, err);
 					res.status(500).send({
 						message: err.message || "Some error occurred while creating the client."
 					});
 				});
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -158,7 +158,7 @@ exports.list = async (req, res) => {
 				});
 			});
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
