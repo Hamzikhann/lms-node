@@ -6,7 +6,7 @@ const learningPaths = db.learningPaths;
 const Classes = db.classes;
 const Joi = require("@hapi/joi");
 
-exports.findAll = (req, res) => {
+exports.list = (req, res) => {
 	try {
 		learningPaths
 			.findAll({
@@ -50,8 +50,6 @@ exports.create = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			// emails.errorEmail(req, error);
-
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -68,21 +66,17 @@ exports.create = async (req, res) => {
 				const learningObj = {
 					title: req.body.title
 				};
-				let transaction = await sequelize.transaction();
 				learningPaths
-					.create(learningObj, { transaction })
+					.create(learningObj)
 					.then(async (data) => {
-						await transaction.commit();
-
-						// encryptHelper(data);
+						encryptHelper(data);
 						res.status(200).send({
 							message: "Learning path created successfully.",
 							data
 						});
 					})
 					.catch(async (err) => {
-						if (transaction) await transaction.rollback();
-						// emails.errorEmail(req, err);
+						emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred while creating the Quiz."
 						});
@@ -90,8 +84,100 @@ exports.create = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
 
+exports.update = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			learningPathId: Joi.string().required(),
+			title: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const learningPathId = crypto.decrypt(req.body.learningPathId);
+			const learningObj = {
+				title: req.body.title
+			};
+
+			learningPaths
+				.update(learningObj, { where: { id: learningPathId, isActive: "Y" } })
+				.then(async (num) => {
+					if (num == 1) {
+						res.status(200).send({
+							message: "Learning path updated successfully."
+						});
+					} else {
+						res.status(200).send({
+							message: "Unable to update learning path info, maybe learning path does not exists."
+						});
+					}
+				})
+				.catch(async (err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred while creating the Quiz."
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.delete = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			learningPathId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const learningPathId = crypto.decrypt(req.body.learningPathId);
+			const learningObj = {
+				isActive: "N"
+			};
+
+			learningPaths
+				.update(learningObj, { where: { id: learningPathId, isActive: "Y" } })
+				.then(async (num) => {
+					if (num == 1) {
+						res.status(200).send({
+							message: "Learning path updated successfully."
+						});
+					} else {
+						res.status(200).send({
+							message: "Unable to update learning path info, maybe learning path does not exists."
+						});
+					}
+				})
+				.catch(async (err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred while creating the Quiz."
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});

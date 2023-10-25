@@ -11,15 +11,11 @@ router.post("/list", (req, res) => {
 	}
 });
 router.post("/create", (req, res) => {
-	console.log(req.role);
 	if (req.role == "Administrator") {
 		classesController.create(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
-});
-router.post("/detail", (req, res) => {
-	classesController.detail(req, res);
 });
 router.post("/update", (req, res) => {
 	if (req.role == "Administrator") {
