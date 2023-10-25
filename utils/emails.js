@@ -6,8 +6,8 @@ const crypto = require("../utils/crypto");
 
 const baseURL = secrets.frontend_URL;
 
-const emailSenderError = secrets.email.sender.error;
-const emailSenderSuccess = secrets.email.sender.success;
+const emailErrorTo = secrets.email.error;
+const emailFrom = secrets.email.auth.from;
 
 /**
  * Email component
@@ -38,8 +38,8 @@ Email.errorEmail = async (req, error) => {
 		text = text.replace("[REQ_PARAMS]", JSON.stringify(req.params));
 		text = text.replace("[ERROR]", error);
 		var mailOptions = {
-			from: `LMS <${emailSenderError}>`,
-			to: emailSenderError,
+			from: `LMS <${emailFrom}>`,
+			to: emailErrorTo,
 			subject: "ERROR in LMS(" + req.headers.origin + ")",
 			html: text
 		};
@@ -60,7 +60,7 @@ Email.addUser = async (user) => {
 		text = text.replace("[SIGNIN_BUTTON]", process.env.frontend_URL);
 
 		var mailOptions = {
-			from: `LMS <${emailSenderSuccess}>`,
+			from: `LMS <${emailFrom}>`,
 			to: user.email,
 			subject: "Welcome To Learning Memangement System",
 			html: text
@@ -90,7 +90,7 @@ Email.forgotPassword = async (user) => {
 		text = text.replace("[TEXT_LINK]", link);
 
 		var mailOptions = {
-			from: `LMS <${emailSenderSuccess}>`,
+			from: `LMS <${emailFrom}>`,
 			to: user.email,
 			subject: "Reset Password",
 			html: text
