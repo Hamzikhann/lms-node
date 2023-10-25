@@ -7,16 +7,8 @@ const router = express.Router();
 const fileUpload = require("../../utils/fileUpload");
 const { upload } = fileUpload("clients");
 
-router.post("/list", upload.single("client"), (req, res) => {
+router.post("/list", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		clientController.create(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
-
-router.post("/", (req, res) => {
-	if (req.role == "Administrator") {
 		clientController.list(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
@@ -38,7 +30,14 @@ router.post("/update", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-router.post("/updateImage", upload.single("image"), clientController.updateImage);
+
+router.post("/update/image", upload.single("image"), (req, res) => {
+	if (req.role == "Administrator") {
+		clientController.updateImage(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
 
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator") {
