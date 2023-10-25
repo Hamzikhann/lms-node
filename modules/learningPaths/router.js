@@ -3,7 +3,7 @@ const learningController = require("./learningPaths.controller");
 const express = require("express");
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.post("/", (req, res) => {
 	if (req.role == "Administrator") {
 		learningController.findAll(req, res);
 	} else {

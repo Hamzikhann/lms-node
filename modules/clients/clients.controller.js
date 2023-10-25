@@ -1,14 +1,12 @@
 const db = require("../../models");
 const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
-const crypto = require("../../utils/crypto");
 
 const Joi = require("@hapi/joi");
 
 const Client = db.clients;
-const Users = db.users;
 
-const create = async (req, res) => {
+exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			name: Joi.string().required(),
@@ -61,8 +59,7 @@ const create = async (req, res) => {
 		});
 	}
 };
-
-const getAllClients = async (req, res) => {
+exports.list = async (req, res) => {
 	try {
 		Client.findAll({
 			where: { isActive: "Y" },
@@ -83,5 +80,3 @@ const getAllClients = async (req, res) => {
 			});
 	} catch (err) {}
 };
-
-module.exports = { create, getAllClients };

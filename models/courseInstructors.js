@@ -2,10 +2,12 @@
 
 module.exports = (sequelize, DataTypes) => {
   const table = sequelize.define('courseInstructors', {
-    title: DataTypes.STRING,
+    name: DataTypes.STRING,
+    about: DataTypes.STRING,
+    imageUrl: DataTypes.STRING,
     isActive: {
       type: DataTypes.STRING,
-      allowNull: false, 
+      allowNull: false,
       defaultValue: 'Y'
     },
   }, { timestamps: true });

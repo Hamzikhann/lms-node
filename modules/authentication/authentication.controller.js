@@ -4,6 +4,7 @@ const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const Joi = require("@hapi/joi");
 const Users = db.users;
+const UserProfile = db.userProfile;
 const Roles = db.roles;
 
 const Op = db.Sequelize.Op;
@@ -25,6 +26,10 @@ exports.login = async (req, res) => {
 				},
 				include: [
 					{
+						model: UserProfile,
+						attributes: ["id"]
+					},
+					{
 						model: Roles,
 						attributes: ["title"]
 					}
@@ -36,8 +41,9 @@ exports.login = async (req, res) => {
 
 				const token = jwt.signToken({
 					userId: user.id,
-					roleId: user.roleId,
+					profileId: user.userProfile.id,
 					clientId: user.clientId,
+					roleId: user.roleId,
 					role: user.role.title
 				});
 				res.status(200).send({
@@ -60,7 +66,6 @@ exports.login = async (req, res) => {
 		});
 	}
 };
-
 exports.forgotPassword = async (req, res) => {
 	try {
 		var email = req.body.email.trim();
@@ -86,7 +91,6 @@ exports.forgotPassword = async (req, res) => {
 		});
 	}
 };
-
 exports.resetPassword = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({

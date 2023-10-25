@@ -13,9 +13,9 @@ router.post("/", (req, res) => {
 	}
 });
 
-router.get("/", (req, res) => {
+router.post("/", (req, res) => {
 	if (req.role == "Administrator") {
-		clientController.getAllClients(req, res);
+		clientController.list(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}

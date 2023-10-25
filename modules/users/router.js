@@ -4,65 +4,33 @@ const express = require("express");
 const router = express.Router();
 
 router.post("/", (req, res) => {
+	if (req.role == "Administrator") {
+		usersController.list(req, res);
+	} else if (req.role == "Client") {
+		usersController.listForClient(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
+router.post("/create", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.create(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-router.get("/", (req, res) => {
-	// usersController.findAllUsers(req, res);
-	console.log(req);
-	if (req.role == "Administrator" || req.role == "Client") {
-		usersController.findAllUsers(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
 
-router.get("/detail", (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
-		usersController.findUserById(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
+router.post("/detail", usersController.detail);
+router.post("/update", usersController.update);
+router.post("/change-password", usersController.changePassword);
 
-router.put("/:userId", (req, res) => {
-	if (req.role == "Admin") {
-		usersController.update(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
-
-router.put("/profile/edit", (req, res) => {
-	usersController.updateProfile(req, res);
-});
-router.put("/reset/password", (req, res) => {
-	usersController.resetPassword(req, res);
-});
-router.delete("/:userId", (req, res) => {
-	if (req.role == "Admin") {
+router.post("/delete", (req, res) => {
+	if (req.role == "Admin" || req.role == "Client") {
 		usersController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-
-// router.get("/assessment/:quizId", (req, res) => {
-// 	if (req.role == "Teacher") {
-// 		usersController.findAllStudentsForAssessment(req, res);
-// 	} else {
-// 		res.status(403).send({ message: "Forbidden Access" });
-// 	}
-// });
-// router.get("/course/:courseId", (req, res) => {
-// 	if (req.role == "Teacher") {
-// 		usersController.findAllUsersEnrolledInCourse(req, res);
-// 	} else {
-// 		res.status(403).send({ message: "Forbidden Access" });
-// 	}
-// });
 
 module.exports = router;
