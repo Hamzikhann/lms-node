@@ -49,8 +49,7 @@ exports.create = async (req, res) => {
 				let transaction = await sequelize.transaction();
 				Users.create(userObj, { transaction })
 					.then(async (user) => {
-						userProfile
-							.create({ userId: user.id }, { transaction })
+						UserProfile.create({ userId: user.id }, { transaction })
 							.then(async (profile) => {
 								await transaction.commit();
 
@@ -207,7 +206,7 @@ exports.listForClient = (req, res) => {
 					attributes: ["title"]
 				}
 			],
-			attributes: { exclude: ["createdAt", "updatedAt"] }
+			attributes: { exclude: ["createdAt", "updatedAt", "password"] }
 		})
 			.then((data) => {
 				encryptHelper(data);
@@ -217,13 +216,13 @@ exports.listForClient = (req, res) => {
 				});
 			})
 			.catch((err) => {
-				emails.errorEmail(req, err);
+				// emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Users."
 				});
 			});
 	} catch (err) {
-		emails.errorEmail(req, err);
+		// emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."

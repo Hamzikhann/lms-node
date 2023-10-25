@@ -37,7 +37,7 @@ exports.login = async (req, res) => {
 				attributes: { exclude: ["password"] }
 			});
 			if (user) {
-				encryptHelper(user);
+				// encryptHelper(user);
 
 				const token = jwt.signToken({
 					userId: user.id,
