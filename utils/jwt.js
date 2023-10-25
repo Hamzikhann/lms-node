@@ -13,6 +13,7 @@ exports.protect = (req, res, next) => {
 					message: err.message || "Session has been expired."
 				});
 			} else {
+				console.log(decoded.userId);
 				Object.assign(req, {
 					userId: decoded.userId,
 					roleId: decoded.roleId,

@@ -13,8 +13,9 @@ const courseInstructor = db.courseInstructors;
 const courseObjective = db.courseObjectives;
 const courseUsefulLinks = db.courseUsefulLinks;
 const courseSyllabus = db.courseSyllabus;
-
+const courseModule = db.courseModules;
 const Joi = require("@hapi/joi");
+const courseModules = require("../../models/courseModules");
 
 exports.create = async (req, res) => {
 	try {
@@ -30,8 +31,6 @@ exports.create = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			// emails.errorEmail(req, error);
-
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -100,7 +99,7 @@ exports.findAllCourses = (req, res) => {
 					model: courseInstructor,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id", "title", "isActive"]
+					attributes: ["id", "name", "isActive"]
 				}
 			],
 			attributes: { exclude: ["createdAt", "updatedAt"] }
@@ -158,8 +157,8 @@ exports.findAllCourses = (req, res) => {
 // Retrieve Class by Id.
 exports.findCourseById = (req, res) => {
 	try {
-		Classes.findOne({
-			where: { id: crypto.decrypt(req.params.courseId), isActive: "Y" },
+		Courses.findOne({
+			where: { id: req.body.courseId, isActive: "Y" },
 			include: [
 				{
 					model: courseBooks,
@@ -177,7 +176,7 @@ exports.findCourseById = (req, res) => {
 					model: courseEnrollment,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id", "title", "isActive"]
+					attributes: ["id", "progress", "isActive"]
 				},
 				{
 					model: courseFaqs,
@@ -189,13 +188,13 @@ exports.findCourseById = (req, res) => {
 					model: courseInstructor,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id", "title", "isActive"]
+					attributes: ["id", "name", "isActive"]
 				},
 				{
 					model: courseObjective,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id", "title", "isActive"]
+					attributes: ["id", "description", "isActive"]
 				},
 				{
 					model: courseUsefulLinks,
@@ -206,6 +205,14 @@ exports.findCourseById = (req, res) => {
 				{
 					model: courseSyllabus,
 					where: { isActive: "Y" },
+					include: [
+						{
+							model: courseModule,
+							where: { isActive: "Y" },
+							required: false,
+							attributes: ["id", "title", "isActive"]
+						}
+					],
 					required: false,
 					attributes: ["id", "title", "isActive"]
 				}
@@ -213,17 +220,17 @@ exports.findCourseById = (req, res) => {
 			attributes: { exclude: ["isActive"] }
 		})
 			.then((data) => {
-				encryptHelper(data);
+				// encryptHelper(data);
 				res.send(data);
 			})
 			.catch((err) => {
-				emails.errorEmail(req, err);
+				// emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Classes."
 				});
 			});
 	} catch (err) {
-		emails.errorEmail(req, err);
+		// emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."

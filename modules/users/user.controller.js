@@ -18,11 +18,12 @@ exports.create = async (req, res) => {
 			email: Joi.string().required(),
 			roleId: Joi.string().required(),
 			password: Joi.string().required(),
-			clientId: Joi.string().required()
+			clientId: Joi.string().required(),
+			image: Joi.any()
 		});
-		const { error, value } = joiSchema.validate(req.body);
+		// const { error, value } = joiSchema.validate(req.body);
 
-		if (error) {
+		if (!req.body) {
 			// emails.errorEmail(req, error);
 
 			const message = error.details[0].message.replace(/"/g, "");
@@ -30,6 +31,7 @@ exports.create = async (req, res) => {
 				message: message
 			});
 		} else {
+			console.log(req.body);
 			const user = await Users.findOne({ where: { email: req.body.email?.trim(), isActive: "Y" } });
 
 			if (user) {
@@ -37,42 +39,46 @@ exports.create = async (req, res) => {
 					mesage: "Email already registered."
 				});
 			} else {
-				const userObj = {
-					firstName: req.body.firstName?.trim(),
-					lastName: req.body.lastName?.trim(),
-					email: req.body.email,
-					password: req.body.password,
-					clientId: crypto.decrypt(req.body.clientId),
-					roleId: crypto.decrypt(req.body.roleId)
-				};
+				// console.log(req);
+				let files = req.file;
+				console.log(files);
+				// const userObj = {
+				// 	firstName: req.body.firstName?.trim(),
+				// 	lastName: req.body.lastName?.trim(),
+				// 	email: req.body.email,
+				// 	password: req.body.password,
+				// 	clientId: crypto.decrypt(req.body.clientId),
+				// 	roleId: crypto.decrypt(req.body.roleId)
+				// };
+				// console.log(userObj)
 
 				let transaction = await sequelize.transaction();
-				Users.create(userObj, { transaction })
-					.then(async (user) => {
-						UserProfile.create({ userId: user.id }, { transaction })
-							.then(async (profile) => {
-								await transaction.commit();
+				// Users.create(userObj, { transaction })
+				// 	.then(async (user) => {
+				// 		UserProfile.create({ userId: user.id }, { transaction })
+				// 			.then(async (profile) => {
+				// 				await transaction.commit();
 
-								res.status(200).send({
-									message: "User created successfully.",
-									data: user
-								});
-							})
-							.catch(async (err) => {
-								if (transaction) await transaction.rollback();
-								emails.errorEmail(req, err);
-								res.status(500).send({
-									message: err.message || "Some error occurred while creating the Quiz."
-								});
-							});
-					})
-					.catch(async (err) => {
-						if (transaction) await transaction.rollback();
-						// emails.errorEmail(req, err);
-						res.status(500).send({
-							message: err.message || "Some error occurred while creating the Quiz."
-						});
-					});
+				// 				res.status(200).send({
+				// 					message: "User created successfully.",
+				// 					data: user
+				// 				});
+				// 			})
+				// 			.catch(async (err) => {
+				// 				if (transaction) await transaction.rollback();
+				// 				emails.errorEmail(req, err);
+				// 				res.status(500).send({
+				// 					message: err.message || "Some error occurred while creating the Quiz."
+				// 				});
+				// 			});
+				// 	})
+				// 	.catch(async (err) => {
+				// 		if (transaction) await transaction.rollback();
+				// 		// emails.errorEmail(req, err);
+				// 		res.status(500).send({
+				// 			message: err.message || "Some error occurred while creating the Quiz."
+				// 		});
+				// 	});
 			}
 		}
 	} catch (err) {
@@ -145,7 +151,7 @@ exports.update = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		emails.errorEmail(req, err);
+		// emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."
@@ -170,20 +176,20 @@ exports.list = (req, res) => {
 			attributes: { exclude: ["createdAt", "updatedAt"] }
 		})
 			.then((data) => {
-				encryptHelper(data);
+				// encryptHelper(data);
 				res.send({
 					messgae: "Users list retrived",
 					data
 				});
 			})
 			.catch((err) => {
-				emails.errorEmail(req, err);
+				// emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Users."
 				});
 			});
 	} catch (err) {
-		emails.errorEmail(req, err);
+		// emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."

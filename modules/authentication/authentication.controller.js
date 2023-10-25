@@ -4,7 +4,7 @@ const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const Joi = require("@hapi/joi");
 const Users = db.users;
-const UserProfile = db.userProfile;
+const UserProfile = db.userProfiles;
 const Roles = db.roles;
 
 const Op = db.Sequelize.Op;
