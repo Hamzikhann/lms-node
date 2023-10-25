@@ -12,6 +12,8 @@ router.post("/", (req, res) => {
 	}
 });
 router.get("/", (req, res) => {
+    // usersController.findAllUsers(req, res);
+    console.log(req)
 	if (req.role == "Administrator") {
 		usersController.findAllUsers(req, res);
 	}

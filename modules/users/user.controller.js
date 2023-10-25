@@ -7,7 +7,7 @@ const Users = db.users;
 const Roles = db.roles;
 const Courses = db.courses;
 const Enrollments=db.courseEnrollments
-const userProfile=db.userProfiles
+const UserProfile=db.userProfiles
 const Op = db.Sequelize.Op;
 const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
@@ -67,7 +67,7 @@ exports.create = async (req, res) => {
 				Users.create(userObj, { transaction })
 					.then(async (user) => {
 						
-						userProfile.create({userId:user.id},{ transaction })
+						UserProfile.create({userId:user.id},{ transaction })
 						.then(async(profile)=>{
 							// emails.addUser(userObj);
 							await transaction.commit();
@@ -155,6 +155,7 @@ exports.findAllClientUsers = (req, res) => {
 // Retrieve all User.
 exports.findAllUsers = (req, res) => {
 	try {
+		console.log("hi")
 		Users.findAll({
 			where: {
 				isActive: "Y"
@@ -165,36 +166,27 @@ exports.findAllUsers = (req, res) => {
 					attributes: { exclude: ["createdAt", "updatedAt", "isActive"] }
 				},
 				{
-					model: Enrollments,
+					model: UserProfile,
 					where: { isActive: "Y" },
-					include: [
-						{
-							model: Courses,
-							required: false,
-							where: { isActive: "Y" },
-							attributes: ["title"]
-						}
-					],
 					required: false,
-					attributes: ["courseId", "isActive"]
+					attributes: ["userId", "isActive"]
 				}
 			],
-			attributes: { exclude: ["createdAt", "updatedAt"] }
+			attributes: { exclude: ["createdAt", "updatedAt","password"] }
 		})
 			.then((data) => {
-				// console.log(data.teaches);
-
-				encryptHelper(data);
-				res.send(data);
+				// console.log(data)
+				// encryptHelper(data);
+				res.send({message:"All users are retrived" ,data:data});
 			})
 			.catch((err) => {
-				emails.errorEmail(req, err);
+				// emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Users."
 				});
 			});
 	} catch (err) {
-		emails.errorEmail(req, err);
+		// emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."
