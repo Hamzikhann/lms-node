@@ -6,8 +6,8 @@ const crypto = require("../../utils/crypto");
 const Users = db.users;
 const Roles = db.roles;
 const Courses = db.courses;
-const Enrollments=db.courseEnrollments
-const UserProfile=db.userProfiles
+const Enrollments = db.courseEnrollments;
+const UserProfile = db.userProfiles;
 const Op = db.Sequelize.Op;
 const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
@@ -18,21 +18,22 @@ exports.create = async (req, res) => {
 			firstName: Joi.string().required(),
 			lastName: Joi.string().required(),
 			email: Joi.string().required(),
-			role: Joi.string().required(),
+			// role: Joi.string().required(),
 			password: Joi.string().required(),
-			userId: Joi.string().required(),
-			clientId: Joi.string().required()
+			// userId: Joi.string().required(),
+			clientId: Joi.string().required(),
+			roleId: Joi.string().required()
 		});
 		// console.log(req.body);
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			emails.errorEmail(req, error);
+			// emails.errorEmail(req, error);
 
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
-			}); 
+			});
 		} else {
 			const user = await Users.findOne({ where: { email: req.body.email?.trim(), isActive: "Y" } });
 
@@ -52,43 +53,41 @@ exports.create = async (req, res) => {
 				// for (var i = 0; i < 20; i++) {
 				// 	password += shuffled[Math.floor(Math.random() * shuffled.length)];
 				// }
-
+				// crypto.decrypt(req.body.role)
+				// crypto.decrypt(req.body.clientId)
 				const userObj = {
 					firstName: req.body.firstName?.trim(),
 					lastName: req.body.lastName?.trim(),
 					email: req.body.email,
-					createdBy: crypto.decrypt(req.userId),
-					roleId: crypto.decrypt(req.body.role),
+					// createdBy: crypto.decrypt(req.userId),
+					roleId: req.body.roleId,
 					password: req.body.password,
-					clientId:crypto.decrypt(req.body.clientId)
+					clientId: req.body.clientId
 				};
 
 				let transaction = await sequelize.transaction();
 				Users.create(userObj, { transaction })
 					.then(async (user) => {
-						
-						UserProfile.create({userId:user.id},{ transaction })
-						.then(async(profile)=>{
-							// emails.addUser(userObj);
-							await transaction.commit();
-	
-							res.status(200).send({
-						
-								message: "User created successfully."
-							});
+						UserProfile.create({ userId: user.id }, { transaction })
+							.then(async (profile) => {
+								// emails.addUser(userObj);
+								await transaction.commit();
 
-						})
-						.catch(async (err) => {
-							if (transaction) await transaction.rollback();
-							emails.errorEmail(req, err);
-							res.status(500).send({
-								message: err.message || "Some error occurred while creating the Quiz."
+								res.status(200).send({
+									message: "User created successfully."
+								});
+							})
+							.catch(async (err) => {
+								if (transaction) await transaction.rollback();
+								// emails.errorEmail(req, err);
+								res.status(500).send({
+									message: err.message || "Some error occurred while creating the Quiz."
+								});
 							});
-						});
 					})
 					.catch(async (err) => {
 						if (transaction) await transaction.rollback();
-						emails.errorEmail(req, err);
+						// emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred while creating the Quiz."
 						});
@@ -96,7 +95,7 @@ exports.create = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		emails.errorEmail(req, err);
+		// emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."
@@ -104,17 +103,15 @@ exports.create = async (req, res) => {
 	}
 };
 
-
 //Retrive all Users for client
 exports.findAllClientUsers = (req, res) => {
 	try {
 		Users.findAll({
 			where: {
-				clientId:req.body.clientId,
+				clientId: req.body.clientId,
 				isActive: "Y"
 			},
 			include: [
-				
 				{
 					model: Enrollments,
 					where: { isActive: "Y" },
@@ -155,7 +152,7 @@ exports.findAllClientUsers = (req, res) => {
 // Retrieve all User.
 exports.findAllUsers = (req, res) => {
 	try {
-		console.log("hi")
+		console.log("hi");
 		Users.findAll({
 			where: {
 				isActive: "Y"
@@ -172,12 +169,12 @@ exports.findAllUsers = (req, res) => {
 					attributes: ["userId", "isActive"]
 				}
 			],
-			attributes: { exclude: ["createdAt", "updatedAt","password"] }
+			attributes: { exclude: ["createdAt", "updatedAt", "password"] }
 		})
 			.then((data) => {
 				// console.log(data)
 				// encryptHelper(data);
-				res.send({message:"All users are retrived" ,data:data});
+				res.send({ message: "All users are retrived", data: data });
 			})
 			.catch((err) => {
 				// emails.errorEmail(req, err);
@@ -194,16 +191,28 @@ exports.findAllUsers = (req, res) => {
 	}
 };
 
-
 // Retrieve all Users.
 exports.findUserById = (req, res) => {
 	try {
+		// crypto.decrypt(req.params.userId)
 		Users.findOne({
-			where: { id: crypto.decrypt(req.params.userId), isActive: "Y" },
+			where: { id: req.body.userId, isActive: "Y" },
+			include: [
+				{
+					model: Roles,
+					attributes: { exclude: ["createdAt", "updatedAt", "isActive"] }
+				},
+				{
+					model: UserProfile,
+					where: { isActive: "Y" },
+					required: false,
+					attributes: { exclude: ["createdAt", "updatedAt"] }
+				}
+			],
 			attributes: { exclude: ["isActive"] }
 		})
 			.then((data) => {
-				encryptHelper(data);
+				// encryptHelper(data);
 				res.send(data);
 			})
 			.catch((err) => {
@@ -221,13 +230,12 @@ exports.findUserById = (req, res) => {
 	}
 };
 
-
 // Update a User by the id in the request
 exports.updateProfile = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			firstName: Joi.string().required(),
-			lastName: Joi.string().required(),
+			lastName: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -239,12 +247,12 @@ exports.updateProfile = (req, res) => {
 			});
 		} else {
 			const userId = crypto.decrypt(req.userId);
-			
+
 			var user = {
 				firstName: req.body.firstName?.trim(),
 				lastName: req.body.lastName?.trim()
 			};
-			
+
 			Users.update(user, {
 				where: { id: userId, isActive: "Y" }
 			})
@@ -275,10 +283,10 @@ exports.updateProfile = (req, res) => {
 						message: "Error updating User"
 					});
 				});
-			}
+		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-		
+
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -289,19 +297,16 @@ exports.resetPassword = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			oldPassword: Joi.string().required(),
-			password: Joi.string()
-			.min(8)
-				.max(16)
-				.required(),
-				password_confirmation: Joi.any()
+			password: Joi.string().min(8).max(16).required(),
+			password_confirmation: Joi.any()
 				.valid(Joi.ref("password"))
 				.required()
 				.label("Password and confirm password doesn't match.")
-			});
-			const { error, value } = joiSchema.validate(req.body);
-			
-			if (error) {
-				emails.errorEmail(req, error);
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			emails.errorEmail(req, error);
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -310,9 +315,9 @@ exports.resetPassword = async (req, res) => {
 			const id = crypto.decrypt(req.userId);
 			const oldPassword = req.body.oldPassword;
 			const newPassword = req.body.password;
-			
+
 			const user = await Users.findOne({ where: { id: id, isActive: "Y", password: oldPassword } });
-			
+
 			if (user) {
 				Users.update({ password: newPassword }, { where: { id: id, isActive: "Y", password: oldPassword } })
 					.then((num) => {
@@ -351,13 +356,13 @@ exports.resetPassword = async (req, res) => {
 exports.delete = (req, res) => {
 	try {
 		const userId = crypto.decrypt(req.params.userId);
-		
+
 		Users.update(
 			{ isActive: "N" },
 			{
 				where: { id: userId }
 			}
-			)
+		)
 			.then(async (num) => {
 				if (num == 1) {
 					res.send({
@@ -375,7 +380,7 @@ exports.delete = (req, res) => {
 					message: "Error deleting User"
 				});
 			});
-		} catch (err) {
+	} catch (err) {
 		emails.errorEmail(req, err);
 
 		res.status(500).send({
@@ -383,8 +388,6 @@ exports.delete = (req, res) => {
 		});
 	}
 };
-
-
 
 // Update a User by the id in the request
 
@@ -492,100 +495,98 @@ exports.update = (req, res) => {
 			message: err.message || "Some error occurred."
 		});
 	}
-	};
+};
 
+// exports.findAllStudentsForAssessment = async (req, res) => {
+// 	try {
+// 		var quizId = crypto.decrypt(req.params.quizId);
 
+// 		var alreadyAssignedStudents = await Users.findAll({
+// 			where: { isActive: "Y" },
+// 			include: [
+// 				{
+// 					model: AssignTo,
+// 					where: { quizId: quizId },
+// 					attributes: ["userId"]
+// 				}
+// 			],
+// 			attributes: ["id", "firstName", "lastName", "email"]
+// 		});
 
-	// exports.findAllStudentsForAssessment = async (req, res) => {
-			// 	try {
-		// 		var quizId = crypto.decrypt(req.params.quizId);
-		
-		// 		var alreadyAssignedStudents = await Users.findAll({
-		// 			where: { isActive: "Y" },
-		// 			include: [
-			// 				{
-		// 					model: AssignTo,
-		// 					where: { quizId: quizId },
-		// 					attributes: ["userId"]
-		// 				}
-		// 			],
-		// 			attributes: ["id", "firstName", "lastName", "email"]
-		// 		});
-		
-		// 		encryptHelper(alreadyAssignedStudents);
-		// 		var assignedStudentsIds = alreadyAssignedStudents.map((e) => {
-		// 			return e.id;
-		// 		});
-		
-		// 		Users.findAll({
-		// 			where: { isActive: "Y" },
-		// 			include: [
-			// 				{
-		// 					model: Roles,
-		// 					where: { title: "Student" },
-		// 					attributes: { exclude: ["createdAt", "updatedAt", "isActive"] }
-		// 				}
-		// 			],
-		// 			attributes: { exclude: ["createdAt", "updatedAt", "password", "isActive"] }
-		// 		})
-		// 			.then(async (data) => {
-		// 				encryptHelper(data);
-		
-		// 				var list = [];
-		// 				await data.forEach((user) => {
-		// 					if (assignedStudentsIds.indexOf(user.id) == -1) {
-		// 						list.push(user);
-		// 					}
-		// 				});
-		// 				res.send({
-			// 					notAssigned: list,
-		// 					assigned: alreadyAssignedStudents
-		// 				});
-		// 			})
-		// 			.catch((err) => {
-		// 				emails.errorEmail(req, err);
-		// 				res.status(500).send({
-		// 					message: err.message || "Some error occurred while retrieving Users."
-		// 				});
-		// 			});
-		// 	} catch (err) {
-		// 		emails.errorEmail(req, err);
-		
-		// 		res.status(500).send({
-		// 			message: err.message || "Some error occurred."
-		// 		});
-		// 	}
-		// };
-		
-		// // Retrieve all Users Enrolled in Course.
-		// exports.findAllUsersEnrolledInCourse = (req, res) => {
-		// 	try {
-		// 		Users.findAll({
-		// 			where: { isActive: "Y" },
-		// 			include: [
-		// 				{
-		// 					model: Roles,
-		// 					attributes: [],
-		// 					where: { title: "Student" }
-		// 				}
-		// 			],
-		// 			attributes: ["id", "firstName", "lastName", "email"]
-		// 		})
-		// 			.then((data) => {
-		// 				encryptHelper(data);
-		// 				res.send(data);
-		// 			})
-		// 			.catch((err) => {
-		// 				emails.errorEmail(req, err);
-		// 				res.status(500).send({
-		// 					message: err.message || "Some error occurred while retrieving Users."
-		// 				});
-		// 			});
-		// 	} catch (err) {
-		// 		emails.errorEmail(req, err);
-		
-		// 		res.status(500).send({
-		// 			message: err.message || "Some error occurred."
-		// 		});
-		// 	}
-		// };
+// 		encryptHelper(alreadyAssignedStudents);
+// 		var assignedStudentsIds = alreadyAssignedStudents.map((e) => {
+// 			return e.id;
+// 		});
+
+// 		Users.findAll({
+// 			where: { isActive: "Y" },
+// 			include: [
+// 				{
+// 					model: Roles,
+// 					where: { title: "Student" },
+// 					attributes: { exclude: ["createdAt", "updatedAt", "isActive"] }
+// 				}
+// 			],
+// 			attributes: { exclude: ["createdAt", "updatedAt", "password", "isActive"] }
+// 		})
+// 			.then(async (data) => {
+// 				encryptHelper(data);
+
+// 				var list = [];
+// 				await data.forEach((user) => {
+// 					if (assignedStudentsIds.indexOf(user.id) == -1) {
+// 						list.push(user);
+// 					}
+// 				});
+// 				res.send({
+// 					notAssigned: list,
+// 					assigned: alreadyAssignedStudents
+// 				});
+// 			})
+// 			.catch((err) => {
+// 				emails.errorEmail(req, err);
+// 				res.status(500).send({
+// 					message: err.message || "Some error occurred while retrieving Users."
+// 				});
+// 			});
+// 	} catch (err) {
+// 		emails.errorEmail(req, err);
+
+// 		res.status(500).send({
+// 			message: err.message || "Some error occurred."
+// 		});
+// 	}
+// };
+
+// // Retrieve all Users Enrolled in Course.
+// exports.findAllUsersEnrolledInCourse = (req, res) => {
+// 	try {
+// 		Users.findAll({
+// 			where: { isActive: "Y" },
+// 			include: [
+// 				{
+// 					model: Roles,
+// 					attributes: [],
+// 					where: { title: "Student" }
+// 				}
+// 			],
+// 			attributes: ["id", "firstName", "lastName", "email"]
+// 		})
+// 			.then((data) => {
+// 				encryptHelper(data);
+// 				res.send(data);
+// 			})
+// 			.catch((err) => {
+// 				emails.errorEmail(req, err);
+// 				res.status(500).send({
+// 					message: err.message || "Some error occurred while retrieving Users."
+// 				});
+// 			});
+// 	} catch (err) {
+// 		emails.errorEmail(req, err);
+
+// 		res.status(500).send({
+// 			message: err.message || "Some error occurred."
+// 		});
+// 	}
+// };

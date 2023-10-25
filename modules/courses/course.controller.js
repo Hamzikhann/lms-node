@@ -5,14 +5,14 @@ const emails = require("../../utils/emails");
 const Classes = db.classes;
 const Courses = db.courses;
 
-const courseBooks=db.courseBooks;
-const courseDepartment=db.courseDepartments;
-const courseEnrollment=db.courseEnrollments;
-const courseFaqs=db.courseFaqs;
-const courseInstructor=db.courseInstructors;
-const courseObjective=db.courseObjectives;
-const courseUsefulLinks=db.courseUsefulLinks;
-const courseSyllabus=db.courseSyllabus;
+const courseBooks = db.courseBooks;
+const courseDepartment = db.courseDepartments;
+const courseEnrollment = db.courseEnrollments;
+const courseFaqs = db.courseFaqs;
+const courseInstructor = db.courseInstructors;
+const courseObjective = db.courseObjectives;
+const courseUsefulLinks = db.courseUsefulLinks;
+const courseSyllabus = db.courseSyllabus;
 
 const Joi = require("@hapi/joi");
 
@@ -20,15 +20,17 @@ exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
-            about: Joi.string().required(),
-            code: Joi.string().required(),
-            level: Joi.string().required(),
-            language: Joi.string().required()
+			about: Joi.string().required(),
+			code: Joi.string().required(),
+			level: Joi.string().required(),
+			language: Joi.string().required(),
+			classId: Joi.number().required(),
+			courseDepartmentId: Joi.number().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			emails.errorEmail(req, error);
+			// emails.errorEmail(req, error);
 
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
@@ -37,32 +39,35 @@ exports.create = async (req, res) => {
 		} else {
 			const classObj = {
 				title: req.body.title.trim(),
-                about:req.body.about,
-                code:req.body.code,
-                level:req.body.level,
-                language:req.body.language,
+				about: req.body.about,
+				code: req.body.code,
+				level: req.body.level,
+				language: req.body.language,
+				classId: req.body.classId,
+				courseDepartmentId: req.body.courseDepartmentId
 			};
 
 			const alreadyExist = await Classes.findOne({
 				where: {
-					title: classObj.title
+					title: classObj.title.trim()
 				},
 				attributes: ["id"]
 			});
 			if (alreadyExist) {
 				res.status(405).send({
 					title: "Already exist.",
-					message: "Class is already exist."
+					message: "Course is already exist."
 				});
 			} else {
 				Courses.create(classObj)
 					.then(async (result) => {
 						res.status(200).send({
-							message: "Class created successfully."
+							message: "Course created successfully.",
+							data: result
 						});
 					})
 					.catch(async (err) => {
-						emails.errorEmail(req, err);
+						// emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred while creating the Quiz."
 						});
@@ -70,7 +75,7 @@ exports.create = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		emails.errorEmail(req, err);
+		// emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."
@@ -81,46 +86,43 @@ exports.create = async (req, res) => {
 // Retrieve all Classes.
 exports.findAllCourses = (req, res) => {
 	try {
-		Classes.findAll({
+		Courses.findAll({
 			where: { isActive: "Y" },
-            include: [
-			
-                {
+			include: [
+				{
 					model: courseDepartment,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id","title", "isActive"]
+					attributes: ["id", "title", "isActive"]
 				},
-              
+
 				{
 					model: courseInstructor,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id","title", "isActive"]
-				},
-               
+					attributes: ["id", "title", "isActive"]
+				}
 			],
 			attributes: { exclude: ["createdAt", "updatedAt"] }
 		})
 			.then((data) => {
-				encryptHelper(data);
+				// encryptHelper(data);
 				res.send(data);
 			})
 			.catch((err) => {
-				emails.errorEmail(req, err);
+				// emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Classes."
 				});
 			});
 	} catch (err) {
-		emails.errorEmail(req, err);
+		// emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
-
 
 // Retrieve all Classes with courses.
 // exports.findClasseswithCourses = (req, res) => {
@@ -153,8 +155,6 @@ exports.findAllCourses = (req, res) => {
 // 	}
 // };
 
-
-
 // Retrieve Class by Id.
 exports.findCourseById = (req, res) => {
 	try {
@@ -165,49 +165,49 @@ exports.findCourseById = (req, res) => {
 					model: courseBooks,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id","title", "isActive"]
+					attributes: ["id", "title", "isActive"]
 				},
-                {
+				{
 					model: courseDepartment,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id","title", "isActive"]
+					attributes: ["id", "title", "isActive"]
 				},
-                {
+				{
 					model: courseEnrollment,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id","title", "isActive"]
+					attributes: ["id", "title", "isActive"]
 				},
-                {
+				{
 					model: courseFaqs,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id","title", "isActive"]
+					attributes: ["id", "title", "isActive"]
 				},
 				{
 					model: courseInstructor,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id","title", "isActive"]
+					attributes: ["id", "title", "isActive"]
 				},
-                {
+				{
 					model: courseObjective,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id","title", "isActive"]
+					attributes: ["id", "title", "isActive"]
 				},
-                {
+				{
 					model: courseUsefulLinks,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id","title", "isActive"]
+					attributes: ["id", "title", "isActive"]
 				},
-                {
+				{
 					model: courseSyllabus,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id","title", "isActive"]
+					attributes: ["id", "title", "isActive"]
 				}
 			],
 			attributes: { exclude: ["isActive"] }
@@ -236,10 +236,10 @@ exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
-            about: Joi.string().required(),
-            code: Joi.string().required(),
-            level: Joi.string().required(),
-            language: Joi.string().required()
+			about: Joi.string().required(),
+			code: Joi.string().required(),
+			level: Joi.string().required(),
+			language: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -266,7 +266,13 @@ exports.update = async (req, res) => {
 				});
 			} else {
 				Classes.update(
-					{ title: req.body.title.trim(),about:req.body.about,code:req.body.code,level:req.body.level,language:req.body.language },
+					{
+						title: req.body.title.trim(),
+						about: req.body.about,
+						code: req.body.code,
+						level: req.body.level,
+						language: req.body.language
+					},
 					{
 						where: { id: courseId, isActive: "Y", createdBy: userId }
 					}

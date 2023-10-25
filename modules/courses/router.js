@@ -1,47 +1,42 @@
+"use strict";
+const courseController = require("./course.controller");
+const express = require("express");
+const router = express.Router();
 
-'use strict';
-const courseController = require("./course.controller")
-const express = require('express')
-const router = express.Router()
-
-
-router.post('/', (req, res) => {
-    if (req.role == 'Admin') {
-        courseController.create(req, res);
-    } else {
-        res.status(403).send({ message: 'Forbidden Access' });
-    }
+router.post("/create", (req, res) => {
+	if (req.role == "Administrator") {
+		courseController.create(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
 });
 
-router.get('/courses', (req, res) => {
-    if (req.role == 'Admin' || req.role == 'Client' ) {
-        courseController.findAllCourses(req, res);
-    }  else {
-        res.status(403).send({ message: 'Forbidden Access' });
-    }
+router.post("/", (req, res) => {
+	if (req.role == "Administrator" || req.role == "Client") {
+		courseController.findAllCourses(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
 });
 
-
-router.get('/:courseId', (req, res) => {
-    courseController.findCourseById(req, res);
+router.get("/:courseId", (req, res) => {
+	courseController.findCourseById(req, res);
 });
 
-
-router.put('/:courseId', (req, res) => {
-    if (req.role == 'Admin') {
-        courseController.update(req, res);
-    } else {
-        res.status(403).send({ message: 'Forbidden Access' });
-    }
+router.put("/:courseId", (req, res) => {
+	if (req.role == "Admin") {
+		courseController.update(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
 });
 
-
-router.delete('/:courseId', (req, res) => {
-    if (req.role == 'Admin') {
-        courseController.delete(req, res);
-    } else {
-        res.status(403).send({ message: 'Forbidden Access' });
-    }
+router.delete("/:courseId", (req, res) => {
+	if (req.role == "Admin") {
+		courseController.delete(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
 });
 module.exports = router;
 

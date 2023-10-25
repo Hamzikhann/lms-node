@@ -8,6 +8,7 @@ const classRouteHandler = require("../modules/classes/router");
 const courseRouteHadler = require("../modules/courses/router");
 const learningPathRouteHandler = require("../modules/learningPaths/router");
 const usersRouteHandler = require("../modules/users/router");
+const courseDepartmentRouteHandler = require("../modules/courseDepartment/router");
 
 class Routes {
 	constructor(app) {
@@ -16,11 +17,12 @@ class Routes {
 	appRoutes() {
 		this.app.use("/api/auth", authenticationRouteHandler);
 		this.app.use("/api/roles", rolesRouteHandler);
-		this.app.use("/api/clients", clientsRouteHandler);
+		this.app.use("/api/clients", jwt.protect, clientsRouteHandler);
 		this.app.use("/api/learningPaths", learningPathRouteHandler);
 		this.app.use("/api/classes", classRouteHandler);
-		this.app.use("/api/courses", courseRouteHadler);
-		this.app.use("/api/users", usersRouteHandler);
+		this.app.use("/api/courses", jwt.protect, courseRouteHadler);
+		this.app.use("/api/users", jwt.protect, usersRouteHandler);
+		this.app.use("/api/courseDepartment", jwt.protect, courseDepartmentRouteHandler);
 	}
 	routesConfig() {
 		this.appRoutes();

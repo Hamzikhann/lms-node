@@ -13,12 +13,12 @@ const create = async (req, res) => {
 		const joiSchema = Joi.object({
 			name: Joi.string().required(),
 			website: Joi.string().required(),
-			logoURL: Joi.string().required()
+			logo: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			emails.errorEmail(req, error);
+			// emails.errorEmail(req, error);
 
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
@@ -40,14 +40,14 @@ const create = async (req, res) => {
 
 				Client.create(clientObj)
 					.then(async (client) => {
-						encryptHelper(client);
+						// encryptHelper(client);
 						res.status(200).send({
 							message: "Client created successfully.",
 							data: client
 						});
 					})
 					.catch(async (err) => {
-						emails.errorEmail(req, err);
+						// emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred while creating the client."
 						});
@@ -55,7 +55,7 @@ const create = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		emails.errorEmail(req, err);
+		// emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
