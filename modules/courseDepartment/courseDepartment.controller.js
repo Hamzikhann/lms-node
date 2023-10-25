@@ -6,8 +6,7 @@ const CourseDepartment = db.courseDepartments;
 const create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			courseId: Joi.number().required()
+			title: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -25,8 +24,7 @@ const create = async (req, res) => {
 						res.send({ message: "This Department Already Exists" });
 					} else {
 						let departmentObj = {
-							title: req.body.title,
-							courseId: req.body.courseId
+							title: req.body.title
 						};
 						CourseDepartment.create(departmentObj)
 							.then((response) => {
@@ -56,7 +54,7 @@ const create = async (req, res) => {
 	}
 };
 
-const getAllCourseDepartments = async (req, res) => {
+const list = async (req, res) => {
 	try {
 		CourseDepartment.findAll({ where: { isActive: "Y" } })
 			.then((response) => {
@@ -77,4 +75,4 @@ const getAllCourseDepartments = async (req, res) => {
 	}
 };
 
-module.exports = { create, getAllCourseDepartments };
+module.exports = { create, list };

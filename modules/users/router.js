@@ -3,6 +3,9 @@ const usersController = require("./user.controller");
 const express = require("express");
 const router = express.Router();
 
+const fileUpload = require("../../utils/fileUpload");
+const { upload } = fileUpload("user");
+
 router.post("/list", (req, res) => {
 	if (req.role == "Administrator") {
 		usersController.list(req, res);
@@ -13,7 +16,7 @@ router.post("/list", (req, res) => {
 	}
 });
 
-router.post("/create", (req, res) => {
+router.post("/create", upload.single("image"), (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.create(req, res);
 	} else {

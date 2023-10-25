@@ -50,7 +50,7 @@ exports.create = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			emails.errorEmail(req, error);
+			// emails.errorEmail(req, error);
 
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
@@ -74,7 +74,7 @@ exports.create = async (req, res) => {
 					.then(async (data) => {
 						await transaction.commit();
 
-						encryptHelper(data);
+						// encryptHelper(data);
 						res.status(200).send({
 							message: "Learning path created successfully.",
 							data
@@ -82,7 +82,7 @@ exports.create = async (req, res) => {
 					})
 					.catch(async (err) => {
 						if (transaction) await transaction.rollback();
-						emails.errorEmail(req, err);
+						// emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred while creating the Quiz."
 						});
@@ -90,7 +90,7 @@ exports.create = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		emails.errorEmail(req, err);
+		// emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."

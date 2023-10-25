@@ -11,7 +11,7 @@ router.post("/create", (req, res) => {
 	}
 });
 
-router.post("/", (req, res) => {
+router.post("/list", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		courseController.findAllCourses(req, res);
 	} else {
@@ -19,7 +19,7 @@ router.post("/", (req, res) => {
 	}
 });
 
-router.get("/:courseId", (req, res) => {
+router.post("/detail", (req, res) => {
 	courseController.findCourseById(req, res);
 });
 

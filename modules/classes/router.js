@@ -11,6 +11,7 @@ router.post("/list", (req, res) => {
 	}
 });
 router.post("/create", (req, res) => {
+	console.log(req.role);
 	if (req.role == "Administrator") {
 		classesController.create(req, res);
 	} else {

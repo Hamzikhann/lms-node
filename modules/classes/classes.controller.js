@@ -65,7 +65,8 @@ exports.detail = async (req, res) => {
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required()
+			title: Joi.string().required(),
+			learningPathId: Joi.number().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 

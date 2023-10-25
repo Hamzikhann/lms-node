@@ -19,7 +19,8 @@ exports.create = async (req, res) => {
 			email: Joi.string().required(),
 			roleId: Joi.string().required(),
 			password: Joi.string().required(),
-			clientId: Joi.string().required()
+			clientId: Joi.string().required(),
+			image: Joi.any()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -167,14 +168,14 @@ exports.list = (req, res) => {
 			attributes: { exclude: ["createdAt", "updatedAt", "password"] }
 		})
 			.then((data) => {
-				encryptHelper(data);
+				// encryptHelper(data);
 				res.send({
 					messgae: "Users list retrived",
 					data
 				});
 			})
 			.catch((err) => {
-				emails.errorEmail(req, err);
+				// emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Users."
 				});

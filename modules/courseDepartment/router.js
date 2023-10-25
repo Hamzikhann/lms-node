@@ -11,9 +11,9 @@ router.post("/create", (req, res) => {
 	}
 });
 
-router.post("/", (req, res) => {
+router.post("/list", (req, res) => {
 	if (req.role == "Administrator") {
-		courseDepartmentController.getAllCourseDepartments(req, res);
+		courseDepartmentController.list(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
