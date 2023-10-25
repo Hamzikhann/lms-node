@@ -7,6 +7,61 @@ const Courses = db.courses;
 
 const Joi = require("@hapi/joi");
 
+exports.list = async (req, res) => {
+	try {
+		const learningPathId = crypto.decrypt(req.body.learningPathId);
+		Classes.findAll({
+			where: { isActive: "Y", learningPathId },
+			attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+		})
+			.then((data) => {
+				encryptHelper(data);
+				res.send({
+					message: "Classes retrieved",
+					data
+				});
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred while retrieving Classes."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+exports.detail = async (req, res) => {
+	try {
+		Classes.findOne({
+			where: { id: crypto.decrypt(req.params.classId), isActive: "Y" },
+			attributes: { exclude: ["isActive"] }
+		})
+			.then((data) => {
+				encryptHelper(data);
+				res.send({
+					message: "Class retrieved",
+					data
+				});
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred while retrieving Classes."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
@@ -34,13 +89,14 @@ exports.create = async (req, res) => {
 			if (alreadyExist) {
 				res.status(405).send({
 					title: "Already exist.",
-					message: "Class is already exist."
+					message: "Class with this title already exist."
 				});
 			} else {
 				Classes.create(classObj)
-					.then(async (result) => {
+					.then(async (data) => {
 						res.status(200).send({
-							message: "Class created successfully."
+							message: "Class created successfully.",
+							data
 						});
 					})
 					.catch(async (err) => {
@@ -59,68 +115,6 @@ exports.create = async (req, res) => {
 		});
 	}
 };
-
-exports.findClasseswithCourses = (req, res) => {
-	try {
-		Classes.findAll({
-			where: { isActive: "Y" },
-			include: {
-				model: Courses,
-				where: { isActive: "Y" },
-				attributes: ["id", "title"]
-			},
-			attributes: { exclude: ["createdAt", "updatedAt"] }
-		})
-			.then((data) => {
-				encryptHelper(data);
-				res.send({
-					message: "Classes retrieved",
-					data
-				});
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-				res.status(500).send({
-					message: err.message || "Some error occurred while retrieving Classes."
-				});
-			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-exports.findClassById = (req, res) => {
-	try {
-		Classes.findOne({
-			where: { id: crypto.decrypt(req.params.classId), isActive: "Y" },
-			attributes: { exclude: ["isActive"] }
-		})
-			.then((data) => {
-				encryptHelper(data);
-				res.send({
-					message: "Class retrieved",
-					data
-				});
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-				res.status(500).send({
-					message: err.message || "Some error occurred while retrieving Classes."
-				});
-			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
@@ -136,7 +130,6 @@ exports.update = async (req, res) => {
 			});
 		} else {
 			const classId = crypto.decrypt(req.params.classId);
-			const userId = crypto.decrypt(req.userId);
 
 			const alreadyExist = await Classes.findOne({
 				where: {
@@ -147,15 +140,10 @@ exports.update = async (req, res) => {
 			if (alreadyExist) {
 				res.status(405).send({
 					title: "Already exist.",
-					message: "Class is already exist with same name."
+					message: "Class already exist with same name."
 				});
 			} else {
-				Classes.update(
-					{ title: req.body.title.trim(), updatedBy: crypto.decrypt(req.userId) },
-					{
-						where: { id: classId, isActive: "Y", createdBy: userId }
-					}
-				)
+				Classes.update({ title: req.body.title.trim() }, { where: { id: classId, isActive: "Y" } })
 					.then((num) => {
 						if (num == 1) {
 							res.send({
@@ -183,26 +171,23 @@ exports.update = async (req, res) => {
 		});
 	}
 };
-
-exports.delete = (req, res) => {
+exports.delete = async (req, res) => {
 	try {
 		const classId = crypto.decrypt(req.params.classId);
-		const userId = crypto.decrypt(req.userId);
-
 		Classes.update(
 			{ isActive: "N" },
 			{
-				where: { id: classId, createdBy: userId }
+				where: { id: classId }
 			}
 		)
 			.then(async (num) => {
 				if (num == 1) {
 					res.send({
-						message: "Class was deleted successfully."
+						message: "Class deleted successfully."
 					});
 				} else {
 					res.send({
-						message: `Cannot delete Class. Maybe Class was not found!`
+						message: `Cannot delete Class. Maybe Class not found!`
 					});
 				}
 			})

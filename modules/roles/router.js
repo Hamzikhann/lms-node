@@ -3,7 +3,7 @@ const rolesController = require("./roles.controller");
 const express = require("express");
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.post("/", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		rolesController.findAll(req, res);
 	} else {
