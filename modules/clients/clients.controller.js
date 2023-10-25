@@ -5,17 +5,16 @@ const crypto = require("../../utils/crypto");
 
 const Joi = require("@hapi/joi");
 
-const Client=db.clients
-const Users=db.users
+const Client = db.clients;
+const Users = db.users;
 
-const create=async(req,res)=>{
-    try {
-        const joiSchema = Joi.object({
+const create = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
 			name: Joi.string().required(),
-            website: Joi.string().required(),
-            logoURL: Joi.string().required(),
+			website: Joi.string().required(),
+			logoURL: Joi.string().required()
 		});
-		// console.log(req.body);
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
@@ -24,72 +23,65 @@ const create=async(req,res)=>{
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
-			}); 
-		} else{
+			});
+		} else {
+			const client = await Client.findOne({ where: { name: req.body.name, isActive: "Y" } });
 
-            const client=await Client.findOne({where:{website:req.body.websit.trim(),isActive:"Y"}})
-
-            if(client){
-                res.status(401).send({
-					mesage: "Client already registered."
+			if (client) {
+				res.status(401).send({
+					mesage: "Client with this name already registered."
 				});
-            }else{
+			} else {
+				const clientObj = {
+					name: req.body.name,
+					website: req.body.website,
+					logoURL: req.body.logo
+				};
 
-                const clientObj={
-                    name:req.body.name,
-                    website:req.body.website,
-                    logoURL:req.body.logo
-                }
-                let transaction = await sequelize.transaction();
-
-                Client.create(clientObj,{transaction}
-                    .then(async(client)=>{
-                        await transaction.commit();
-	
-                        res.status(200).send({
-                    
-                            message: "Client is created successfully."
-                        });
-
-
-                    }))
-                    .catch(async (err) => {
-						if (transaction) await transaction.rollback();
+				Client.create(clientObj)
+					.then(async (client) => {
+						encryptHelper(client);
+						res.status(200).send({
+							message: "Client created successfully.",
+							data: client
+						});
+					})
+					.catch(async (err) => {
 						emails.errorEmail(req, err);
 						res.status(500).send({
-							message: err.message || "Some error occurred while creating the Quiz."
+							message: err.message || "Some error occurred while creating the client."
 						});
 					});
-            }
-
-        }
-    } catch (err) {
-        emails.errorEmail(req, err);
-
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
-    }
-}
+	}
+};
 
-const getAllClients=async(req,res)=>{
-    try {
-        Client.findAll({where:{isActive:"Y"},
-        include:[
-            {
-                models:Users,
-                where: { isActive: "Y" },
-                attributes: { exclude: ["createdAt", "updatedAt", "isActive"] }
+const getAllClients = async (req, res) => {
+	try {
+		Client.findAll({
+			where: { isActive: "Y" },
+			attributes: { exclude: ["createdAt", "updatedAt", "isActive"] }
+		})
+			.then((data) => {
+				encryptHelper(data);
+				res.send({
+					message: "Clients list retrieved",
+					data
+				});
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred while retrieving clients."
+				});
+			});
+	} catch (err) {}
+};
 
-            }
-        ],
-        required: false,
-        attributes: { exclude: ["createdAt", "updatedAt", "isActive"] }
-
-    })
-    } catch (err) {
-        
-    }
-}
-
-module.exports={create,getAllClients}
+module.exports = { create, getAllClients };
