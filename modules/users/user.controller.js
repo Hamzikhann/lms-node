@@ -101,8 +101,8 @@ exports.updateImage = async (req, res) => {
 			const file = req.file;
 			// console.log(file);
 			let userId = req.body.userId;
-			let userImage = req.file.filename;
-			var updateUser = await Users.update(userImage, { where: { id: userId, isActive: "Y" } });
+			let image = req.file.filename;
+			var updateUser = await Users.update({ image }, { where: { id: userId, isActive: "Y" } });
 
 			if (updateUser) {
 				res.status(200).send({ message: "User Profile Image is Updated" });

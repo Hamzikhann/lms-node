@@ -76,9 +76,9 @@ exports.updateImage = async (req, res) => {
 			// console.log(file);
 			let clientId = req.body.clientId;
 			let logoURL = req.file.filename;
-			var updateUser = await Users.update(logoURL, { where: { id: clientId, isActive: "Y" } });
+			var updateClient = await Client.update({ logoURL }, { where: { id: clientId, isActive: "Y" } });
 
-			if (updateUser) {
+			if (updateClient) {
 				res.status(200).send({ message: "Client Logo Image is Updated" });
 			}
 		}

@@ -38,6 +38,7 @@ router.post("/update", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+router.post("/updateImage", upload.single("image"), clientController.updateImage);
 
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator") {

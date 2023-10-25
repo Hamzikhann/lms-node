@@ -25,8 +25,8 @@ exports.create = async (req, res) => {
 			code: Joi.string().required(),
 			level: Joi.string().required(),
 			language: Joi.string().required(),
-			classId: Joi.number().required(),
-			courseDepartmentId: Joi.number().required()
+			classId: Joi.string().required(),
+			courseDepartmentId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -44,8 +44,8 @@ exports.create = async (req, res) => {
 				code: req.body.code,
 				level: req.body.level,
 				language: req.body.language,
-				classId: req.body.classId,
-				courseDepartmentId: req.body.courseDepartmentId
+				classId: crypto.decrypt(req.body.classId),
+				courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId)
 			};
 
 			const alreadyExist = await Classes.findOne({
@@ -107,7 +107,7 @@ exports.findAllCourses = (req, res) => {
 			attributes: { exclude: ["createdAt", "updatedAt"] }
 		})
 			.then((data) => {
-				// encryptHelper(data);
+				encryptHelper(data);
 				res.send(data);
 			})
 			.catch((err) => {
@@ -160,7 +160,7 @@ exports.findAllCourses = (req, res) => {
 exports.findCourseById = (req, res) => {
 	try {
 		Courses.findOne({
-			where: { id: req.body.courseId, isActive: "Y" },
+			where: { id: crypto.decrypt(req.body.courseId), isActive: "Y" },
 			include: [
 				{
 					model: courseBooks,
@@ -222,17 +222,17 @@ exports.findCourseById = (req, res) => {
 			attributes: { exclude: ["isActive"] }
 		})
 			.then((data) => {
-				// encryptHelper(data);
+				encryptHelper(data);
 				res.send(data);
 			})
 			.catch((err) => {
-				// emails.errorEmail(req, err);
+				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Classes."
 				});
 			});
 	} catch (err) {
-		// emails.errorEmail(req, err);
+		emails.errorEmail(req, err);
 
 		res.status(500).send({
 			message: err.message || "Some error occurred."
