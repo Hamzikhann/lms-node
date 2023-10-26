@@ -13,7 +13,6 @@ function fileUpload(dest) {
 	const upload = multer({
 		storage: fileStorage,
 		fileFilter: (req, files, cb) => {
-			// console.log(req.body, files, 456);
 			if (files.mimetype == "image/png" || files.mimetype === "image/jpeg" || files.mimetype == "text/plain") {
 				cb(null, true);
 			} else {

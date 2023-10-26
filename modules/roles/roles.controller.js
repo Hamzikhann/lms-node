@@ -1,14 +1,17 @@
 const db = require("../../models");
 const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
+const Op = db.Sequelize.Op;
 
 const Roles = db.roles;
-const Joi = require("@hapi/joi");
 
-exports.findAll = (req, res) => {
+exports.list = (req, res) => {
 	try {
 		Roles.findAll({
-			where: { isActive: "Y" },
+			where: {
+				isActive: "Y",
+				id: { [Op.ne]: 1 }
+			},
 			attributes: ["id", "title"]
 		})
 			.then((data) => {

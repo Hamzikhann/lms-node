@@ -7,8 +7,6 @@ const Users = db.users;
 const UserProfile = db.userProfile;
 const Roles = db.roles;
 
-const Op = db.Sequelize.Op;
-
 exports.login = async (req, res) => {
 	try {
 		const userExist = await Users.findOne({
@@ -37,7 +35,6 @@ exports.login = async (req, res) => {
 				attributes: ["id", "firstName", "lastName", "email"]
 			});
 			if (user) {
-				console.log(user);
 				encryptHelper(user);
 				const token = jwt.signToken({
 					userId: user.id,
@@ -48,7 +45,7 @@ exports.login = async (req, res) => {
 				});
 				res.status(200).send({
 					messgae: "Logged in successful",
-					data: user,
+					data: { user },
 					token
 				});
 			} else {

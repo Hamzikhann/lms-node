@@ -1,15 +1,16 @@
+const Joi = require("@hapi/joi");
+
 const db = require("../../models");
 const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
+const { sequelize } = require("../../models");
 
 const Users = db.users;
+const UserDepartments = db.userDepartments;
+const UserDesignations = db.userDesignations;
 const Roles = db.roles;
 const UserProfile = db.userProfile;
-const UserDepartments = db.userDepartments;
-const Op = db.Sequelize.Op;
-const Joi = require("@hapi/joi");
-const { sequelize } = require("../../models");
 
 exports.create = async (req, res) => {
 	try {
@@ -17,9 +18,12 @@ exports.create = async (req, res) => {
 			firstName: Joi.string().required(),
 			lastName: Joi.string().required(),
 			email: Joi.string().required(),
-			roleId: Joi.string().required(),
 			password: Joi.string().required(),
-			clientId: Joi.string().required()
+			roleId: Joi.string().required(),
+			clientId: Joi.string().required(),
+			managerId: Joi.string().optional().allow(null).allow(""),
+			departmentId: Joi.string().optional().allow(null).allow(""),
+			designationId: Joi.string().optional().allow(null).allow("")
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -42,7 +46,86 @@ exports.create = async (req, res) => {
 					email: req.body.email,
 					password: req.body.password,
 					clientId: crypto.decrypt(req.body.clientId),
-					roleId: crypto.decrypt(req.body.roleId)
+					roleId: crypto.decrypt(req.body.roleId),
+					managerId: req.body.managerId ? crypto.decrypt(req.body.managerId) : null,
+					departmentId: req.body.departmentId ? crypto.decrypt(req.body.departmentId) : null,
+					designationId: req.body.designationId ? crypto.decrypt(req.body.designationId) : null
+				};
+
+				let transaction = await sequelize.transaction();
+				Users.create(userObj, { transaction })
+					.then(async (user) => {
+						UserProfile.create({ userId: user.id }, { transaction })
+							.then(async (profile) => {
+								await transaction.commit();
+
+								encryptHelper(user);
+								res.status(200).send({
+									message: "User created successfully.",
+									data: user
+								});
+							})
+							.catch(async (err) => {
+								if (transaction) await transaction.rollback();
+								emails.errorEmail(req, err);
+								res.status(500).send({
+									message: err.message || "Some error occurred while creating the Quiz."
+								});
+							});
+					})
+					.catch(async (err) => {
+						if (transaction) await transaction.rollback();
+						emails.errorEmail(req, err);
+						res.status(500).send({
+							message: err.message || "Some error occurred while creating the Quiz."
+						});
+					});
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.createByClient = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			firstName: Joi.string().required(),
+			lastName: Joi.string().required(),
+			email: Joi.string().required(),
+			password: Joi.string().required(),
+			managerId: Joi.string().optional().allow(null).allow(""),
+			departmentId: Joi.string().optional().allow(null).allow(""),
+			designationId: Joi.string().optional().allow(null).allow("")
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const user = await Users.findOne({ where: { email: req.body.email?.trim(), isActive: "Y" } });
+
+			if (user) {
+				res.status(401).send({
+					mesage: "Email already registered."
+				});
+			} else {
+				const userObj = {
+					firstName: req.body.firstName?.trim(),
+					lastName: req.body.lastName?.trim(),
+					email: req.body.email,
+					password: req.body.password,
+					clientId: crypto.decrypt(req.clientId),
+					managerId: req.body.managerId ? crypto.decrypt(req.body.managerId) : null,
+					departmentId: req.body.departmentId ? crypto.decrypt(req.body.departmentId) : null,
+					designationId: req.body.designationId ? crypto.decrypt(req.body.designationId) : null,
+					roleId: 3
 				};
 
 				let transaction = await sequelize.transaction();
@@ -183,7 +266,7 @@ exports.update = async (req, res) => {
 	}
 };
 
-exports.list = (req, res) => {
+exports.listUsers = (req, res) => {
 	try {
 		Users.findAll({
 			where: { isActive: "Y" },
@@ -191,6 +274,14 @@ exports.list = (req, res) => {
 				{
 					model: UserProfile,
 					attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+				},
+				{
+					model: UserDepartments,
+					attributes: ["title"]
+				},
+				{
+					model: UserDesignations,
+					attributes: ["title"]
 				},
 				{
 					model: Roles,
@@ -220,7 +311,7 @@ exports.list = (req, res) => {
 	}
 };
 
-exports.listForClient = (req, res) => {
+exports.listUsersForClient = (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
 		Users.findAll({
@@ -229,6 +320,14 @@ exports.listForClient = (req, res) => {
 				{
 					model: UserProfile,
 					attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+				},
+				{
+					model: UserDepartments,
+					attributes: ["title"]
+				},
+				{
+					model: UserDesignations,
+					attributes: ["title"]
 				},
 				{
 					model: Roles,
@@ -248,6 +347,60 @@ exports.listForClient = (req, res) => {
 				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Users."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.listDepartments = (req, res) => {
+	try {
+		UserDepartments.findAll({
+			where: { isActive: "Y" },
+			attributes: ["id", "title"]
+		})
+			.then((data) => {
+				encryptHelper(data);
+				res.send({
+					messgae: "Departments list retrieved",
+					data
+				});
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred while retrieving Departments."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.listDesignations = (req, res) => {
+	try {
+		UserDesignations.findAll({
+			where: { isActive: "Y" },
+			attributes: ["id", "title"]
+		})
+			.then((data) => {
+				encryptHelper(data);
+				res.send({
+					messgae: "Designations list retrieved",
+					data
+				});
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred while retrieving Designations."
 				});
 			});
 	} catch (err) {
