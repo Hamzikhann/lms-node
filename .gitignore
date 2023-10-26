@@ -7,6 +7,12 @@
 node_modules/
 dist/
 
+# Custom files
+config/config.json
+uploads/clients/
+uploads/documents/
+uploads/users/
+
 # Compiled Java class files
 *.class
 

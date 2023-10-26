@@ -1,19 +1,21 @@
-const courseBooksController = require("./courseBooks.controller");
+"use strict";
+
+const faqsController = require("./courseFaqs.controller");
 
 const express = require("express");
 const router = express.Router();
 
-router.post("/create", (req, res) => {
+router.post("/list", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		courseBooksController.create(req, res);
+		faqsController.list(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
 
-router.post("/list", (req, res) => {
+router.post("/create", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		courseBooksController.list(req, res);
+		faqsController.create(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
@@ -21,7 +23,7 @@ router.post("/list", (req, res) => {
 
 router.post("/update", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		courseBooksController.update(req, res);
+		faqsController.update(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
@@ -29,10 +31,9 @@ router.post("/update", (req, res) => {
 
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		courseBooksController.delete(req, res);
+		faqsController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-
 module.exports = router;
