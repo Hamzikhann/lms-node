@@ -291,7 +291,7 @@ exports.listUsers = (req, res) => {
 			attributes: { exclude: ["createdAt", "updatedAt", "password"] }
 		})
 			.then((data) => {
-				// encryptHelper(data);
+				encryptHelper(data);
 				res.send({
 					messgae: "Users list retrived",
 					data
