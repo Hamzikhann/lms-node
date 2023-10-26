@@ -25,7 +25,7 @@ class Routes {
 		this.app.use("/api/learning-paths/classes", jwt.protect, classRouteHandler);
 		this.app.use("/api/courses", jwt.protect, courseRouteHadler);
 		this.app.use("/api/users", jwt.protect, usersRouteHandler);
-		this.app.use("/api/courseDepartment", jwt.protect, courseDepartmentRouteHandler);
+		this.app.use("/api/course-department", jwt.protect, courseDepartmentRouteHandler);
 		this.app.use("/api/course-books", jwt.protect, courseBooksRouteHandler);
 		this.app.use("/api/useful-links", jwt.protect, courseUsefulLinksRouteHandler);
 		this.app.use("/api/course-faqs", jwt.protect, couresFaqsRouteHandler);
