@@ -29,4 +29,12 @@ router.post("/update", (req, res) => {
 	}
 });
 
+router.post("/delete", (req, res) => {
+	if (req.role == "Administrator" || req.role == "Client") {
+		usefulLinksController.delete(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
 module.exports = router;

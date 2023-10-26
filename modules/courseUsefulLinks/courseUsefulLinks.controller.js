@@ -116,4 +116,44 @@ const update = async (req, res) => {
 	}
 };
 
+exports.delete = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			linkId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const linkId = crypto.decrypt(req.body.linkId);
+
+			const linksObj = {
+				isActive: "N"
+			};
+
+			const link = await CourseFaqs.update(linksObj, { where: { id: linkId } });
+
+			if (link == 1) {
+				res.status(200).send({ message: "This Link is deleted", data: link });
+			} else {
+				emails.errorEmail(req, err);
+
+				res.status(500).send({
+					message: "Some error occurred."
+				});
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 module.exports = { create, list, update };

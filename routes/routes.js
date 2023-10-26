@@ -11,6 +11,7 @@ const usersRouteHandler = require("../modules/users/router");
 const courseDepartmentRouteHandler = require("../modules/courseDepartment/router");
 const courseBooksRouteHandler = require("../modules/courseBooks/router");
 const courseUsefulLinksRouteHandler = require("../modules/courseUsefulLinks/router");
+const couresFaqsRouteHandler = require("../modules/courseFaqs/router");
 
 class Routes {
 	constructor(app) {
@@ -27,6 +28,7 @@ class Routes {
 		this.app.use("/api/courseDepartment", jwt.protect, courseDepartmentRouteHandler);
 		this.app.use("/api/course-books", jwt.protect, courseBooksRouteHandler);
 		this.app.use("/api/useful-links", jwt.protect, courseUsefulLinksRouteHandler);
+		this.app.use("/api/course-faqs", jwt.protect, couresFaqsRouteHandler);
 	}
 	routesConfig() {
 		this.appRoutes();
