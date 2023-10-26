@@ -1,6 +1,7 @@
 const db = require("../../models");
 const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
+const { sequelize } = require("../../models");
 
 const Classes = db.classes;
 const Courses = db.courses;
@@ -15,7 +16,6 @@ const courseUsefulLinks = db.courseUsefulLinks;
 const courseSyllabus = db.courseSyllabus;
 const courseModule = db.courseModules;
 const Joi = require("@hapi/joi");
-const courseModules = require("../../models/courseModules");
 
 exports.create = async (req, res) => {
 	try {
@@ -26,7 +26,9 @@ exports.create = async (req, res) => {
 			level: Joi.string().required(),
 			language: Joi.string().required(),
 			classId: Joi.string().required(),
-			courseDepartmentId: Joi.string().required()
+			courseDepartmentId: Joi.string().required(),
+			syllabusTitle: Joi.string().required(),
+			syllabusDescription: Joi.string().required().allow("")
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -38,7 +40,7 @@ exports.create = async (req, res) => {
 				message: message
 			});
 		} else {
-			const classObj = {
+			const courseObj = {
 				title: req.body.title.trim(),
 				about: req.body.about,
 				code: req.body.code,
@@ -48,9 +50,9 @@ exports.create = async (req, res) => {
 				courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId)
 			};
 
-			const alreadyExist = await Classes.findOne({
+			const alreadyExist = await Courses.findOne({
 				where: {
-					title: classObj.title.trim()
+					title: courseObj.title.trim()
 				},
 				attributes: ["id"]
 			});
@@ -60,14 +62,37 @@ exports.create = async (req, res) => {
 					message: "Course is already exist."
 				});
 			} else {
-				Courses.create(classObj)
+				let transaction = await sequelize.transaction();
+
+				Courses.create(courseObj, { transaction })
 					.then(async (result) => {
-						res.status(200).send({
-							message: "Course created successfully.",
-							data: result
-						});
+						const syllabus = {
+							title: req.body.syllabusTitle,
+							description: req.body.syllabusDescription,
+							courseId: result.id
+						};
+						courseSyllabus
+							.create(syllabus, { transaction })
+							.then(async (response) => {
+								await transaction.commit();
+								encryptHelper(response);
+								encryptHelper(result);
+								res.status(200).send({
+									message: "Course created successfully.",
+									data: result
+								});
+							})
+							.catch(async (err) => {
+								if (transaction) await transaction.rollback();
+								emails.errorEmail(req, err);
+								res.status(500).send({
+									message: err.message || "Some error occurred while creating the Quiz."
+								});
+							});
 					})
 					.catch(async (err) => {
+						if (transaction) await transaction.rollback();
+
 						emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred while creating the Quiz."

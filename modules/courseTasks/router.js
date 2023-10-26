@@ -2,11 +2,11 @@
 
 const express = require("express");
 const router = express.Router();
-const courseBooksController = require("./courseBooks.controller");
+const courseTaskController = require("./courseTask.controller");
 
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		courseBooksController.create(req, res);
+		courseTaskController.create(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
@@ -14,7 +14,15 @@ router.post("/create", (req, res) => {
 
 router.post("/list", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		courseBooksController.list(req, res);
+		courseTaskController.list(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
+router.post("/detail", (req, res) => {
+	if (req.role == "Administrator" || req.role == "Client") {
+		courseTaskController.detail(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
@@ -22,7 +30,7 @@ router.post("/list", (req, res) => {
 
 router.post("/update", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		courseBooksController.update(req, res);
+		courseTaskController.update(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
@@ -30,7 +38,7 @@ router.post("/update", (req, res) => {
 
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		courseBooksController.delete(req, res);
+		courseTaskController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
