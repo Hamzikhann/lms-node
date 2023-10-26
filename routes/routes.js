@@ -19,7 +19,7 @@ class Routes {
 	}
 	appRoutes() {
 		this.app.use("/api/auth", authenticationRouteHandler);
-		this.app.use("/api/roles", rolesRouteHandler);
+		this.app.use("/api/roles", jwt.protect, rolesRouteHandler);
 		this.app.use("/api/clients", jwt.protect, clientsRouteHandler);
 		this.app.use("/api/learning-paths", jwt.protect, learningPathRouteHandler);
 		this.app.use("/api/learning-paths/classes", jwt.protect, classRouteHandler);

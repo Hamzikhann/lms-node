@@ -83,6 +83,76 @@ exports.create = async (req, res) => {
 	}
 };
 
+exports.createByClient = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			firstName: Joi.string().required(),
+			lastName: Joi.string().required(),
+			email: Joi.string().required(),
+			password: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const user = await Users.findOne({ where: { email: req.body.email?.trim(), isActive: "Y" } });
+
+			if (user) {
+				res.status(401).send({
+					mesage: "Email already registered."
+				});
+			} else {
+				const userObj = {
+					firstName: req.body.firstName?.trim(),
+					lastName: req.body.lastName?.trim(),
+					email: req.body.email,
+					password: req.body.password,
+					clientId: crypto.decrypt(req.clientId),
+					roleId: 3
+				};
+
+				let transaction = await sequelize.transaction();
+				Users.create(userObj, { transaction })
+					.then(async (user) => {
+						UserProfile.create({ userId: user.id }, { transaction })
+							.then(async (profile) => {
+								await transaction.commit();
+
+								encryptHelper(user);
+								res.status(200).send({
+									message: "User created successfully.",
+									data: user
+								});
+							})
+							.catch(async (err) => {
+								if (transaction) await transaction.rollback();
+								emails.errorEmail(req, err);
+								res.status(500).send({
+									message: err.message || "Some error occurred while creating the Quiz."
+								});
+							});
+					})
+					.catch(async (err) => {
+						if (transaction) await transaction.rollback();
+						emails.errorEmail(req, err);
+						res.status(500).send({
+							message: err.message || "Some error occurred while creating the Quiz."
+						});
+					});
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 exports.updateImage = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
