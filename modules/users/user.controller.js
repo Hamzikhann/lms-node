@@ -7,7 +7,6 @@ const Users = db.users;
 const Roles = db.roles;
 const UserProfile = db.userProfile;
 const UserDepartments = db.userDepartments;
-const Op = db.Sequelize.Op;
 const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
 

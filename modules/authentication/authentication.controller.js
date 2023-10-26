@@ -7,8 +7,6 @@ const Users = db.users;
 const UserProfile = db.userProfile;
 const Roles = db.roles;
 
-const Op = db.Sequelize.Op;
-
 exports.login = async (req, res) => {
 	try {
 		const userExist = await Users.findOne({
