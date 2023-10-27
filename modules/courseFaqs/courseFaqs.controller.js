@@ -21,14 +21,35 @@ const create = (req, res) => {
 				message: message
 			});
 		} else {
-			const faqsObj = {
-				title: req.body.title,
-				discription: req.body.discription,
-				courseId: crypto.decrypt(req.body.courseId)
-			};
-			CourseFaqs.create(faqsObj)
+			CourseFaqs.findOne({
+				where: {
+					title: req.body.title,
+					discription: req.body.discription,
+					courseId: crypto.decrypt(req.body.courseId)
+				}
+			})
 				.then((response) => {
-					res.status(200).send({ message: "FAQS of Course are created", data: response });
+					if (response) {
+						res.status(200).send({ message: "This Course FQA already exists." });
+					} else {
+						const faqsObj = {
+							title: req.body.title,
+							discription: req.body.discription,
+							courseId: crypto.decrypt(req.body.courseId)
+						};
+
+						CourseFaqs.create(faqsObj)
+							.then((response) => {
+								res.status(200).send({ message: "FAQS of Course are created", data: response });
+							})
+							.catch((err) => {
+								emails.errorEmail(req, err);
+
+								res.status(500).send({
+									message: "Some error occurred."
+								});
+							});
+					}
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);

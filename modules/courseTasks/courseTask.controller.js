@@ -29,46 +29,68 @@ const create = async (req, res) => {
 				message: message
 			});
 		} else {
-			const taskObj = {
-				title: req.body.title,
-				description: req.body.description,
-				estimatedTime: req.body.estimatedTime,
-				courseModuleId: crypto.decrypt(req.body.courseModuleId),
-				courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId)
-			};
+			CourseTasks.findOne({
+				where: {
+					title: req.body.title.trim(),
+					description: req.body.description.trim(),
+					estimatedTime: req.body.estimatedTime,
+					courseModuleId: crypto.decrypt(req.body.courseModuleId),
+					courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId)
+				}
+			})
+				.then(async (response) => {
+					if (response) {
+						res.status(200).send({ message: "This Course Task already exists." });
+					} else {
+						const taskObj = {
+							title: req.body.title,
+							description: req.body.description,
+							estimatedTime: req.body.estimatedTime,
+							courseModuleId: crypto.decrypt(req.body.courseModuleId),
+							courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId)
+						};
+						let transaction = await sequelize.transaction();
 
-			let transaction = await sequelize.transaction();
+						CourseTasks.create(taskObj, { transaction })
+							.then((task) => {
+								const contentObj = {
+									description: req.body.contentDescription,
+									videoLink: req.body.contentVideolink,
+									handoutLink: req.body.contentHandouts,
+									courseTaskId: task.id
+								};
 
-			CourseTasks.create(taskObj, { transaction })
-				.then((task) => {
-					const contentObj = {
-						description: req.body.contentDescription,
-						videoLink: req.body.contentVideolink,
-						handoutLink: req.body.contentHandouts,
-						courseTaskId: task.id
-					};
-
-					CourseTaskContent.create(contentObj, { transaction })
-						.then((content) => {
-							encryptHelper(content);
-							encryptHelper(task);
-							res.status(200).send({
-								message: "Course Task and Course Content are created",
-								courseTask: task,
-								courseContent: content
+								CourseTaskContent.create(contentObj, { transaction })
+									.then(async (content) => {
+										await transaction.commit();
+										encryptHelper(content);
+										encryptHelper(task);
+										res.status(200).send({
+											message: "Course Task and Course Content are created",
+											courseTask: task,
+											courseContent: content
+										});
+									})
+									.catch(async (err) => {
+										if (transaction) await transaction.rollback();
+										emails.errorEmail(req, err);
+										res.status(500).send({
+											message: err.message || "Some error occurred while creating the Quiz."
+										});
+									});
+							})
+							.catch(async (err) => {
+								if (transaction) await transaction.rollback();
+								emails.errorEmail(req, err);
+								res.status(500).send({
+									message: err.message || "Some error occurred while creating the Quiz."
+								});
 							});
-						})
-						.catch(async (err) => {
-							if (transaction) await transaction.rollback();
-							emails.errorEmail(req, err);
-							res.status(500).send({
-								message: err.message || "Some error occurred while creating the Quiz."
-							});
-						});
+					}
 				})
-				.catch(async (err) => {
-					if (transaction) await transaction.rollback();
+				.catch((err) => {
 					emails.errorEmail(req, err);
+
 					res.status(500).send({
 						message: err.message || "Some error occurred while creating the Quiz."
 					});

@@ -22,21 +22,42 @@ const create = (req, res) => {
 				message: message
 			});
 		} else {
-			const linksObj = {
-				title: req.body.title,
-				description: req.body.description,
-				linkUrl: req.body.linkUrl,
-				courseId: crypto.decrypt(req.body.courseId)
-			};
-			UsefulLinks.create(linksObj)
+			UsefulLinks.findOne({
+				where: {
+					title: req.body.title,
+					description: req.body.description,
+					linkUrl: req.body.linkUrl,
+					courseId: crypto.decrypt(req.body.courseId)
+				}
+			})
 				.then((response) => {
-					res.status(200).send({ message: "Links of Course are created", data: response });
+					if (response) {
+						res.status(200).send({ message: "Course Useful links already exists." });
+					} else {
+						const linksObj = {
+							title: req.body.title,
+							description: req.body.description,
+							linkUrl: req.body.linkUrl,
+							courseId: crypto.decrypt(req.body.courseId)
+						};
+						UsefulLinks.create(linksObj)
+							.then((response) => {
+								res.status(200).send({ message: "Links of Course are created", data: response });
+							})
+							.catch((err) => {
+								emails.errorEmail(req, err);
+
+								res.status(500).send({
+									message: "Some error occurred."
+								});
+							});
+					}
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
 
 					res.status(500).send({
-						message: "Some error occurred."
+						message: err.message || "Some error occurred."
 					});
 				});
 		}

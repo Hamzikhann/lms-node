@@ -20,19 +20,37 @@ const create = (req, res) => {
 				message: message
 			});
 		} else {
-			const objectiveObj = {
-				description: req.body.description,
-				courseId: crypto.decrypt(req.body.courseId)
-			};
-			CourseObjective.create(objectiveObj)
-				.then((response) => {
-					res.status(200).send({ message: "Objectives of Course are created", data: response });
+			CourseObjective.findOne({
+				where: {
+					description: req.body.description,
+					courseId: crypto.decrypt(req.body.courseId)
+				}
+			})
+				.then((result) => {
+					if (result) {
+						res.status(200).send({ message: "Course objective already exists.", data: result });
+					} else {
+						const objectiveObj = {
+							description: req.body.description,
+							courseId: crypto.decrypt(req.body.courseId)
+						};
+
+						CourseObjective.create(objectiveObj)
+							.then((response) => {
+								res.status(200).send({ message: "Objective of Course is created", data: response });
+							})
+							.catch((err) => {
+								emails.errorEmail(req, err);
+								res.status(500).send({
+									message: "Some error occurred."
+								});
+							});
+					}
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
-
 					res.status(500).send({
-						message: "Some error occurred."
+						message: err.message || "Some error occurred."
 					});
 				});
 		}

@@ -24,23 +24,47 @@ const create = async (req, res) => {
 				message: message
 			});
 		} else {
-			let bookObj = {
-				title: req.body.title,
-				author: req.body.author,
-				edition: req.body.edition,
-				publisher: req.body.publisher,
-				bookUrl: req.body.bookUrl,
-				courseId: crypto.decrypt(req.body.courseId)
-			};
-			let coursebook = await Books.create(bookObj);
+			Books.findOne({
+				where: {
+					title: req.body.title,
+					author: req.body.author,
+					edition: req.body.edition,
+					publisher: req.body.publisher,
+					bookUrl: req.body.bookUrl,
+					courseId: crypto.decrypt(req.body.courseId)
+				}
+			})
+				.then(async (response) => {
+					if (response) {
+						res.status(200).send({ message: "This Course Book already exists." });
+					} else {
+						let bookObj = {
+							title: req.body.title,
+							author: req.body.author,
+							edition: req.body.edition,
+							publisher: req.body.publisher,
+							bookUrl: req.body.bookUrl,
+							courseId: crypto.decrypt(req.body.courseId)
+						};
 
-			if (coursebook) {
-				res.status(200).send({ message: "Course Book is uploaded", data: coursebook });
-			} else {
-				res.status(500).send({
-					message: "Some error occurred."
+						let coursebook = await Books.create(bookObj);
+
+						if (coursebook) {
+							res.status(200).send({ message: "Course Book is uploaded", data: coursebook });
+						} else {
+							res.status(500).send({
+								message: "Some error occurred."
+							});
+						}
+					}
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
 				});
-			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
