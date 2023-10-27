@@ -164,7 +164,7 @@ module.exports = {
 			"clients",
 			[
 				{ name: "Oxibit Technologies", website: "https://oxibit.com", createdAt: date, updatedAt: date },
-				{ name: "Health at Scale", website: "https://oxibit.com", createdAt: date, updatedAt: date }
+				{ name: "Health at Scale", website: "https://healthatscale.com", createdAt: date, updatedAt: date }
 			],
 			{}
 		);
@@ -183,7 +183,7 @@ module.exports = {
 				},
 				{
 					firstName: "Oxibit",
-					lastName: "Techonology",
+					lastName: "Technologies",
 					email: "info@oxibit.com",
 					password: "oxibit123",
 					roleId: "2",
