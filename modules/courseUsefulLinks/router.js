@@ -5,7 +5,7 @@ const router = express.Router();
 
 const usefulLinksController = require("./courseUsefulLinks.controller");
 
-router.post("/list", usefulLinksController.list(req, res));
+router.post("/list", usefulLinksController.list);
 
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {

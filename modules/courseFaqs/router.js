@@ -5,7 +5,7 @@ const faqsController = require("./courseFaqs.controller");
 const express = require("express");
 const router = express.Router();
 
-router.post("/list", faqsController.list(req, res));
+router.post("/list", faqsController.list);
 
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {

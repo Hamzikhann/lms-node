@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const courseDepartmentController = require("./courseDepartment.controller");
 
-router.post("/list", courseDepartmentController.list(req, res));
+router.post("/list", courseDepartmentController.list);
 
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {
