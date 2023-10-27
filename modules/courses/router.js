@@ -24,9 +24,9 @@ router.post("/create", (req, res) => {
 	}
 });
 
-router.post("/list", (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
-		courseController.findAllCourses(req, res);
+router.post("/update", (req, res) => {
+	if (req.role == "Administrator") {
+		courseController.update(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
@@ -35,18 +35,6 @@ router.post("/list", (req, res) => {
 router.post("/enroll", (req, res) => {
 	if (req.role == "Administrator") {
 		courseController.courseEnrollmeent(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
-
-router.post("/detail", (req, res) => {
-	courseController.findCourseById(req, res);
-});
-
-router.put("/:courseId", (req, res) => {
-	if (req.role == "Admin") {
-		courseController.update(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}

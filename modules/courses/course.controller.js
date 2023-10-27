@@ -447,6 +447,37 @@ exports.delete = (req, res) => {
 	}
 };
 
+exports.courseEnrollmeent = (req, res) => {
+	try {
+		const courseId = crypto.decrypt(req.body.courseId);
+		const clientId = crypto.decrypt(req.body.clientId);
+
+		let obj = {
+			courseId: courseId,
+			clientId: clientId,
+			dateFrom: req.body.dateFrom,
+			dateTo: req.body.dateTo
+		};
+		CourseAssignments.create(obj)
+			.then((response) => {
+				res.status(200).send({ message: "course is assigned to the clients" });
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+
+				res.status(500).send({
+					message: err.message || "Some error occurred."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 // Retrieve all Classes with courses.
 // exports.findClasseswithCoursesForTeacher = (req, res) => {
 // 	try {
