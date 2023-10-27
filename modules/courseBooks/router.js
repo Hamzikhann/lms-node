@@ -1,7 +1,8 @@
-const courseBooksController = require("./courseBooks.controller");
+"use strict";
 
 const express = require("express");
 const router = express.Router();
+const courseBooksController = require("./courseBooks.controller");
 
 router.post("/list", courseBooksController.list(req, res));
 
