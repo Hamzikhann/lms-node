@@ -19,11 +19,11 @@ exports.create = async (req, res) => {
 			lastName: Joi.string().required(),
 			email: Joi.string().required(),
 			password: Joi.string().required(),
-			roleId: Joi.string().required(),
-			clientId: Joi.string().required(),
 			managerId: Joi.string().optional().allow(null).allow(""),
 			departmentId: Joi.string().optional().allow(null).allow(""),
-			designationId: Joi.string().optional().allow(null).allow("")
+			designationId: Joi.string().optional().allow(null).allow(""),
+			clientId: Joi.string().optional().allow(null).allow(""),
+			roleId: Joi.string().optional().allow(null).allow("")
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -45,88 +45,18 @@ exports.create = async (req, res) => {
 					lastName: req.body.lastName?.trim(),
 					email: req.body.email,
 					password: req.body.password,
-					clientId: crypto.decrypt(req.body.clientId),
-					roleId: crypto.decrypt(req.body.roleId),
 					managerId: req.body.managerId ? crypto.decrypt(req.body.managerId) : null,
 					departmentId: req.body.departmentId ? crypto.decrypt(req.body.departmentId) : null,
 					designationId: req.body.designationId ? crypto.decrypt(req.body.designationId) : null
 				};
 
-				let transaction = await sequelize.transaction();
-				Users.create(userObj, { transaction })
-					.then(async (user) => {
-						UserProfile.create({ userId: user.id }, { transaction })
-							.then(async (profile) => {
-								await transaction.commit();
-
-								encryptHelper(user);
-								res.status(200).send({
-									message: "User created successfully.",
-									data: user
-								});
-							})
-							.catch(async (err) => {
-								if (transaction) await transaction.rollback();
-								emails.errorEmail(req, err);
-								res.status(500).send({
-									message: err.message || "Some error occurred while creating the Quiz."
-								});
-							});
-					})
-					.catch(async (err) => {
-						if (transaction) await transaction.rollback();
-						emails.errorEmail(req, err);
-						res.status(500).send({
-							message: err.message || "Some error occurred while creating the Quiz."
-						});
-					});
-			}
-		}
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-exports.createByClient = async (req, res) => {
-	try {
-		const joiSchema = Joi.object({
-			firstName: Joi.string().required(),
-			lastName: Joi.string().required(),
-			email: Joi.string().required(),
-			password: Joi.string().required(),
-			managerId: Joi.string().optional().allow(null).allow(""),
-			departmentId: Joi.string().optional().allow(null).allow(""),
-			designationId: Joi.string().optional().allow(null).allow("")
-		});
-		const { error, value } = joiSchema.validate(req.body);
-
-		if (error) {
-			const message = error.details[0].message.replace(/"/g, "");
-			res.status(400).send({
-				message: message
-			});
-		} else {
-			const user = await Users.findOne({ where: { email: req.body.email?.trim(), isActive: "Y" } });
-
-			if (user) {
-				res.status(401).send({
-					mesage: "Email already registered."
-				});
-			} else {
-				const userObj = {
-					firstName: req.body.firstName?.trim(),
-					lastName: req.body.lastName?.trim(),
-					email: req.body.email,
-					password: req.body.password,
-					clientId: crypto.decrypt(req.clientId),
-					managerId: req.body.managerId ? crypto.decrypt(req.body.managerId) : null,
-					departmentId: req.body.departmentId ? crypto.decrypt(req.body.departmentId) : null,
-					designationId: req.body.designationId ? crypto.decrypt(req.body.designationId) : null,
-					roleId: 3
-				};
+				if (req.role == "Administrator") {
+					userObj.clientId = crypto.decrypt(req.body.clientId);
+					userObj.roleId = crypto.decrypt(req.body.roleId);
+				} else if (req.role == "Client") {
+					userObj.clientId = crypto.decrypt(req.clientId);
+					userObj.roleId = 3;
+				}
 
 				let transaction = await sequelize.transaction();
 				Users.create(userObj, { transaction })
@@ -156,39 +86,6 @@ exports.createByClient = async (req, res) => {
 							message: err.message || "Some error occurred while creating the Quiz."
 						});
 					});
-			}
-		}
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-exports.updateImage = async (req, res) => {
-	try {
-		const joiSchema = Joi.object({
-			image: Joi.any()
-		});
-		const { error, value } = joiSchema.validate(req.body);
-
-		if (error) {
-			const message = error.details[0].message.replace(/"/g, "");
-			res.status(400).send({
-				message: message
-			});
-		} else {
-			let userId = crypto.decrypt(req.userId);
-			let imageUrl = "uploads/users/" + req.file.filename;
-			var updateUser = await UserProfile.update({ imageUrl }, { where: { userId: userId, isActive: "Y" } });
-
-			if (updateUser == 1) {
-				res.status(200).send({ message: "User Profile Image is Updated" });
-			} else {
-				res.send({
-					message: "Failed to update user profile image."
-				});
 			}
 		}
 	} catch (err) {
@@ -200,6 +97,54 @@ exports.updateImage = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			userId: Joi.string().required(),
+			firstName: Joi.string().required(),
+			lastName: Joi.string().required(),
+			email: Joi.string().required(),
+			managerId: Joi.string().optional().allow(null).allow(""),
+			departmentId: Joi.string().optional().allow(null).allow(""),
+			designationId: Joi.string().optional().allow(null).allow("")
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const userId = crypto.decrypt(req.userId);
+			const user = {
+				firstName: req.body.firstName?.trim(),
+				lastName: req.body.lastName?.trim(),
+				email: req.body.email,
+				managerId: req.body.managerId ? crypto.decrypt(req.body.managerId) : null,
+				departmentId: req.body.departmentId ? crypto.decrypt(req.body.departmentId) : null,
+				designationId: req.body.designationId ? crypto.decrypt(req.body.designationId) : null
+			};
+
+			var updateUser = Users.update(user, { where: { id: userId, isActive: "Y" } });
+			if (updateUser == 1) {
+				res.send({
+					message: "User updated successfully."
+				});
+			} else {
+				res.send({
+					message: "Failed to update user."
+				});
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.updateProfile = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			firstName: Joi.string().required(),
@@ -266,10 +211,48 @@ exports.update = async (req, res) => {
 	}
 };
 
+exports.updateProfileImage = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			image: Joi.any()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			let userId = crypto.decrypt(req.userId);
+			let imageUrl = "uploads/users/" + req.file.filename;
+			var updateUser = await UserProfile.update({ imageUrl }, { where: { userId: userId, isActive: "Y" } });
+
+			if (updateUser == 1) {
+				res.status(200).send({ message: "User Profile Image is Updated" });
+			} else {
+				res.send({
+					message: "Failed to update user profile image."
+				});
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 exports.listUsers = (req, res) => {
 	try {
+		const where = { isActive: "Y" };
+		if (req.role == "Client") {
+			where.clientId = crypto.decrypt(req.clientId);
+		}
+
 		Users.findAll({
-			where: { isActive: "Y" },
+			where,
 			include: [
 				{
 					model: UserProfile,
@@ -299,52 +282,6 @@ exports.listUsers = (req, res) => {
 			})
 			.catch((err) => {
 				// emails.errorEmail(req, err);
-				res.status(500).send({
-					message: err.message || "Some error occurred while retrieving Users."
-				});
-			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-exports.listUsersForClient = (req, res) => {
-	try {
-		const clientId = crypto.decrypt(req.clientId);
-		Users.findAll({
-			where: { isActive: "Y", clientId },
-			include: [
-				{
-					model: UserProfile,
-					attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
-				},
-				{
-					model: UserDepartments,
-					attributes: ["title"]
-				},
-				{
-					model: UserDesignations,
-					attributes: ["title"]
-				},
-				{
-					model: Roles,
-					attributes: ["title"]
-				}
-			],
-			attributes: { exclude: ["createdAt", "updatedAt", "password"] }
-		})
-			.then((data) => {
-				encryptHelper(data);
-				res.send({
-					messgae: "Users list retrived",
-					data
-				});
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Users."
 				});
@@ -414,7 +351,7 @@ exports.listDesignations = (req, res) => {
 exports.detail = (req, res) => {
 	try {
 		Users.findOne({
-			where: { id: crypto.decrypt(req.body.userId), isActive: "Y" },
+			where: { id: crypto.decrypt(req.userId), isActive: "Y" },
 			include: [
 				{
 					model: UserProfile,

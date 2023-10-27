@@ -12,8 +12,8 @@ module.exports = (sequelize, DataTypes) => {
 			managerId: {
 				type: DataTypes.INTEGER,
 				references: {
-					model: "Users", // This refers to the same model (self-association)
-					key: "id" // The primary key of the User model
+					model: "Users",
+					key: "id"
 				}
 			},
 			isActive: {

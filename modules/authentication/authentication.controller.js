@@ -52,7 +52,7 @@ exports.login = async (req, res) => {
 				res.status(403).send({ message: "Incorrect Logins" });
 			}
 		} else {
-			res.status(405).send({
+			res.status(401).send({
 				title: "Incorrect Email.",
 				message: "Email does not exist in our system, Please verify you have entered correct email."
 			});
@@ -76,7 +76,7 @@ exports.forgotPassword = async (req, res) => {
 			// emails.forgotPassword(user);
 			res.status(200).send({ message: "Email send to user." });
 		} else {
-			res.status(405).send({
+			res.status(401).send({
 				title: "Incorrect Email.",
 				message: "Email does not exist in our system, Please verify you have entered correct email."
 			});
@@ -126,7 +126,7 @@ exports.resetPassword = async (req, res) => {
 						});
 					});
 			} else {
-				res.status(405).send({
+				res.status(401).send({
 					title: "Incorrect Email.",
 					message: "Email does not exist in our system, Please verify you have entered correct email."
 				});

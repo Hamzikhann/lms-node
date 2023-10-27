@@ -55,7 +55,7 @@ exports.create = async (req, res) => {
 				attributes: ["id"]
 			});
 			if (alreadyExist) {
-				res.status(405).send({
+				res.status(401).send({
 					title: "Already exist.",
 					message: "Course is already exist."
 				});
@@ -269,7 +269,7 @@ exports.update = async (req, res) => {
 				attributes: ["id"]
 			});
 			if (alreadyExist) {
-				res.status(405).send({
+				res.status(401).send({
 					title: "Already exist.",
 					message: "Class is already exist with same name."
 				});
