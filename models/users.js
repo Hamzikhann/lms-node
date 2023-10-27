@@ -9,13 +9,6 @@ module.exports = (sequelize, DataTypes) => {
 			email: DataTypes.STRING,
 			password: DataTypes.STRING,
 			imageURL: DataTypes.STRING,
-			managerId: {
-				type: DataTypes.INTEGER,
-				references: {
-					model: "Users",
-					key: "id"
-				}
-			},
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,
