@@ -23,16 +23,15 @@ exports.create = (req, res) => {
 		} else {
 			const faqsObj = {
 				title: req.body.title,
-				description: req.body.description,
+				discription: req.body.discription,
 				courseId: crypto.decrypt(req.body.courseId)
 			};
 			CourseFaqs.create(faqsObj)
 				.then((response) => {
-					res.status(200).send({ message: "FAQ for the course has been created", data: response });
+					res.status(200).send({ message: "FAQS of Course are created", data: response });
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
-
 					res.status(500).send({
 						message: "Some error occurred."
 					});

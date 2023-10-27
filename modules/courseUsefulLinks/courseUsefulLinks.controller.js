@@ -64,7 +64,7 @@ const create = (req, res) => {
 			};
 			UsefulLinks.create(linksObj)
 				.then((response) => {
-					res.status(200).send({ message: "Links of Course has been created", data: response });
+					res.status(200).send({ message: "Links of Course are created", data: response });
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);

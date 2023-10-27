@@ -35,7 +35,7 @@ exports.create = async (req, res) => {
 			let coursebook = await Books.create(bookObj);
 
 			if (coursebook) {
-				res.status(200).send({ message: "Course Book has been uploaded", data: coursebook });
+				res.status(200).send({ message: "Course Book is uploaded", data: coursebook });
 			} else {
 				res.status(500).send({
 					message: "Some error occurred."
