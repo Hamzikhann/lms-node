@@ -20,7 +20,6 @@ module.exports = (sequelize, DataTypes) => {
 	courses.associate = function (models) {
 		courses.belongsTo(models.courseDepartments);
 		courses.hasMany(models.courseBooks);
-		courses.hasMany(models.courseEnrollments);
 		courses.hasMany(models.courseFaqs);
 		courses.hasMany(models.courseInstructors);
 		courses.hasMany(models.courseObjectives);
