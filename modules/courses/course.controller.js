@@ -5,7 +5,7 @@ const { sequelize } = require("../../models");
 
 const Classes = db.classes;
 const Courses = db.courses;
-
+const CourseAssignments = db.courseAssignments;
 const courseBooks = db.courseBooks;
 const courseDepartment = db.courseDepartments;
 const courseEnrollment = db.courseEnrollments;
@@ -345,7 +345,7 @@ exports.delete = (req, res) => {
 		const courseId = crypto.decrypt(req.params.courseId);
 		const userId = crypto.decrypt(req.userId);
 
-		Classes.update(
+		Courses.update(
 			{ isActive: "N" },
 			{
 				where: { id: courseId }
@@ -366,6 +366,37 @@ exports.delete = (req, res) => {
 				emails.errorEmail(req, err);
 				res.status(500).send({
 					message: "Error deleting Course"
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.courseEnrollmeent = (req, res) => {
+	try {
+		const courseId = crypto.decrypt(req.body.courseId);
+		const clientId = crypto.decrypt(req.body.clientId);
+
+		let obj = {
+			courseId: courseId,
+			clientId: clientId,
+			dateFrom: req.body.dateFrom,
+			dateTo: req.body.dateTo
+		};
+		CourseAssignments.create(obj)
+			.then((response) => {
+				res.status(200).send({ message: "course is assigned to the clients" });
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+
+				res.status(500).send({
+					message: err.message || "Some error occurred."
 				});
 			});
 	} catch (err) {

@@ -16,8 +16,11 @@ exports.protect = (req, res, next) => {
 				Object.assign(req, {
 					userId: decoded.userId,
 					roleId: decoded.roleId,
+					clientId: decoded.roleId,
+					profileId: decoded.roleId,
 					role: decoded.role
 				});
+				// console.log(decoded);
 				next();
 			}
 		});

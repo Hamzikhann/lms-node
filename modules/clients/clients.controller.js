@@ -3,9 +3,11 @@ const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 
 const Joi = require("@hapi/joi");
-
+const CourseAssignments = db.courseAssignments;
 const Client = db.clients;
-
+const Users = db.users;
+const CourseEnrollments = db.courseEnrollments;
+const Course = db.courses;
 exports.list = async (req, res) => {
 	try {
 		Client.findAll({
@@ -185,6 +187,39 @@ exports.delete = async (req, res) => {
 					message: "Unable to delete client info, maybe client doesn't exists"
 				});
 			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+// courseid courseenroolmenttyoeDi user id
+
+exports.enrollment = async (req, res) => {
+	try {
+		// console.log(req.clientId);
+
+		const courseId = crypto.decrypt(req.body.courseId);
+		const courseEnrollmeentTypeId = crypto.decrypt(req.body.courseEnrollmentTypeId);
+		const clientId = crypto.decrypt(req.clientId);
+		if (courseEnrollmeentTypeId == 1) {
+			let enrollmentObj = [];
+
+			const users = await Users.findAll({ where: { clientId: clientId, isActive: "Y" } });
+			const courseAssignments = await CourseAssignments.findOne({ where: { courseId: courseId }, isActive: "Y" });
+			console.log(courseAssignments);
+			users.forEach((e) => {
+				let obj = {
+					courseEnrollmeentTypeId: courseEnrollmeentTypeId,
+					courseAssignmentId: courseAssignments.id,
+					userId: e.id,
+					userDepartmentId: e.userDepartmentId
+				};
+				enrollmentObj.push(obj);
+			});
+			console.log(enrollmentObj);
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);

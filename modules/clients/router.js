@@ -43,4 +43,14 @@ router.post("/delete", (req, res) => {
 	}
 });
 
+router.post("/enroll", (req, res) => {
+	console.log(req.clientId);
+
+	if (req.role == "Administrator" || req.role == "Client") {
+		clientController.enrollment(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
 module.exports = router;

@@ -32,7 +32,7 @@ exports.login = async (req, res) => {
 						attributes: ["title"]
 					}
 				],
-				attributes: ["id", "firstName", "lastName", "email"]
+				attributes: ["id", "firstName", "lastName", "email", "clientId", "roleId"]
 			});
 			if (user) {
 				encryptHelper(user);

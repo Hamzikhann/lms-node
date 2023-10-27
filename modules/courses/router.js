@@ -19,6 +19,14 @@ router.post("/list", (req, res) => {
 	}
 });
 
+router.post("/enroll", (req, res) => {
+	if (req.role == "Administrator") {
+		courseController.courseEnrollmeent(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
 router.post("/detail", (req, res) => {
 	courseController.findCourseById(req, res);
 });
