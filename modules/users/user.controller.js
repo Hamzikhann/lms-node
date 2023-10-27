@@ -6,6 +6,7 @@ const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const { sequelize } = require("../../models");
 
+const Clients = db.clients;
 const Users = db.users;
 const UserDepartments = db.userDepartments;
 const UserDesignations = db.userDesignations;
@@ -121,8 +122,8 @@ exports.update = async (req, res) => {
 				lastName: req.body.lastName?.trim(),
 				email: req.body.email,
 				managerId: req.body.managerId ? crypto.decrypt(req.body.managerId) : null,
-				departmentId: req.body.departmentId ? crypto.decrypt(req.body.departmentId) : null,
-				designationId: req.body.designationId ? crypto.decrypt(req.body.designationId) : null
+				userDepartmentId: req.body.departmentId ? crypto.decrypt(req.body.departmentId) : null,
+				userDesignationId: req.body.designationId ? crypto.decrypt(req.body.designationId) : null
 			};
 
 			var updateUser = Users.update(user, { where: { id: userId, isActive: "Y" } });
@@ -269,6 +270,10 @@ exports.listUsers = (req, res) => {
 				{
 					model: Roles,
 					attributes: ["title"]
+				},
+				{
+					model: Clients,
+					attributes: ["name", "website", "logoURL"]
 				}
 			],
 			attributes: { exclude: ["createdAt", "updatedAt", "password"] }

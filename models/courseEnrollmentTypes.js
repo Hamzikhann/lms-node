@@ -2,11 +2,9 @@
 
 module.exports = (sequelize, DataTypes) => {
 	const table = sequelize.define(
-		"clients",
+		"courseEnrollmentTypes",
 		{
-			name: DataTypes.STRING,
-			website: DataTypes.STRING,
-			logoURL: DataTypes.STRING,
+			title: DataTypes.STRING,
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,
@@ -16,8 +14,7 @@ module.exports = (sequelize, DataTypes) => {
 		{ timestamps: true }
 	);
 	table.associate = function (models) {
-		table.hasMany(models.users);
-		table.hasMany(models.courseAssignments);
+		table.hasMany(models.courseEnrollments);
 	};
 	return table;
 };

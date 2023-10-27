@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
 	);
 	table.associate = function (models) {
 		table.hasMany(models.users);
+		table.hasMany(models.courseEnrollments);
 	};
 	return table;
 };

@@ -6,32 +6,45 @@ module.exports = {
 		const date = new Date();
 
 		await queryInterface.bulkInsert(
-			"roles",
+			"learningPaths",
 			[
-				{ title: "Administrator", createdAt: date, updatedAt: date },
-				{ title: "Client", createdAt: date, updatedAt: date },
-				{ title: "User", createdAt: date, updatedAt: date }
+				{ title: "Trainings", createdAt: date, updatedAt: date },
+				{ title: "Education", createdAt: date, updatedAt: date }
 			],
 			{}
 		);
 
 		await queryInterface.bulkInsert(
-			"users",
+			"classes",
 			[
-				{
-					firstName: "Admin",
-					lastName: "Account",
-					email: "admin@lms.com",
-					password: "lms",
-					roleId: "1",
-					createdAt: date,
-					updatedAt: date
-				}
+				{ title: "Change Management", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Communication and Presentation Skills", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Compliance and Regulatory", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Conflict Resolution and Negotiation", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Cross-Cultural", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Customer Relationship Management (CRM)", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Cybersecurity", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Diversity and Inclusion", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Emotional Intelligence", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Environmental and Sustainability", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Ethics and Integrity", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Financial Literacy", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Innovation and Creativity", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Leadership and Management", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Onboarding", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Project Management", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Quality Control and Six Sigma", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Remote Work and Virtual Collaboration", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Safety", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Sales and Customer Service", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Soft Skills", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Stress Management and Well-being", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Team Building and Collaboration", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Technical and IT", learningPathId: 1, createdAt: date, updatedAt: date },
+				{ title: "Time Management and Productivity", learningPathId: 1, createdAt: date, updatedAt: date }
 			],
 			{}
 		);
-
-		await queryInterface.bulkInsert("userProfiles", [{ userId: "1", createdAt: date, updatedAt: date }], {});
 
 		await queryInterface.bulkInsert(
 			"courseTaskTypes",
@@ -39,6 +52,16 @@ module.exports = {
 				{ title: "Assessment", createdAt: date, updatedAt: date },
 				{ title: "Reading", createdAt: date, updatedAt: date },
 				{ title: "Video", createdAt: date, updatedAt: date }
+			],
+			{}
+		);
+
+		await queryInterface.bulkInsert(
+			"courseEnrollmentTypes",
+			[
+				{ title: "All Users", createdAt: date, updatedAt: date },
+				{ title: "Department", createdAt: date, updatedAt: date },
+				{ title: "Individual", createdAt: date, updatedAt: date }
 			],
 			{}
 		);
@@ -126,12 +149,64 @@ module.exports = {
 			],
 			{}
 		);
+
+		await queryInterface.bulkInsert(
+			"roles",
+			[
+				{ title: "Administrator", createdAt: date, updatedAt: date },
+				{ title: "Client", createdAt: date, updatedAt: date },
+				{ title: "User", createdAt: date, updatedAt: date }
+			],
+			{}
+		);
+
+		await queryInterface.bulkInsert(
+			"clients",
+			[
+				{ name: "Oxibit Technologies", website: "https://oxibit.com", createdAt: date, updatedAt: date },
+				{ name: "Health at Scale", website: "https://oxibit.com", createdAt: date, updatedAt: date }
+			],
+			{}
+		);
+
+		await queryInterface.bulkInsert(
+			"users",
+			[
+				{
+					firstName: "Admin",
+					lastName: "Account",
+					email: "admin@lms.com",
+					password: "admin123",
+					roleId: "1",
+					createdAt: date,
+					updatedAt: date
+				},
+				{
+					firstName: "Oxibit",
+					lastName: "Techonology",
+					email: "info@oxibit.com",
+					password: "oxibit123",
+					roleId: "2",
+					createdAt: date,
+					updatedAt: date
+				},
+				{
+					firstName: "Health",
+					lastName: "at Scale",
+					email: "info@healthatscale.com",
+					password: "healthatscale123",
+					roleId: "2",
+					createdAt: date,
+					updatedAt: date
+				}
+			],
+			{}
+		);
+
+		await queryInterface.bulkInsert("userProfiles", [{ userId: "1", createdAt: date, updatedAt: date }], {});
+		await queryInterface.bulkInsert("userProfiles", [{ userId: "2", createdAt: date, updatedAt: date }], {});
+		await queryInterface.bulkInsert("userProfiles", [{ userId: "3", createdAt: date, updatedAt: date }], {});
 	},
 
-	async down(queryInterface, Sequelize) {
-		await queryInterface.bulkDelete("roles", null, {});
-		await queryInterface.bulkDelete("users", null, {});
-		await queryInterface.bulkDelete("userProfiles", null, {});
-		await queryInterface.bulkDelete("courseTaskTypes", null, {});
-	}
+	async down(queryInterface, Sequelize) {}
 };

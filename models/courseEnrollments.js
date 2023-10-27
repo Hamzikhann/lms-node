@@ -4,7 +4,6 @@ module.exports = (sequelize, DataTypes) => {
 	const table = sequelize.define(
 		"courseEnrollments",
 		{
-			progress: DataTypes.STRING,
 			required: {
 				type: DataTypes.STRING,
 				allowNull: false,
@@ -19,9 +18,10 @@ module.exports = (sequelize, DataTypes) => {
 		{ timestamps: true }
 	);
 	table.associate = function (models) {
-		table.belongsTo(models.courses);
+		table.belongsTo(models.courseEnrollmentTypes);
+		table.belongsTo(models.courseAssignments);
+		table.belongsTo(models.userDepartments);
 		table.belongsTo(models.users);
-		table.belongsTo(models.clients);
 	};
 	return table;
 };
