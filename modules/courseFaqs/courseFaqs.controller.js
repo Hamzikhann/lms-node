@@ -147,7 +147,6 @@ exports.delete = async (req, res) => {
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});

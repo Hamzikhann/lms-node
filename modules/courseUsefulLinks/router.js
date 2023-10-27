@@ -2,7 +2,6 @@
 
 const express = require("express");
 const router = express.Router();
-
 const usefulLinksController = require("./courseUsefulLinks.controller");
 
 router.post("/list", usefulLinksController.list);

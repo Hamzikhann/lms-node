@@ -6,94 +6,82 @@ const Joi = require("@hapi/joi");
 
 const CourseObjective = db.courseObjectives;
 
-const create = (req, res) => {
+exports.list = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			description: Joi.string().required(),
 			courseId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
-
 		if (error) {
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
 			});
 		} else {
-			CourseObjective.findOne({
-				where: {
-					description: req.body.description,
-					courseId: crypto.decrypt(req.body.courseId)
-				}
-			})
-				.then((result) => {
-					if (result) {
-						res.status(200).send({ message: "Course objective already exists.", data: result });
-					} else {
-						const objectiveObj = {
-							description: req.body.description,
-							courseId: crypto.decrypt(req.body.courseId)
-						};
-
-						CourseObjective.create(objectiveObj)
-							.then((response) => {
-								res.status(200).send({ message: "Objective of Course is created", data: response });
-							})
-							.catch((err) => {
-								emails.errorEmail(req, err);
-								res.status(500).send({
-									message: "Some error occurred."
-								});
-							});
-					}
+			const courseId = crypto.decrypt(req.body.courseId);
+			CourseObjective.findAll({ where: { courseId: courseId, isActive: "Y" } })
+				.then((response) => {
+					encryptHelper(response);
+					res.status(200).send({ message: "All Course Objectives are retrived", data: response });
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
 					res.status(500).send({
-						message: err.message || "Some error occurred."
+						message: "Some error occurred."
 					});
 				});
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
 
-const list = (req, res) => {
+exports.create = (req, res) => {
 	try {
-		CourseObjective.findAll({ where: { isActive: "Y" } })
-			.then((response) => {
-				encryptHelper(response);
-				res.status(200).send({ message: "All Course Objectives are retrived", data: response });
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-
-				res.status(500).send({
-					message: "Some error occurred."
-				});
+		const joiSchema = Joi.object({
+			description: Joi.string().required(),
+			courseId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
 			});
+		} else {
+			const objectiveObj = {
+				description: req.body.description,
+				courseId: crypto.decrypt(req.body.courseId)
+			};
+			CourseObjective.create(objectiveObj)
+				.then((response) => {
+					res.status(200).send({ message: "Objective of Course has been created", data: response });
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: "Some error occurred."
+					});
+				});
+		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
 
-const update = async (req, res) => {
+exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			description: Joi.string().required(),
 			objectiveId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
-
 		if (error) {
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
@@ -106,20 +94,14 @@ const update = async (req, res) => {
 			};
 
 			const upatedObjective = await CourseObjective.update(objectiveObj, { where: { id: objectiveId } });
-
-			if (upatedObjective) {
-				res.status(200).send({ message: "Course Objectives are updated", data: upatedObjective });
+			if (upatedObjective == 1) {
+				res.status(200).send({ message: "Course objectives has been updated" });
 			} else {
-				emails.errorEmail(req, err);
-
-				res.status(500).send({
-					message: "Some error occurred."
-				});
+				res.status(500).send({ message: "Unable to update course objective, maybe course objective doesnt exists" });
 			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -132,7 +114,6 @@ exports.delete = async (req, res) => {
 			objectiveId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
-
 		if (error) {
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
@@ -140,30 +121,21 @@ exports.delete = async (req, res) => {
 			});
 		} else {
 			const objectiveId = crypto.decrypt(req.body.objectiveId);
-
 			const objectiveObj = {
 				isActive: "N"
 			};
 
-			const objective = await CourseObjective.update(objectiveObj, { where: { id: objectiveId } });
-
-			if (objective == 1) {
-				res.status(200).send({ message: "This Objective is deleted", data: faqs });
+			const updatedObjective = await CourseObjective.update(objectiveObj, { where: { id: objectiveId } });
+			if (updatedObjective == 1) {
+				res.status(200).send({ message: "Course Objective has been deleted", data: upatedObjective });
 			} else {
-				emails.errorEmail(req, err);
-
-				res.status(500).send({
-					message: "Some error occurred."
-				});
+				res.status(500).send({ message: "Unable to delete course objective, maybe course objective doesnt exists" });
 			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
-
-module.exports = { create, list, update };

@@ -1,7 +1,8 @@
 "use strict";
-const classesController = require("./classes.controller");
+
 const express = require("express");
 const router = express.Router();
+const classesController = require("./classes.controller");
 
 router.post("/list", (req, res) => {
 	if (req.role == "Administrator") {
@@ -10,6 +11,7 @@ router.post("/list", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {
 		classesController.create(req, res);
@@ -17,6 +19,7 @@ router.post("/create", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+
 router.post("/update", (req, res) => {
 	if (req.role == "Administrator") {
 		classesController.update(req, res);
@@ -24,6 +27,7 @@ router.post("/update", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator") {
 		classesController.delete(req, res);

@@ -1,7 +1,20 @@
 "use strict";
-const courseController = require("./course.controller");
+
 const express = require("express");
 const router = express.Router();
+const courseController = require("./course.controller");
+
+router.post("/list", (req, res) => {
+	if (req.role == "Administrator") {
+		courseController.list(req, res);
+	} else if (req.role == "Client") {
+		courseController.listForClient(req, res);
+	} else if (req.role == "User") {
+		courseController.listForUser(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
 
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {
@@ -11,19 +24,7 @@ router.post("/create", (req, res) => {
 	}
 });
 
-router.post("/list", (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
-		courseController.findAllCourses(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
-
-router.post("/detail", (req, res) => {
-	courseController.findCourseById(req, res);
-});
-
-router.put("/:courseId", (req, res) => {
+router.post("/update", (req, res) => {
 	if (req.role == "Admin") {
 		courseController.update(req, res);
 	} else {
@@ -31,21 +32,16 @@ router.put("/:courseId", (req, res) => {
 	}
 });
 
-router.delete("/:courseId", (req, res) => {
+router.post("/detail", (req, res) => {
+	courseController.detail(req, res);
+});
+
+router.post("/delete", (req, res) => {
 	if (req.role == "Admin") {
 		courseController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-module.exports = router;
 
-// router.get('/', (req, res) => {
-//     if (req.role == 'Admin' || req.role == 'Editor') {
-//         classesController.findAllClasses(req, res);
-//     } else if (req.role == 'Teacher') {
-//         classesController.findAllForTeacher(req, res);
-//     } else {
-//         res.status(403).send({ message: 'Forbidden Access' });
-//     }
-// });
+module.exports = router;

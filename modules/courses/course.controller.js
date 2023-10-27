@@ -1,3 +1,4 @@
+const Joi = require("@hapi/joi");
 const db = require("../../models");
 const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
@@ -5,17 +6,150 @@ const { sequelize } = require("../../models");
 
 const Classes = db.classes;
 const Courses = db.courses;
-
 const courseBooks = db.courseBooks;
 const courseDepartment = db.courseDepartments;
-const courseEnrollment = db.courseEnrollments;
+const courseAssignments = db.courseAssignments;
+const courseEnrollments = db.courseEnrollments;
 const courseFaqs = db.courseFaqs;
 const courseInstructor = db.courseInstructors;
 const courseObjective = db.courseObjectives;
 const courseUsefulLinks = db.courseUsefulLinks;
 const courseSyllabus = db.courseSyllabus;
 const courseModule = db.courseModules;
-const Joi = require("@hapi/joi");
+const courseTasks = db.courseTasks;
+const courseTaskTypes = db.courseTaskTypes;
+
+exports.list = (req, res) => {
+	try {
+		Courses.findAll({
+			where: { isActive: "Y" },
+			include: [
+				{
+					model: courseDepartment,
+					where: { isActive: "Y" },
+					required: false,
+					attributes: ["id", "title", "isActive"]
+				},
+				{
+					model: courseInstructor,
+					where: { isActive: "Y" },
+					required: false,
+					attributes: ["id", "name", "isActive"]
+				}
+			],
+			attributes: { exclude: ["createdAt", "updatedAt"] }
+		})
+			.then((data) => {
+				encryptHelper(data);
+				res.send(data);
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred while retrieving Classes."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.listForClient = (req, res) => {
+	try {
+		const clientId = crypto.decrypt(req.clientId);
+
+		Courses.findAll({
+			where: { isActive: "Y" },
+			include: [
+				{
+					model: courseDepartment,
+					where: { isActive: "Y" },
+					required: false,
+					attributes: ["id", "title", "isActive"]
+				},
+				{
+					model: courseInstructor,
+					where: { isActive: "Y" },
+					required: false,
+					attributes: ["id", "name", "isActive"]
+				},
+				{
+					model: courseAssignments,
+					where: { clientId, isActive: "Y" },
+					attributes: []
+				}
+			],
+			attributes: { exclude: ["createdAt", "updatedAt"] }
+		})
+			.then((data) => {
+				encryptHelper(data);
+				res.send(data);
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred while retrieving Classes."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.listForUser = (req, res) => {
+	try {
+		const clientId = crypto.decrypt(req.clientId);
+
+		// Get all courses for the logged in user enrollment
+		// Get all courses for the logged in user department enrollment
+		// Get all courses for the logged in user client
+
+		Courses.findAll({
+			where: { isActive: "Y" },
+			include: [
+				{
+					model: courseDepartment,
+					where: { isActive: "Y" },
+					required: false,
+					attributes: ["id", "title", "isActive"]
+				},
+				{
+					model: courseInstructor,
+					where: { isActive: "Y" },
+					required: false,
+					attributes: ["id", "name", "isActive"]
+				},
+				{
+					model: courseAssignments,
+					where: { clientId, isActive: "Y" },
+					attributes: []
+				}
+			],
+			attributes: { exclude: ["createdAt", "updatedAt"] }
+		})
+			.then((data) => {
+				encryptHelper(data);
+				res.send(data);
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred while retrieving Classes."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
 
 exports.create = async (req, res) => {
 	try {
@@ -26,15 +160,10 @@ exports.create = async (req, res) => {
 			level: Joi.string().required(),
 			language: Joi.string().required(),
 			classId: Joi.string().required(),
-			courseDepartmentId: Joi.string().required(),
-			syllabusTitle: Joi.string().required(),
-			syllabusDescription: Joi.string().required().allow("")
+			courseDepartmentId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
-
 		if (error) {
-			emails.errorEmail(req, error);
-
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -67,15 +196,13 @@ exports.create = async (req, res) => {
 				Courses.create(courseObj, { transaction })
 					.then(async (result) => {
 						const syllabus = {
-							title: req.body.syllabusTitle,
-							description: req.body.syllabusDescription,
+							title: "Table of Content",
 							courseId: result.id
 						};
 						courseSyllabus
 							.create(syllabus, { transaction })
 							.then(async (response) => {
 								await transaction.commit();
-								encryptHelper(response);
 								encryptHelper(result);
 								res.status(200).send({
 									message: "Course created successfully.",
@@ -92,7 +219,6 @@ exports.create = async (req, res) => {
 					})
 					.catch(async (err) => {
 						if (transaction) await transaction.rollback();
-
 						emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred while creating the Quiz."
@@ -102,190 +228,134 @@ exports.create = async (req, res) => {
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
 
-// Retrieve all Classes.
-exports.findAllCourses = (req, res) => {
-	try {
-		Courses.findAll({
-			where: { isActive: "Y" },
-			include: [
-				{
-					model: courseDepartment,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "title", "isActive"]
-				},
-
-				{
-					model: courseInstructor,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "name", "isActive"]
-				}
-			],
-			attributes: { exclude: ["createdAt", "updatedAt"] }
-		})
-			.then((data) => {
-				encryptHelper(data);
-				res.send(data);
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-				res.status(500).send({
-					message: err.message || "Some error occurred while retrieving Classes."
-				});
-			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-// Retrieve all Classes with courses.
-// exports.findClasseswithCourses = (req, res) => {
-// 	try {
-// 		Classes.findAll({
-// 			where: { isActive: "Y" },
-// 			include: {
-// 				model: Courses,
-// 				where: { isActive: "Y" },
-// 				attributes: ["id", "title"]
-// 			},
-// 			attributes: { exclude: ["createdAt", "updatedAt"] }
-// 		})
-// 			.then((data) => {
-// 				encryptHelper(data);
-// 				res.send(data);
-// 			})
-// 			.catch((err) => {
-// 				emails.errorEmail(req, err);
-// 				res.status(500).send({
-// 					message: err.message || "Some error occurred while retrieving Classes."
-// 				});
-// 			});
-// 	} catch (err) {
-// 		emails.errorEmail(req, err);
-
-// 		res.status(500).send({
-// 			message: err.message || "Some error occurred."
-// 		});
-// 	}
-// };
-
-// Retrieve Class by Id.
-exports.findCourseById = (req, res) => {
-	try {
-		Courses.findOne({
-			where: { id: crypto.decrypt(req.body.courseId), isActive: "Y" },
-			include: [
-				{
-					model: courseBooks,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "title", "isActive"]
-				},
-				{
-					model: courseDepartment,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "title", "isActive"]
-				},
-				{
-					model: courseEnrollment,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "progress", "isActive"]
-				},
-				{
-					model: courseFaqs,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "title", "isActive"]
-				},
-				{
-					model: courseInstructor,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "name", "isActive"]
-				},
-				{
-					model: courseObjective,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "description", "isActive"]
-				},
-				{
-					model: courseUsefulLinks,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "title", "isActive"]
-				},
-				{
-					model: courseSyllabus,
-					where: { isActive: "Y" },
-					include: [
-						{
-							model: courseModule,
-							where: { isActive: "Y" },
-							required: false,
-							attributes: ["id", "title", "isActive"]
-						}
-					],
-					required: false,
-					attributes: ["id", "title", "isActive"]
-				}
-			],
-			attributes: { exclude: ["isActive"] }
-		})
-			.then((data) => {
-				encryptHelper(data);
-				res.send(data);
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-				res.status(500).send({
-					message: err.message || "Some error occurred while retrieving Classes."
-				});
-			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-// Update a Class by the id in the request
-exports.update = async (req, res) => {
+exports.detail = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			about: Joi.string().required(),
-			code: Joi.string().required(),
-			level: Joi.string().required(),
-			language: Joi.string().required()
+			courseId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
-
 		if (error) {
-			emails.errorEmail(req, error);
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
 			});
 		} else {
-			const courseId = crypto.decrypt(req.params.courseId);
-			const userId = crypto.decrypt(req.userId);
+			Courses.findOne({
+				where: { id: crypto.decrypt(req.body.courseId), isActive: "Y" },
+				include: [
+					{
+						model: courseDepartment,
+						where: { isActive: "Y" },
+						required: false,
+						attributes: ["id", "title"]
+					},
+					{
+						model: courseObjective,
+						where: { isActive: "Y" },
+						required: false,
+						attributes: ["id", "description"]
+					},
+					{
+						model: courseInstructor,
+						where: { isActive: "Y" },
+						required: false,
+						attributes: ["id", "name", "about", "imageUrl"]
+					},
+					{
+						model: courseBooks,
+						where: { isActive: "Y" },
+						required: false,
+						attributes: ["id", "title", "edition", "author", "publisher", "bookUrl"]
+					},
+					{
+						model: courseFaqs,
+						where: { isActive: "Y" },
+						required: false,
+						attributes: ["id", "title", "description"]
+					},
+					{
+						model: courseUsefulLinks,
+						where: { isActive: "Y" },
+						required: false,
+						attributes: ["id", "title", "description", "linkUrl"]
+					},
+					{
+						model: courseSyllabus,
+						where: { isActive: "Y" },
+						include: [
+							{
+								model: courseModule,
+								where: { isActive: "Y" },
+								include: [
+									{
+										model: courseTasks,
+										where: { isActive: "Y" },
+										include: [
+											{
+												model: courseTaskTypes,
+												where: { isActive: "Y" },
+												required: false,
+												attributes: ["id", "title"]
+											}
+										],
+										required: false,
+										attributes: ["id", "title", "description", "estimatedTime"]
+									}
+								],
+								required: false,
+								attributes: ["id", "title", "description"]
+							}
+						],
+						required: false,
+						attributes: ["id", "title"]
+					}
+				],
+				attributes: { exclude: ["isActive"] }
+			})
+				.then((data) => {
+					encryptHelper(data);
+					res.send(data);
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred while retrieving Classes."
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.update = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseId: Joi.string().required(),
+			title: Joi.string().required(),
+			about: Joi.string().required(),
+			code: Joi.string().required(),
+			level: Joi.string().required(),
+			language: Joi.string().required(),
+			courseDepartmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseId = crypto.decrypt(req.body.courseId);
 
 			const alreadyExist = await Classes.findOne({
 				where: {
@@ -299,18 +369,15 @@ exports.update = async (req, res) => {
 					message: "Class is already exist with same name."
 				});
 			} else {
-				Classes.update(
-					{
-						title: req.body.title.trim(),
-						about: req.body.about,
-						code: req.body.code,
-						level: req.body.level,
-						language: req.body.language
-					},
-					{
-						where: { id: courseId, isActive: "Y", createdBy: userId }
-					}
-				)
+				const courseObject = {
+					title: req.body.title.trim(),
+					about: req.body.about,
+					code: req.body.code,
+					level: req.body.level,
+					language: req.body.language,
+					courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId)
+				};
+				Classes.update(courseObject, { where: { id: courseId, isActive: "Y" } })
 					.then((num) => {
 						if (num == 1) {
 							res.send({
@@ -332,113 +399,49 @@ exports.update = async (req, res) => {
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
 
-// Delete a Class with the specified id in the request
 exports.delete = (req, res) => {
 	try {
-		const courseId = crypto.decrypt(req.params.courseId);
-		const userId = crypto.decrypt(req.userId);
-
-		Classes.update(
-			{ isActive: "N" },
-			{
-				where: { id: courseId }
-			}
-		)
-			.then(async (num) => {
-				if (num == 1) {
-					res.send({
-						message: "Course was deleted successfully."
-					});
-				} else {
-					res.send({
-						message: `Cannot delete Course. Maybe Course was not found!`
-					});
-				}
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-				res.status(500).send({
-					message: "Error deleting Course"
-				});
+		const joiSchema = Joi.object({
+			courseId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
 			});
+		} else {
+			const courseId = crypto.decrypt(req.body.courseId);
+
+			Courses.update({ isActive: "N" }, { where: { id: courseId } })
+				.then(async (num) => {
+					if (num == 1) {
+						res.send({
+							message: "Course has been deleted successfully."
+						});
+					} else {
+						res.send({
+							message: `Cannot delete Course. Maybe Course not found!`
+						});
+					}
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: "Error deleting Course"
+					});
+				});
+		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
-
-// Retrieve all Classes with courses.
-// exports.findClasseswithCoursesForTeacher = (req, res) => {
-// 	try {
-// 		Classes.findAll({
-// 			where: { isActive: "Y" },
-// 			include: {
-// 				model: Courses,
-// 				where: { isActive: "Y" },
-// 				include: [{ model: Teaches, where: { isActive: "Y", userId: crypto.decrypt(req.userId) } }],
-// 				attributes: ["id", "title"]
-// 			},
-// 			attributes: { exclude: ["createdAt", "updatedAt"] }
-// 		})
-// 			.then((data) => {
-// 				encryptHelper(data);
-// 				res.send(data);
-// 			})
-// 			.catch((err) => {
-// 				emails.errorEmail(req, err);
-// 				res.status(500).send({
-// 					message: err.message || "Some error occurred while retrieving Classes."
-// 				});
-// 			});
-// 	} catch (err) {
-// 		emails.errorEmail(req, err);
-
-// 		res.status(500).send({
-// 			message: err.message || "Some error occurred."
-// 		});
-// 	}
-// };
-// Retrieve all Classes For Teacher.
-// exports.findAllForTeacher = (req, res) => {
-// 	try {
-// 		// console.log(crypto.decrypt(req.userId));
-// 		Classes.findAll({
-// 			where: { isActive: "Y" },
-// 			include: [
-// 				{
-// 					model: Courses,
-// 					where: { isActive: "Y" },
-// 					include: [{ model: Teaches, where: { isActive: "Y", userId: crypto.decrypt(req.userId) } }]
-// 				}
-// 			],
-// 			attributes: { exclude: ["createdAt", "updatedAt"] }
-// 		})
-// 			.then((data) => {
-// 				// console.log(data);
-// 				encryptHelper(data);
-// 				res.send(data);
-// 			})
-// 			.catch((err) => {
-// 				emails.errorEmail(req, err);
-// 				res.status(500).send({
-// 					message: err.message || "Some error occurred while retrieving Classes."
-// 				});
-// 			});
-// 	} catch (err) {
-// 		emails.errorEmail(req, err);
-
-// 		res.status(500).send({
-// 			message: err.message || "Some error occurred."
-// 		});
-// 	}
-// };
