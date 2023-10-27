@@ -7,7 +7,49 @@ const Joi = require("@hapi/joi");
 const CourseModule = db.courseModules;
 const CourseTasks = db.courseTasks;
 
-const create = (req, res) => {
+exports.list = (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			CourseModule.findAll({
+				where: { courseId: courseId, isActive: "Y" },
+				include: [
+					{
+						model: CourseTasks,
+						where: { isActive: "Y" },
+						required: false
+					}
+				]
+			})
+				.then((response) => {
+					encryptHelper(response);
+					res.status(200).send({ message: "Course modules and their tasks has been retrived", data: response });
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: "Some error occurred."
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
@@ -30,11 +72,10 @@ const create = (req, res) => {
 			CourseModule.create(moduleObj)
 				.then((response) => {
 					encryptHelper(response);
-					res.status(200).send({ message: "Module of Course and Syllabus are created", data: response });
+					res.status(200).send({ message: "Module of course syllabus has been created", data: response });
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
-
 					res.status(500).send({
 						message: "Some error occurred."
 					});
@@ -42,46 +83,13 @@ const create = (req, res) => {
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
 
-const list = (req, res) => {
-	try {
-		CourseModule.findAll({
-			where: { isActive: "Y" },
-			include: [
-				{
-					model: CourseTasks,
-					where: { isActive: "Y" },
-					required: false
-				}
-			]
-		})
-			.then((response) => {
-				encryptHelper(response);
-				res.status(200).send({ message: "All Course Modules and their Tasks are retrived", data: response });
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-
-				res.status(500).send({
-					message: "Some error occurred."
-				});
-			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-const update = async (req, res) => {
+exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
@@ -102,21 +110,15 @@ const update = async (req, res) => {
 				description: req.body.description
 			};
 
-			const upatedModule = await CourseModule.update(moduleObj, { where: { id: moduleId } });
-
-			if (upatedModule) {
-				res.status(200).send({ message: "Course Modules are updated", data: upatedModule });
+			const updatedModule = await CourseModule.update(moduleObj, { where: { id: moduleId } });
+			if (updatedModule == 1) {
+				res.status(200).send({ message: "Course module has been updated" });
 			} else {
-				emails.errorEmail(req, err);
-
-				res.status(500).send({
-					message: "Some error occurred."
-				});
+				res.status(500).send({ message: "Unable to update course module, maybe this doesn't exists" });
 			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -137,30 +139,21 @@ exports.delete = async (req, res) => {
 			});
 		} else {
 			const moduleId = crypto.decrypt(req.body.moduleId);
-
 			const moduleObj = {
 				isActive: "N"
 			};
 
-			const module = await CourseModule.update(moduleObj, { where: { id: moduleId } });
-
-			if (module == 1) {
-				res.status(200).send({ message: "This Module is deleted", data: module });
+			const updatedModule = await CourseModule.update(moduleObj, { where: { id: moduleId } });
+			if (updatedModule == 1) {
+				res.status(200).send({ message: "Course module has been deleted" });
 			} else {
-				emails.errorEmail(req, err);
-
-				res.status(500).send({
-					message: "Some error occurred."
-				});
+				res.status(500).send({ message: "Unable to delete course module, maybe this doesn't exists" });
 			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
-
-module.exports = { create, list, update };

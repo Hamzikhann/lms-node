@@ -12,7 +12,6 @@ exports.list = async (req, res) => {
 			learningPathId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
-
 		if (error) {
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
@@ -53,7 +52,6 @@ exports.create = async (req, res) => {
 			learningPathId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
-
 		if (error) {
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
@@ -110,7 +108,6 @@ exports.update = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
-			emails.errorEmail(req, error);
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message

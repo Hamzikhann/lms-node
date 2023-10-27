@@ -1,10 +1,10 @@
 "use strict";
-const usersController = require("./user.controller");
+
 const express = require("express");
 const router = express.Router();
-
 const fileUpload = require("../../utils/fileUpload");
 const { upload } = fileUpload("users");
+const usersController = require("./user.controller");
 
 router.post("/list", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
@@ -13,6 +13,7 @@ router.post("/list", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+
 router.post("/list/departments", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.listDepartments(req, res);
@@ -20,6 +21,7 @@ router.post("/list/departments", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+
 router.post("/list/designations", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.listDesignations(req, res);
@@ -27,6 +29,7 @@ router.post("/list/designations", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.create(req, res);
@@ -34,6 +37,7 @@ router.post("/create", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+
 router.post("/update", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.update(req, res);
@@ -41,10 +45,12 @@ router.post("/update", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+
 router.post("/update/profile", usersController.updateProfile);
 router.post("/update/profile/image", upload.single("image"), usersController.updateProfileImage);
 router.post("/update/password", usersController.changePassword);
 router.post("/detail", usersController.detail);
+
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.delete(req, res);

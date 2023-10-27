@@ -1,9 +1,9 @@
 "use strict";
 
-const faqsController = require("./courseFaqs.controller");
-
 const express = require("express");
 const router = express.Router();
+
+const faqsController = require("./courseFaqs.controller");
 
 router.post("/list", faqsController.list);
 
@@ -30,4 +30,5 @@ router.post("/delete", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+
 module.exports = router;
