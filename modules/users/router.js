@@ -7,15 +7,12 @@ const fileUpload = require("../../utils/fileUpload");
 const { upload } = fileUpload("users");
 
 router.post("/list", (req, res) => {
-	if (req.role == "Administrator") {
+	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.listUsers(req, res);
-	} else if (req.role == "Client") {
-		usersController.listUsersForClient(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-
 router.post("/list/departments", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.listDepartments(req, res);
@@ -23,7 +20,6 @@ router.post("/list/departments", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-
 router.post("/list/designations", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.listDesignations(req, res);
@@ -31,23 +27,24 @@ router.post("/list/designations", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-
 router.post("/create", (req, res) => {
-	if (req.role == "Administrator") {
+	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.create(req, res);
-	} else if (req.role == "Client") {
-		usersController.createByClient(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-
+router.post("/update", (req, res) => {
+	if (req.role == "Administrator" || req.role == "Client") {
+		usersController.update(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+router.post("/update/profile", usersController.updateProfile);
+router.post("/update/profile/image", upload.single("image"), usersController.updateProfileImage);
+router.post("/update/password", usersController.changePassword);
 router.post("/detail", usersController.detail);
-router.post("/update", usersController.update);
-router.post("/update/image", upload.single("image"), usersController.updateImage);
-
-router.post("/change-password", usersController.changePassword);
-
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.delete(req, res);

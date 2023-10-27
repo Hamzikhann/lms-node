@@ -5,17 +5,11 @@ const router = express.Router();
 
 const usefulLinksController = require("./courseUsefulLinks.controller");
 
-router.post("/create", (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
-		usefulLinksController.create(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
+router.post("/list", usefulLinksController.list);
 
-router.post("/list", (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
-		usefulLinksController.list(req, res);
+router.post("/create", (req, res) => {
+	if (req.role == "Administrator") {
+		usefulLinksController.create(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}

@@ -14,7 +14,6 @@ router.post("/list", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {
 		clientController.create(req, res);
@@ -22,23 +21,20 @@ router.post("/create", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-
 router.post("/update", (req, res) => {
-	if (req.role == "Administrator") {
+	if (req.role == "Administrator" || req.role == "Client") {
 		clientController.update(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-
 router.post("/update/image", upload.single("image"), (req, res) => {
-	if (req.role == "Administrator") {
+	if (req.role == "Administrator" || req.role == "Client") {
 		clientController.updateImage(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
-
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator") {
 		clientController.delete(req, res);

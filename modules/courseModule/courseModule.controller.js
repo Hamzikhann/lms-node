@@ -22,35 +22,15 @@ const create = (req, res) => {
 				message: message
 			});
 		} else {
-			CourseModule.findOne({
-				where: {
-					title: req.body.title,
-					description: req.body.description,
-					courseSyllabusId: crypto.decrypt(req.body.courseSyllabusId)
-				}
-			})
+			const moduleObj = {
+				title: req.body.title,
+				description: req.body.description,
+				courseSyllabusId: crypto.decrypt(req.body.courseSyllabusId)
+			};
+			CourseModule.create(moduleObj)
 				.then((response) => {
-					if (response) {
-						res.status(200).send({ message: "This Course Module already exists." });
-					} else {
-						const moduleObj = {
-							title: req.body.title,
-							description: req.body.description,
-							courseSyllabusId: crypto.decrypt(req.body.courseSyllabusId)
-						};
-						CourseModule.create(moduleObj)
-							.then((response) => {
-								encryptHelper(response);
-								res.status(200).send({ message: "Module of Course and Syllabus are created", data: response });
-							})
-							.catch((err) => {
-								emails.errorEmail(req, err);
-
-								res.status(500).send({
-									message: "Some error occurred."
-								});
-							});
-					}
+					encryptHelper(response);
+					res.status(200).send({ message: "Module of Course and Syllabus are created", data: response });
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);

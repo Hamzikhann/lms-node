@@ -6,7 +6,7 @@ const Joi = require("@hapi/joi");
 
 const Books = db.courseBooks;
 
-const create = async (req, res) => {
+exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
@@ -24,39 +24,51 @@ const create = async (req, res) => {
 				message: message
 			});
 		} else {
-			Books.findOne({
-				where: {
-					title: req.body.title,
-					author: req.body.author,
-					edition: req.body.edition,
-					publisher: req.body.publisher,
-					bookUrl: req.body.bookUrl,
-					courseId: crypto.decrypt(req.body.courseId)
-				}
-			})
-				.then(async (response) => {
-					if (response) {
-						res.status(200).send({ message: "This Course Book already exists." });
-					} else {
-						let bookObj = {
-							title: req.body.title,
-							author: req.body.author,
-							edition: req.body.edition,
-							publisher: req.body.publisher,
-							bookUrl: req.body.bookUrl,
-							courseId: crypto.decrypt(req.body.courseId)
-						};
+			let bookObj = {
+				title: req.body.title,
+				author: req.body.author,
+				edition: req.body.edition,
+				publisher: req.body.publisher,
+				bookUrl: req.body.bookUrl,
+				courseId: crypto.decrypt(req.body.courseId)
+			};
+			let coursebook = await Books.create(bookObj);
 
-						let coursebook = await Books.create(bookObj);
+			if (coursebook) {
+				res.status(200).send({ message: "Course Book is uploaded", data: coursebook });
+			} else {
+				res.status(500).send({
+					message: "Some error occurred."
+				});
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
 
-						if (coursebook) {
-							res.status(200).send({ message: "Course Book is uploaded", data: coursebook });
-						} else {
-							res.status(500).send({
-								message: "Some error occurred."
-							});
-						}
-					}
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.list = (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseId = crypto.decrypt(req.body.courseId);
+			Books.findAll({ where: { courseId: courseId, isActive: "Y" } })
+				.then((response) => {
+					encryptHelper(response);
+					res.status(200).send({ message: "All Course books has been retrived", data: response });
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
@@ -75,30 +87,7 @@ const create = async (req, res) => {
 	}
 };
 
-const list = (req, res) => {
-	try {
-		Books.findAll({ where: { isActive: "Y" } })
-			.then((response) => {
-				encryptHelper(response);
-				res.status(200).send({ message: "All Books are retrived", data: response });
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-
-				res.status(500).send({
-					message: err.message || "Some error occurred."
-				});
-			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-const update = async (req, res) => {
+exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
@@ -126,13 +115,11 @@ const update = async (req, res) => {
 			};
 
 			let updateBook = await Books.update(bookObj, { where: { id: bookId } });
-			if (updateBook) {
-				res.status(200).send({ message: "Course Book is updated successfully", data: updateBook });
+			if (updateBook == 1) {
+				res.status(200).send({ message: "Course Book has been updated successfully" });
 			} else {
-				emails.errorEmail(req, err);
-
 				res.status(500).send({
-					message: "Some error occurred."
+					message: "Unable to update course book details, maybe book doesn't exists"
 				});
 			}
 		}
@@ -159,20 +146,16 @@ exports.delete = async (req, res) => {
 			});
 		} else {
 			const bookId = crypto.decrypt(req.body.bookId);
-
 			const bookObj = {
 				isActive: "N"
 			};
 
 			const book = await CourseFaqs.update(bookObj, { where: { id: bookId } });
-
 			if (book == 1) {
-				res.status(200).send({ message: "This Book is deleted", data: book });
+				res.status(200).send({ message: "This Book has been deleted" });
 			} else {
-				emails.errorEmail(req, err);
-
 				res.status(500).send({
-					message: "Some error occurred."
+					message: "Unable to delete the course book, maybe the book doent exists"
 				});
 			}
 		}
@@ -184,5 +167,3 @@ exports.delete = async (req, res) => {
 		});
 	}
 };
-
-module.exports = { create, list, update };

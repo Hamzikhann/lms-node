@@ -6,6 +6,32 @@ const Joi = require("@hapi/joi");
 
 const Client = db.clients;
 
+exports.list = async (req, res) => {
+	try {
+		Client.findAll({
+			where: { isActive: "Y" },
+			attributes: { exclude: ["createdAt", "updatedAt", "isActive"] }
+		})
+			.then((data) => {
+				encryptHelper(data);
+				res.send({
+					message: "Clients list has been retrieved",
+					data
+				});
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred while retrieving clients."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
@@ -57,45 +83,10 @@ exports.create = async (req, res) => {
 		});
 	}
 };
-
-exports.updateImage = async (req, res) => {
-	try {
-		const joiSchema = Joi.object({
-			clientId: Joi.string().required(),
-			image: Joi.any()
-		});
-		const { error, value } = joiSchema.validate(req.body);
-
-		if (error) {
-			const message = error.details[0].message.replace(/"/g, "");
-			res.status(400).send({
-				message: message
-			});
-		} else {
-			let clientId = crypto.decrypt(req.body.clientId);
-			let logoURL = "uploads/clients/" + req.file.filename;
-			var updateClient = await Client.update({ logoURL }, { where: { id: clientId, isActive: "Y" } });
-
-			if (updateClient == 1) {
-				res.status(200).send({ message: "Client logo Updated" });
-			} else {
-				res.send({
-					message: "Failed to update client logo."
-				});
-			}
-		}
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			clientId: Joi.string().required(),
+			clientId: Joi.string().optional().allow(null).allow(""),
 			name: Joi.string().required(),
 			website: Joi.string().required(),
 			logo: Joi.string().optional().allow(null).allow("")
@@ -108,25 +99,56 @@ exports.update = async (req, res) => {
 				message: message
 			});
 		} else {
-			const clientId = crypto.decrypt(req.body.clientId);
+			const clientId = req.role == "Administrator" ? crypto.decrypt(req.body.clientId) : crypto.decrypt(req.clientId);
 			const clientObj = {
 				name: req.body.name,
 				website: req.body.website,
 				logoURL: req.body.logo
 			};
 
-			Client.update(clientObj, { where: { id: clientId, isActive: "Y" } })
-				.then(async (data) => {
-					res.status(200).send({
-						message: "Client updated successfully."
-					});
-				})
-				.catch(async (err) => {
-					emails.errorEmail(req, err);
-					res.status(500).send({
-						message: err.message || "Some error occurred while creating the client."
-					});
+			const updatedClient = Client.update(clientObj, { where: { id: clientId, isActive: "Y" } });
+			if (updatedClient == 1) {
+				res.status(200).send({
+					message: "Client updated successfully."
 				});
+			} else {
+				res.status(200).send({
+					message: "Unable to update client info, maybe client doesn't exists"
+				});
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+exports.updateImage = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			clientId: Joi.string().optional().allow(null).allow(""),
+			image: Joi.any()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const clientId = req.role == "Administrator" ? crypto.decrypt(req.body.clientId) : crypto.decrypt(req.clientId);
+			const logoURL = "uploads/clients/" + req.file.filename;
+
+			const updateClient = await Client.update({ logoURL }, { where: { id: clientId, isActive: "Y" } });
+			if (updateClient == 1) {
+				res.status(200).send({ message: "Client logo Updated" });
+			} else {
+				res.send({
+					message: "Failed to update client logo."
+				});
+			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
@@ -153,45 +175,17 @@ exports.delete = async (req, res) => {
 				isActive: "N"
 			};
 
-			Client.update(clientObj, { where: { id: clientId, isActive: "Y" } })
-				.then(async (data) => {
-					res.status(200).send({
-						message: "Client deleted successfully."
-					});
-				})
-				.catch(async (err) => {
-					emails.errorEmail(req, err);
-					res.status(500).send({
-						message: err.message || "Some error occurred while creating the client."
-					});
+			const updatedClient = Client.update(clientObj, { where: { id: clientId, isActive: "Y" } });
+			if (updatedClient == 1) {
+				res.status(200).send({
+					message: "Client deleted successfully."
 				});
+			} else {
+				res.status(200).send({
+					message: "Unable to delete client info, maybe client doesn't exists"
+				});
+			}
 		}
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-exports.list = async (req, res) => {
-	try {
-		Client.findAll({
-			where: { isActive: "Y" },
-			attributes: { exclude: ["createdAt", "updatedAt", "isActive"] }
-		})
-			.then((data) => {
-				encryptHelper(data);
-				res.send({
-					message: "Clients list retrieved",
-					data
-				});
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-				res.status(500).send({
-					message: err.message || "Some error occurred while retrieving clients."
-				});
-			});
 	} catch (err) {
 		emails.errorEmail(req, err);
 		res.status(500).send({

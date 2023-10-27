@@ -3,6 +3,8 @@ const express = require("express");
 const router = express.Router();
 const courseDepartmentController = require("./courseDepartment.controller");
 
+router.post("/list", courseDepartmentController.list);
+
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {
 		courseDepartmentController.create(req, res);
@@ -11,9 +13,17 @@ router.post("/create", (req, res) => {
 	}
 });
 
-router.post("/list", (req, res) => {
+router.post("/update", (req, res) => {
 	if (req.role == "Administrator") {
-		courseDepartmentController.list(req, res);
+		courseDepartmentController.update(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
+router.post("/delete", (req, res) => {
+	if (req.role == "Administrator") {
+		courseDepartmentController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
