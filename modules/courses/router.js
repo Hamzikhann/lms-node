@@ -34,7 +34,7 @@ router.post("/update", (req, res) => {
 
 router.post("/enroll", (req, res) => {
 	if (req.role == "Administrator") {
-		courseController.courseEnrollmeent(req, res);
+		courseController.enrollment(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}

@@ -447,31 +447,59 @@ exports.delete = (req, res) => {
 	}
 };
 
-exports.courseEnrollmeent = (req, res) => {
+exports.enrollment = async (req, res) => {
 	try {
-		const courseId = crypto.decrypt(req.body.courseId);
-		const clientId = crypto.decrypt(req.body.clientId);
+		const joiSchema = Joi.object({
+			assignmentId: Joi.string().required(),
+			courseEnrollmentTypeId: Joi.string().required(),
+			userDepartmentId: Joi.string().optional().allow(null).allow(""),
+			userId: Joi.string().optional().allow(null).allow("")
+		});
+		const { error, value } = joiSchema.validate(req.body);
 
-		let obj = {
-			courseId: courseId,
-			clientId: clientId,
-			dateFrom: req.body.dateFrom,
-			dateTo: req.body.dateTo
-		};
-		CourseAssignments.create(obj)
-			.then((response) => {
-				res.status(200).send({ message: "course is assigned to the clients" });
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-
-				res.status(500).send({
-					message: err.message || "Some error occurred."
-				});
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
 			});
+		} else {
+			const clientId = crypto.decrypt(req.clientId);
+			const assignmentId = crypto.decrypt(req.body.assignmentId);
+			const courseEnrollmentTypeId = crypto.decrypt(req.body.courseEnrollmentTypeId);
+			const userDepartmentId = crypto.decrypt(req.userDepartmentId);
+			const userId = crypto.decrypt(req.userId);
+
+			let enrollmentObj = {
+				required: req.body.required,
+				courseEnrollmentTypeId: courseEnrollmentTypeId,
+				courseAssignmentId: assignmentId,
+				clientId
+			};
+
+			if (courseEnrollmentTypeId == 1) {
+				// All Users
+			} else if (courseEnrollmentTypeId == 2) {
+				// Specific Department
+				enrollmentObj.userDepartmentId = userDepartmentId;
+			} else if (courseEnrollmentTypeId == 3) {
+				// Individual Users
+				enrollmentObj.userId = userId;
+			}
+
+			CourseEnrollments.create(enrollmentObj)
+				.then((response) => {
+					encryptHelper(response);
+					res.status(200).send({ message: "Course enrolled the users", data: response });
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
+				});
+		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});

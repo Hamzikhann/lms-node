@@ -196,35 +196,3 @@ exports.delete = async (req, res) => {
 	}
 };
 // courseid courseenroolmenttyoeDi user id
-
-exports.enrollment = async (req, res) => {
-	try {
-		// console.log(req.clientId);
-
-		const courseId = crypto.decrypt(req.body.courseId);
-		const courseEnrollmeentTypeId = crypto.decrypt(req.body.courseEnrollmentTypeId);
-		const clientId = crypto.decrypt(req.clientId);
-		if (courseEnrollmeentTypeId == 1) {
-			let enrollmentObj = [];
-
-			const users = await Users.findAll({ where: { clientId: clientId, isActive: "Y" } });
-			const courseAssignments = await CourseAssignments.findOne({ where: { courseId: courseId }, isActive: "Y" });
-			console.log(courseAssignments);
-			users.forEach((e) => {
-				let obj = {
-					courseEnrollmeentTypeId: courseEnrollmeentTypeId,
-					courseAssignmentId: courseAssignments.id,
-					userId: e.id,
-					userDepartmentId: e.userDepartmentId
-				};
-				enrollmentObj.push(obj);
-			});
-			console.log(enrollmentObj);
-		}
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
