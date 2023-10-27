@@ -72,10 +72,10 @@ exports.updateImage = async (req, res) => {
 				message: message
 			});
 		} else {
-			let clientId = crypto.decrypt(req.body.clientId);
-			let logoURL = "uploads/clients/" + req.file.filename;
-			var updateClient = await Client.update({ logoURL }, { where: { id: clientId, isActive: "Y" } });
+			const clientId = req.role == "Administrator" ? crypto.decrypt(req.body.clientId) : crypto.decrypt(req.clientId);
+			const logoURL = "uploads/clients/" + req.file.filename;
 
+			const updateClient = await Client.update({ logoURL }, { where: { id: clientId, isActive: "Y" } });
 			if (updateClient == 1) {
 				res.status(200).send({ message: "Client logo Updated" });
 			} else {
@@ -95,7 +95,7 @@ exports.updateImage = async (req, res) => {
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			clientId: Joi.string().required(),
+			clientId: Joi.string().allow(null).allow(""),
 			name: Joi.string().required(),
 			website: Joi.string().required(),
 			logo: Joi.string().optional().allow(null).allow("")
@@ -108,7 +108,7 @@ exports.update = async (req, res) => {
 				message: message
 			});
 		} else {
-			const clientId = crypto.decrypt(req.body.clientId);
+			const clientId = req.role == "Administrator" ? crypto.decrypt(req.body.clientId) : crypto.decrypt(req.clientId);
 			const clientObj = {
 				name: req.body.name,
 				website: req.body.website,
