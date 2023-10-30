@@ -62,10 +62,10 @@ exports.create = async (req, res) => {
 				title: req.body.title.trim(),
 				learningPathId: crypto.decrypt(req.body.learningPathId)
 			};
-
 			const alreadyExist = await Classes.findOne({
 				where: {
-					title: classObj.title
+					title: classObj.title,
+					isActive: "Y"
 				},
 				attributes: ["id"]
 			});
