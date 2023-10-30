@@ -10,7 +10,7 @@ const CourseTasks = db.courseTasks;
 exports.list = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			courseId: Joi.string().required()
+			courseSyllabusId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -20,9 +20,9 @@ exports.list = (req, res) => {
 				message: message
 			});
 		} else {
-			const courseId = crypto.decrypt(req.body.courseId);
+			const courseSyllabusId = crypto.decrypt(req.body.courseSyllabusId);
 			CourseModule.findAll({
-				where: { courseId: courseId, isActive: "Y" },
+				where: { courseSyllabusId, isActive: "Y" },
 				include: [
 					{
 						model: CourseTasks,
@@ -38,7 +38,8 @@ exports.list = (req, res) => {
 				.catch((err) => {
 					emails.errorEmail(req, err);
 					res.status(500).send({
-						message: "Some error occurred."
+						message: "Some error occurred.",
+						err
 					});
 				});
 		}
