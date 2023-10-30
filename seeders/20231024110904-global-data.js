@@ -187,6 +187,7 @@ module.exports = {
 					email: "info@oxibit.com",
 					password: "oxibit123",
 					roleId: "2",
+					clientId: "1",
 					createdAt: date,
 					updatedAt: date
 				},
@@ -196,6 +197,7 @@ module.exports = {
 					email: "info@healthatscale.com",
 					password: "healthatscale123",
 					roleId: "2",
+					clientId: "2",
 					createdAt: date,
 					updatedAt: date
 				},

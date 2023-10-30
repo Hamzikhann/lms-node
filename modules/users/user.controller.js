@@ -47,8 +47,8 @@ exports.create = async (req, res) => {
 					email: req.body.email,
 					password: req.body.password,
 					managerId: req.body.managerId ? crypto.decrypt(req.body.managerId) : null,
-					departmentId: req.body.departmentId ? crypto.decrypt(req.body.departmentId) : null,
-					designationId: req.body.designationId ? crypto.decrypt(req.body.designationId) : null
+					userDepartmentId: req.body.departmentId ? crypto.decrypt(req.body.departmentId) : null,
+					userDesignationId: req.body.designationId ? crypto.decrypt(req.body.designationId) : null
 				};
 
 				if (req.role == "Administrator") {
@@ -116,7 +116,7 @@ exports.update = async (req, res) => {
 				message: message
 			});
 		} else {
-			const userId = crypto.decrypt(req.userId);
+			const userId = crypto.decrypt(req.body.userId);
 			const user = {
 				firstName: req.body.firstName?.trim(),
 				lastName: req.body.lastName?.trim(),
