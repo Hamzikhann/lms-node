@@ -261,6 +261,11 @@ exports.listUsers = (req, res) => {
 					attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
 				},
 				{
+					model: Users,
+					as: "manager",
+					attributes: ["firstName", "lastName"]
+				},
+				{
 					model: UserDepartments,
 					attributes: ["title"]
 				},
