@@ -20,6 +20,7 @@ exports.list = (req, res) => {
 				message: message
 			});
 		} else {
+			const courseId = crypto.decrypt(req.body.courseId);
 			CourseModule.findAll({
 				where: { courseId: courseId, isActive: "Y" },
 				include: [
