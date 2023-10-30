@@ -15,12 +15,11 @@ exports.protect = (req, res, next) => {
 			} else {
 				Object.assign(req, {
 					userId: decoded.userId,
+					profileId: decoded.profileId,
+					clientId: decoded.clientId,
 					roleId: decoded.roleId,
-					clientId: decoded.roleId,
-					profileId: decoded.roleId,
 					role: decoded.role
 				});
-				// console.log(decoded);
 				next();
 			}
 		});

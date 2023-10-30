@@ -6,7 +6,7 @@ const { sequelize } = require("../../models");
 
 const Classes = db.classes;
 const Courses = db.courses;
-
+const learningPaths = db.learningPaths;
 const courseBooks = db.courseBooks;
 const courseDepartment = db.courseDepartments;
 const courseAssignments = db.courseAssignments;
@@ -38,7 +38,7 @@ exports.list = (req, res) => {
 					attributes: ["id", "name", "isActive"]
 				}
 			],
-			attributes: { exclude: ["createdAt", "updatedAt"] }
+			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
 		})
 			.then((data) => {
 				encryptHelper(data);
@@ -83,7 +83,7 @@ exports.listForClient = (req, res) => {
 					attributes: []
 				}
 			],
-			attributes: { exclude: ["createdAt", "updatedAt"] }
+			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
 		})
 			.then((data) => {
 				encryptHelper(data);
@@ -132,7 +132,7 @@ exports.listForUser = (req, res) => {
 					attributes: []
 				}
 			],
-			attributes: { exclude: ["createdAt", "updatedAt"] }
+			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
 		})
 			.then((data) => {
 				encryptHelper(data);
@@ -257,6 +257,18 @@ exports.detail = (req, res) => {
 						attributes: ["id", "title"]
 					},
 					{
+						model: Classes,
+						where: { isActive: "Y" },
+						include: [
+							{
+								model: learningPaths,
+								where: { isActive: "Y" },
+								attributes: ["id", "title"]
+							}
+						],
+						attributes: ["id", "title"]
+					},
+					{
 						model: courseObjective,
 						where: { isActive: "Y" },
 						required: false,
@@ -317,7 +329,7 @@ exports.detail = (req, res) => {
 						attributes: ["id", "title"]
 					}
 				],
-				attributes: { exclude: ["isActive"] }
+				attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
 			})
 				.then((data) => {
 					encryptHelper(data);

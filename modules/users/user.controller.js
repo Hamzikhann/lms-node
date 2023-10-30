@@ -126,7 +126,7 @@ exports.update = async (req, res) => {
 				userDesignationId: req.body.designationId ? crypto.decrypt(req.body.designationId) : null
 			};
 
-			var updateUser = Users.update(user, { where: { id: userId, isActive: "Y" } });
+			var updateUser = await Users.update(user, { where: { id: userId, isActive: "Y" } });
 			if (updateUser == 1) {
 				res.send({
 					message: "User updated successfully."
@@ -189,8 +189,8 @@ exports.updateProfile = async (req, res) => {
 
 			var transaction = await sequelize.transaction();
 
-			var updateUser = Users.update(user, { where: { id: userId, isActive: "Y" }, transaction });
-			var updateProfile = UserProfile.update(profile, { where: { id: profileId, isActive: "Y" }, transaction });
+			var updateUser = await Users.update(user, { where: { id: userId, isActive: "Y" }, transaction });
+			var updateProfile = await UserProfile.update(profile, { where: { id: profileId, isActive: "Y" }, transaction });
 
 			if (updateUser == 1 && updateProfile == 1) {
 				if (transaction) await transaction.commit();
@@ -226,6 +226,7 @@ exports.updateProfileImage = async (req, res) => {
 			});
 		} else {
 			let userId = crypto.decrypt(req.userId);
+			console.log(req.file);
 			let imageUrl = "uploads/users/" + req.file.filename;
 			var updateUser = await UserProfile.update({ imageUrl }, { where: { userId: userId, isActive: "Y" } });
 
@@ -367,11 +368,32 @@ exports.detail = (req, res) => {
 					attributes: ["title"]
 				},
 				{
+					model: UserDesignations,
+					attributes: ["title"]
+				},
+				{
+					model: Users,
+					as: "manager",
+					attributes: ["firstName", "lastName"]
+				},
+				{
 					model: Roles,
 					attributes: ["title"]
 				}
 			],
-			attributes: { exclude: ["isActive", "password"] }
+			attributes: {
+				exclude: [
+					"isActive",
+					"password",
+					"createdAt",
+					"updatedAt",
+					"userDepartmentId",
+					"userDesignationId",
+					"roleId",
+					"managerId",
+					"clientId"
+				]
+			}
 		})
 			.then((data) => {
 				encryptHelper(data);

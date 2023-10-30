@@ -198,6 +198,16 @@ module.exports = {
 					roleId: "2",
 					createdAt: date,
 					updatedAt: date
+				},
+				{
+					firstName: "Ahmad",
+					lastName: "Murtaza",
+					email: "ahmad@oxibit.com",
+					password: "ahmad123",
+					roleId: "3",
+					clientId: "1",
+					createdAt: date,
+					updatedAt: date
 				}
 			],
 			{}
@@ -206,6 +216,7 @@ module.exports = {
 		await queryInterface.bulkInsert("userProfiles", [{ userId: "1", createdAt: date, updatedAt: date }], {});
 		await queryInterface.bulkInsert("userProfiles", [{ userId: "2", createdAt: date, updatedAt: date }], {});
 		await queryInterface.bulkInsert("userProfiles", [{ userId: "3", createdAt: date, updatedAt: date }], {});
+		await queryInterface.bulkInsert("userProfiles", [{ userId: "4", createdAt: date, updatedAt: date }], {});
 	},
 
 	async down(queryInterface, Sequelize) {}
