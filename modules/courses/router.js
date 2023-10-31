@@ -5,6 +5,7 @@ const router = express.Router();
 const courseController = require("./course.controller");
 
 router.post("/list", (req, res) => {
+	console.log(req.role);
 	if (req.role == "Administrator") {
 		courseController.list(req, res);
 	} else if (req.role == "Client") {
@@ -33,7 +34,7 @@ router.post("/update", (req, res) => {
 });
 
 router.post("/enroll", (req, res) => {
-	if (req.role == "Administrator") {
+	if (req.role == "Administrator" || req.role == "Client") {
 		courseController.enrollment(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });

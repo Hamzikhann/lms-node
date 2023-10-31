@@ -23,7 +23,7 @@ exports.create = (req, res) => {
 		} else {
 			const faqsObj = {
 				title: req.body.title,
-				discription: req.body.discription,
+				description: req.body.description,
 				courseId: crypto.decrypt(req.body.courseId)
 			};
 			CourseFaqs.create(faqsObj)
@@ -59,6 +59,7 @@ exports.list = (req, res) => {
 				message: message
 			});
 		} else {
+			const courseId = crypto.decrypt(req.body.courseId);
 			CourseFaqs.findAll({ where: { courseId: courseId, isActive: "Y" } })
 				.then((response) => {
 					encryptHelper(response);

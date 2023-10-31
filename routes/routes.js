@@ -36,12 +36,11 @@ class Routes {
 		this.app.use("/api/course/useful-links", jwt.protect, courseUsefulLinksRouteHandler);
 		this.app.use("/api/course/faqs", jwt.protect, couresFaqsRouteHandler);
 		this.app.use("/api/course/objectives", jwt.protect, courseObjectiveRouteHandler);
-		this.app.use("/api/course/module", jwt.protect, courseModuleRouteHandler);
-		this.app.use("/api/course/task", jwt.protect, courseTaskRouteHandler);
-		this.app.use("/api/course/enrollment", jwt.protect, courseEnrollmentRouteHandler);
+		this.app.use("/api/course/modules", jwt.protect, courseModuleRouteHandler);
+		this.app.use("/api/course/tasks", jwt.protect, courseTaskRouteHandler);
+		this.app.use("/api/course/enrollments", jwt.protect, courseEnrollmentRouteHandler);
 		this.app.use("/api/course/task/assesments", jwt.protect, courseAssesmentRouteHandler);
 		this.app.use("/api/course/task/assesments/questions", jwt.protect, courseAssesmentDetailRouteHandler);
-
 	}
 	routesConfig() {
 		this.appRoutes();

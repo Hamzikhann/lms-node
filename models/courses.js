@@ -9,6 +9,11 @@ module.exports = (sequelize, DataTypes) => {
 			code: DataTypes.STRING,
 			level: DataTypes.STRING,
 			language: DataTypes.STRING,
+			status: {
+				type: DataTypes.STRING,
+				allowNull: false,
+				defaultValue: "D"
+			},
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,
