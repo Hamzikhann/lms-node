@@ -40,7 +40,7 @@ exports.list = (req, res) => {
 							}
 						],
 						required: false,
-						attributes: ["id", "title", "estimatedTime"]
+						attributes: ["id", "title", "estimatedTime", "courseTaskTypeId", "courseModuleId"]
 					}
 				]
 			})
