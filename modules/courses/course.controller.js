@@ -13,7 +13,7 @@ const courseAssignments = db.courseAssignments;
 const courseEnrollments = db.courseEnrollments;
 const courseFaqs = db.courseFaqs;
 const courseInstructor = db.courseInstructors;
-const courseObjective = db.courseObjectives;
+const courseObjectives = db.courseObjectives;
 const courseUsefulLinks = db.courseUsefulLinks;
 const courseSyllabus = db.courseSyllabus;
 const courseModule = db.courseModules;
@@ -160,6 +160,7 @@ exports.create = async (req, res) => {
 			code: Joi.string().required(),
 			level: Joi.string().required(),
 			language: Joi.string().required(),
+			objectives: Joi.string().optional().allow(null).allow([]),
 			classId: Joi.string().required(),
 			courseDepartmentId: Joi.string().required()
 		});
@@ -196,27 +197,26 @@ exports.create = async (req, res) => {
 
 				Courses.create(courseObj, { transaction })
 					.then(async (result) => {
+						const courseId = result.id;
+
+						const courseObjectivesArr = req.body.objectives;
+						courseObjectivesArr.forEach((objective) => {
+							objective.courseId = courseId;
+						});
+						await courseObjectives.bulkInsert(courseObjectivesArr, { transaction });
+
 						const syllabus = {
 							title: "Table of Content",
-							courseId: result.id
+							courseId: courseId
 						};
-						courseSyllabus
-							.create(syllabus, { transaction })
-							.then(async (response) => {
-								await transaction.commit();
-								encryptHelper(result);
-								res.status(200).send({
-									message: "Course created successfully.",
-									data: result
-								});
-							})
-							.catch(async (err) => {
-								if (transaction) await transaction.rollback();
-								emails.errorEmail(req, err);
-								res.status(500).send({
-									message: err.message || "Some error occurred while creating the Quiz."
-								});
-							});
+						await courseSyllabus.create(syllabus, { transaction });
+
+						await transaction.commit();
+						encryptHelper(result);
+						res.status(200).send({
+							message: "Course created successfully.",
+							data: result
+						});
 					})
 					.catch(async (err) => {
 						if (transaction) await transaction.rollback();
@@ -269,7 +269,7 @@ exports.detail = (req, res) => {
 						attributes: ["id", "title"]
 					},
 					{
-						model: courseObjective,
+						model: courseObjectives,
 						where: { isActive: "Y" },
 						required: false,
 						attributes: ["id", "description"]

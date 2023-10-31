@@ -8,18 +8,18 @@ const { sequelize } = require("../../models");
 const CourseModule = db.courseModules;
 const CourseTasks = db.courseTasks;
 const CourseTaskContent = db.courseTaskContent;
-const CourseTaskType = db.courseTaskTypes;
-const create = async (req, res) => {
+const CourseTaskTypes = db.courseTaskTypes;
+
+exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
-			description: Joi.string().required(),
 			estimatedTime: Joi.string().required(),
-			courseModuleId: Joi.string().required(),
-			courseTaskTypeId: Joi.string().required(),
 			contentDescription: Joi.string().required(),
-			contentVideolink: Joi.string().required(),
-			contentHandouts: Joi.string().required()
+			contentVideoLink: Joi.string().required(),
+			contentHandoutLink: Joi.string().required(),
+			courseTaskTypeId: Joi.string().required(),
+			courseModuleId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 
@@ -32,7 +32,6 @@ const create = async (req, res) => {
 			CourseTasks.findOne({
 				where: {
 					title: req.body.title.trim(),
-					description: req.body.description.trim(),
 					estimatedTime: req.body.estimatedTime,
 					courseModuleId: crypto.decrypt(req.body.courseModuleId),
 					courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId)
@@ -44,7 +43,6 @@ const create = async (req, res) => {
 					} else {
 						const taskObj = {
 							title: req.body.title,
-							description: req.body.description,
 							estimatedTime: req.body.estimatedTime,
 							courseModuleId: crypto.decrypt(req.body.courseModuleId),
 							courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId)
@@ -55,16 +53,15 @@ const create = async (req, res) => {
 							.then((task) => {
 								const contentObj = {
 									description: req.body.contentDescription,
-									videoLink: req.body.contentVideolink,
-									handoutLink: req.body.contentHandouts,
+									videoLink: req.body.contentVideoLink,
+									handoutLink: req.body.contentHandoutLink,
 									courseTaskId: task.id
 								};
-
 								CourseTaskContent.create(contentObj, { transaction })
 									.then(async (content) => {
 										await transaction.commit();
-										encryptHelper(content);
 										encryptHelper(task);
+										encryptHelper(content);
 										res.status(200).send({
 											message: "Course Task and Course Content are created",
 											courseTask: task,
@@ -90,7 +87,6 @@ const create = async (req, res) => {
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
-
 					res.status(500).send({
 						message: err.message || "Some error occurred while creating the Quiz."
 					});
@@ -98,80 +94,128 @@ const create = async (req, res) => {
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
 
-const list = (req, res) => {
+exports.list = (req, res) => {
 	try {
-		CourseTasks.findAll({
-			where: { isActive: "Y" }
+		const joiSchema = Joi.object({
+			courseId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseId = crypto.decrypt(req.body.courseId);
+			CourseTasks.findAll({
+				where: { isActive: "Y" },
+				include: [
+					{
+						model: CourseModule,
+						where: { courseId, isActive: "Y" },
+						attributes: []
+					}
+				],
+				attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+			})
+				.then((response) => {
+					encryptHelper(response);
+					res.status(200).send({ message: "All Course Tasks are retrived", data: response });
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: "Some error occurred."
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.listTypes = (req, res) => {
+	try {
+		CourseTaskTypes.findAll({
+			where: { isActive: "Y" },
+			attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
 		})
 			.then((response) => {
 				encryptHelper(response);
-				res.status(200).send({ message: "All Course Task are retrived", data: response });
+				res.status(200).send({ message: "All Course Tasks are retrived", data: response });
 			})
 			.catch((err) => {
 				emails.errorEmail(req, err);
-
 				res.status(500).send({
 					message: "Some error occurred."
 				});
 			});
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
 
-const detail = async (req, res) => {
-	try {
-		const courseTaskId = crypto.decrypt(req.body.courseTaskId);
-
-		CourseTasks.findOne({
-			where: { id: courseTaskId },
-			include: [
-				{
-					model: CourseTaskContent,
-					where: { isActive: "Y" }
-				},
-				{
-					modal: CourseTaskType,
-					where: { isActive: "Y" }
-				}
-			]
-		}).then((response) => {
-			encryptHelper(response);
-			res.status(200).send({ message: "The detail of the Course Task is retrived", data: response });
-		});
-	} catch (err) {
-		emails.errorEmail(req, err);
-
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-const update = async (req, res) => {
+exports.detail = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			description: Joi.string().required(),
-			estimatedTime: Joi.string().required(),
-			contentDescription: Joi.string().required(),
-			contentVideolink: Joi.string().required(),
-			contentHandouts: Joi.string().required(),
 			courseTaskId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
+			const response = await CourseTasks.findOne({
+				where: { id: courseTaskId },
+				include: [
+					{
+						model: CourseTaskContent,
+						where: { isActive: "Y" }
+					},
+					{
+						modal: CourseTaskTypes,
+						where: { isActive: "Y" }
+					}
+				]
+			});
+			encryptHelper(response);
+			res.status(200).send({ message: "The course task detail has been retrived", data: response });
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
 
+exports.update = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			title: Joi.string().required(),
+			estimatedTime: Joi.string().required(),
+			contentDescription: Joi.string().required(),
+			contentVideolink: Joi.string().required(),
+			contentHandoutLink: Joi.string().required(),
+			courseTaskTypeId: Joi.string().required(),
+			courseTaskId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
@@ -181,32 +225,29 @@ const update = async (req, res) => {
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
 			const taskObj = {
 				title: req.body.title,
-				description: req.body.description,
-				estimatedTime: req.body.estimatedTime
+				estimatedTime: req.body.estimatedTime,
+				courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId)
 			};
 
-			const upatedTask = await CourseTasks.update(taskObj, { where: { id: courseTaskId } });
-
-			if (upatedTask) {
+			const updatedTask = await CourseTasks.update(taskObj, { where: { id: courseTaskId } });
+			if (updatedTask == 1) {
 				const contentObj = {
 					description: req.body.contentDescription,
 					videoLink: req.body.contentVideolink,
-					handoutLink: req.body.contentHandouts
+					handoutLink: req.body.contentHandoutLink
 				};
-				const updateContem = CourseTaskContent.update(contentObj, { where: { courseTaskId: courseTaskId } });
+				const updateContent = CourseTaskContent.update(contentObj, { where: { courseTaskId: courseTaskId } });
 
-				res.status(200).send({ message: "Course Modules are updated", data: upatedTask });
+				res.status(200).send({ message: "Course Modules are updated", data: updatedTask });
 			} else {
 				emails.errorEmail(req, err);
-
 				res.status(500).send({
-					message: "Some error occurred."
+					message: "Failed to update task detail, maybe the task doesn't exists."
 				});
 			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
@@ -219,7 +260,6 @@ exports.delete = async (req, res) => {
 			courseTaskId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
-
 		if (error) {
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
@@ -228,34 +268,24 @@ exports.delete = async (req, res) => {
 		} else {
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
 
-			const taskObj = {
-				isActive: "N"
-			};
-			const contentObj = {
-				isActive: "N"
-			};
+			const taskObj = { isActive: "N" };
+			const contentObj = { isActive: "N" };
 
 			const task = await CourseTasks.update(taskObj, { where: { id: courseTaskId } });
-
 			if (task == 1) {
 				const content = await CourseTaskContent.update(contentObj, { where: { id: courseTaskId } });
-
-				res.status(200).send({ message: "This Module is deleted", data: task });
+				res.status(200).send({ message: "This task has been deleted", data: task });
 			} else {
 				emails.errorEmail(req, err);
-
 				res.status(500).send({
-					message: "Some error occurred."
+					message: "Unable to delete the task, maybe the task doesn't exists."
 				});
 			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
-
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
 	}
 };
-
-module.exports = { create, list, update, detail };
