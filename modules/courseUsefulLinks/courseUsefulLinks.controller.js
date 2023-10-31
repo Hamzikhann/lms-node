@@ -138,7 +138,7 @@ exports.delete = async (req, res) => {
 				isActive: "N"
 			};
 
-			const link = await CourseFaqs.update(linksObj, { where: { id: linkId } });
+			const link = await UsefulLinks.update(linksObj, { where: { id: linkId } });
 			if (link == 1) {
 				res.status(200).send({ message: "This course useful link has been deleted", data: link });
 			} else {

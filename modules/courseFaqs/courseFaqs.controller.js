@@ -23,7 +23,7 @@ exports.create = (req, res) => {
 		} else {
 			const faqsObj = {
 				title: req.body.title,
-				discription: req.body.discription,
+				description: req.body.description,
 				courseId: crypto.decrypt(req.body.courseId)
 			};
 			CourseFaqs.create(faqsObj)

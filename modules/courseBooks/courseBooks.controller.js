@@ -150,7 +150,7 @@ exports.delete = async (req, res) => {
 				isActive: "N"
 			};
 
-			const book = await CourseFaqs.update(bookObj, { where: { id: bookId } });
+			const book = await courseBooks.update(bookObj, { where: { id: bookId } });
 			if (book == 1) {
 				res.status(200).send({ message: "This Book has been deleted" });
 			} else {
