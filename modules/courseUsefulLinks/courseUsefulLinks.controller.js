@@ -6,7 +6,7 @@ const Joi = require("@hapi/joi");
 
 const UsefulLinks = db.courseUsefulLinks;
 
-const list = (req, res) => {
+exports.list = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			courseId: Joi.string().required()
@@ -40,7 +40,7 @@ const list = (req, res) => {
 	}
 };
 
-const create = (req, res) => {
+exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
@@ -81,7 +81,7 @@ const create = (req, res) => {
 	}
 };
 
-const update = async (req, res) => {
+exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
@@ -152,5 +152,3 @@ exports.delete = async (req, res) => {
 		});
 	}
 };
-
-module.exports = { create, list, update };
