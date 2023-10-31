@@ -59,6 +59,7 @@ exports.list = (req, res) => {
 				message: message
 			});
 		} else {
+			const courseId = crypto.decrypt(req.body.courseId);
 			CourseFaqs.findAll({ where: { courseId: courseId, isActive: "Y" } })
 				.then((response) => {
 					encryptHelper(response);
