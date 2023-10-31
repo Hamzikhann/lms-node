@@ -6,6 +6,8 @@ const Joi = require("@hapi/joi");
 
 const CourseModule = db.courseModules;
 const CourseTasks = db.courseTasks;
+const CourseTaskContent = db.courseTaskContent;
+const CourseTaskTypes = db.courseTaskTypes;
 
 exports.list = (req, res) => {
 	try {
@@ -27,13 +29,24 @@ exports.list = (req, res) => {
 					{
 						model: CourseTasks,
 						where: { isActive: "Y" },
-						required: false
+						include: [
+							{
+								model: CourseTaskContent,
+								attributes: ["description", "videoLink", "handoutLink"]
+							},
+							{
+								model: CourseTaskTypes,
+								attributes: ["title"]
+							}
+						],
+						required: false,
+						attributes: ["id", "title", "estimatedTime"]
 					}
 				]
 			})
 				.then((response) => {
 					encryptHelper(response);
-					res.status(200).send({ message: "Course modules and their tasks has been retrived", data: response });
+					res.status(200).send({ message: "Course modules and their tasks have been retrived", data: response });
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
