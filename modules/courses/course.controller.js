@@ -332,6 +332,12 @@ exports.detail = (req, res) => {
 						where: { isActive: "Y" },
 						required: false,
 						attributes: ["id", "name", "about", "imageUrl"]
+					},
+
+					{
+						model: courseSyllabus,
+						where: { isActive: "Y" },
+						attributes: ["id", "title"]
 					}
 				],
 				attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
