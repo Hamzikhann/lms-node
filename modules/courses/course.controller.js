@@ -160,6 +160,7 @@ exports.create = async (req, res) => {
 			code: Joi.string().required(),
 			level: Joi.string().required(),
 			language: Joi.string().required(),
+			status: Joi.string().required(),
 			objectives: Joi.string().optional().allow(null).allow([]),
 			classId: Joi.string().required(),
 			courseDepartmentId: Joi.string().required()
@@ -177,6 +178,7 @@ exports.create = async (req, res) => {
 				code: req.body.code,
 				level: req.body.level,
 				language: req.body.language,
+				status: req.body.status,
 				classId: crypto.decrypt(req.body.classId),
 				courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId)
 			};
@@ -190,7 +192,7 @@ exports.create = async (req, res) => {
 			if (alreadyExist) {
 				res.status(401).send({
 					title: "Already exist.",
-					message: "Course is already exist."
+					message: "Course title already exist."
 				});
 			} else {
 				let transaction = await sequelize.transaction();
@@ -359,6 +361,7 @@ exports.update = async (req, res) => {
 			code: Joi.string().required(),
 			level: Joi.string().required(),
 			language: Joi.string().required(),
+			status: Joi.string().required(),
 			courseDepartmentId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
@@ -388,6 +391,7 @@ exports.update = async (req, res) => {
 					code: req.body.code,
 					level: req.body.level,
 					language: req.body.language,
+					status: req.body.status,
 					courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId)
 				};
 				Classes.update(courseObject, { where: { id: courseId, isActive: "Y" } })
