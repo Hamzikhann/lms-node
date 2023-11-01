@@ -233,12 +233,12 @@ exports.update = async (req, res) => {
 			if (updatedTask == 1) {
 				const contentObj = {
 					description: req.body.contentDescription,
-					videoLink: req.body.contentVideolink,
+					videoLink: req.body.contentVideoLink,
 					handoutLink: req.body.contentHandoutLink
 				};
-				const updateContent = CourseTaskContent.update(contentObj, { where: { courseTaskId: courseTaskId } });
+				const updateContent = await CourseTaskContent.update(contentObj, { where: { courseTaskId: courseTaskId } });
 
-				res.status(200).send({ message: "Course Modules are updated", data: updatedTask });
+				res.status(200).send({ message: "Course Modules are updated" });
 			} else {
 				emails.errorEmail(req, err);
 				res.status(500).send({
@@ -273,8 +273,8 @@ exports.delete = async (req, res) => {
 
 			const task = await CourseTasks.update(taskObj, { where: { id: courseTaskId } });
 			if (task == 1) {
-				const content = await CourseTaskContent.update(contentObj, { where: { id: courseTaskId } });
-				res.status(200).send({ message: "This task has been deleted", data: task });
+				const content = await CourseTaskContent.update(contentObj, { where: { courseTaskId: courseTaskId } });
+				res.status(200).send({ message: "This task has been deleted" });
 			} else {
 				emails.errorEmail(req, err);
 				res.status(500).send({
