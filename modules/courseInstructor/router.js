@@ -5,7 +5,7 @@ const router = express.Router();
 const InstructorController = require("./courseInstructor.controller");
 const fileUpload = require("../../utils/fileUpload");
 
-const { upload } = fileUpload("instructor");
+const { upload } = fileUpload("instructors");
 
 router.post("/list", InstructorController.list);
 
