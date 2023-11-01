@@ -210,7 +210,7 @@ exports.update = async (req, res) => {
 			title: Joi.string().required(),
 			estimatedTime: Joi.string().required(),
 			contentDescription: Joi.string().required(),
-			contentVideolink: Joi.string().required(),
+			contentVideoLink: Joi.string().required(),
 			contentHandoutLink: Joi.string().required(),
 			courseTaskTypeId: Joi.string().required(),
 			courseTaskId: Joi.string().required()
