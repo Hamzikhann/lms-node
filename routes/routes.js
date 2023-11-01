@@ -17,8 +17,8 @@ const courseModuleRouteHandler = require("../modules/courseModule/router");
 const courseTaskRouteHandler = require("../modules/courseTasks/router");
 const courseEnrollmentRouteHandler = require("../modules/courseEnrollment/router");
 const courseInstructorRouteHandler = require("../modules/courseInstructor/router");
-const courseAssesmentDetailRouteHandler = require("../modules/courseAssesmentDetail/router")
-const courseAssesmentRouteHandler = require("../modules/courseAssesment/router")
+const courseAssesmentDetailRouteHandler = require("../modules/courseAssesmentDetail/router");
+const courseAssesmentRouteHandler = require("../modules/courseAssesment/router");
 
 class Routes {
 	constructor(app) {

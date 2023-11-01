@@ -20,6 +20,7 @@ router.post("/list", (req, res) => {
 });
 
 router.post("/create", upload.single("image"), (req, res) => {
+	console.log(req.role);
 	if (req.role == "Administrator") {
 		courseController.create(req, res);
 	} else {
