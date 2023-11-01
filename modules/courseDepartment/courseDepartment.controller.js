@@ -1,12 +1,17 @@
 const db = require("../../models");
+const encryptHelper = require("../../utils/encryptHelper");
 const Joi = require("@hapi/joi");
 
 const CourseDepartment = db.courseDepartments;
 
 exports.list = async (req, res) => {
 	try {
-		CourseDepartment.findAll({ where: { isActive: "Y" } })
+		CourseDepartment.findAll({
+			where: { isActive: "Y" },
+			attributes: ["id", "title"]
+		})
 			.then((response) => {
+				encryptHelper(response);
 				res.status(200).send({ message: "All Course Department has been retrived", data: response });
 			})
 			.catch((err) => {
@@ -45,6 +50,7 @@ exports.create = async (req, res) => {
 				};
 				CourseDepartment.create(departmentObj)
 					.then((response) => {
+						encryptHelper(response);
 						res.status(200).send({ message: "Course Department has been created", data: response });
 					})
 					.catch((err) => {
@@ -84,7 +90,7 @@ exports.upate = async (req, res) => {
 
 			const departmentUpdated = await CourseDepartment.update(departmentObj, { where: { id: departmentId } });
 			if (departmentUpdated == 1) {
-				res.status(200).send({ message: "Course Department has been updated", data: response });
+				res.status(200).send({ message: "Course Department has been updated" });
 			} else {
 				res.status(500).send({ message: "Unable to update course department, maybe course department doesn't exists" });
 			}
@@ -117,7 +123,7 @@ exports.delete = async (req, res) => {
 
 			const departmentUpdated = await CourseDepartment.update(departmentObj, { where: { id: departmentId } });
 			if (departmentUpdated == 1) {
-				res.status(200).send({ message: "Course Department has been deleted", data: response });
+				res.status(200).send({ message: "Course Department has been deleted" });
 			} else {
 				res.status(500).send({ message: "Unable to delete course department, maybe course department doesn't exists" });
 			}
