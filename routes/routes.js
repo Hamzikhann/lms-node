@@ -39,8 +39,9 @@ class Routes {
 		this.app.use("/api/course/modules", jwt.protect, courseModuleRouteHandler);
 		this.app.use("/api/course/tasks", jwt.protect, courseTaskRouteHandler);
 		this.app.use("/api/course/enrollments", jwt.protect, courseEnrollmentRouteHandler);
-		this.app.use("/api/course/task/assesments", jwt.protect, courseAssesmentRouteHandler);
 		this.app.use("/api/course/task/assesments/questions", jwt.protect, courseAssesmentDetailRouteHandler);
+		this.app.use("/api/course/task/assesments", jwt.protect, courseAssesmentRouteHandler);
+		
 	}
 	routesConfig() {
 		this.appRoutes();
