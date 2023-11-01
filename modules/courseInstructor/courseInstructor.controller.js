@@ -48,7 +48,7 @@ exports.update = (req, res) => {
 			instructorId: Joi.string().required(),
 			name: Joi.string().required(),
 			about: Joi.string().required(),
-			image: Joi.any().required()
+			image: Joi.any().optional()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
