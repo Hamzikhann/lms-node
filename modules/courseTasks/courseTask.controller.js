@@ -181,15 +181,15 @@ exports.detail = async (req, res) => {
 		} else {
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
 			const response = await CourseTasks.findOne({
-				where: { id: courseTaskId },
+				where: { id: courseTaskId, isActive: "Y" },
 				include: [
 					{
 						model: CourseTaskContent,
-						where: { isActive: "Y" }
+						attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
 					},
 					{
-						modal: CourseTaskTypes,
-						where: { isActive: "Y" }
+						model: CourseTaskTypes,
+						attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
 					}
 				]
 			});
