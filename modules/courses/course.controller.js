@@ -212,23 +212,23 @@ exports.create = async (req, res) => {
 			code: Joi.string().required(),
 			level: Joi.string().required(),
 			language: Joi.string().required(),
-			status: Joi.string().required(),
-			objectives: Joi.string().optional().allow(null).allow([]),
+			status: Joi.string().optional(),
+			objectives: Joi.any().optional(),
 			classId: Joi.string().required(),
 			courseDepartmentId: Joi.string().required(),
 			name: Joi.string().required(),
-			about: Joi.string().required(),
-			imageUrl: Joi.any().required()
+			aboutInstructor: Joi.string().required(),
+			image: Joi.any().optional()
 		});
+		console.log("body");
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			console.log("Error");
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
 			});
 		} else {
-			let image = "uploads/instructor/" + req.file.filename;
-
 			const courseObj = {
 				title: req.body.title.trim(),
 				about: req.body.about,
@@ -259,10 +259,14 @@ exports.create = async (req, res) => {
 						const courseId = result.id;
 
 						const courseObjectivesArr = req.body.objectives;
-						courseObjectivesArr.forEach((objective) => {
-							objective.courseId = courseId;
-						});
-						await courseObjectives.bulkInsert(courseObjectivesArr, { transaction });
+						if (courseObjectivesArr) {
+							courseObjectivesArr = JSON.parse(courseObjectivesArr);
+							courseObjectivesArr.forEach((objective) => {
+								objective.courseId = courseId;
+							});
+							if (courseObjectivesArr.length > 0)
+								await courseObjectives.bulkInsert(courseObjectivesArr, { transaction });
+						}
 
 						const syllabus = {
 							title: "Table of Content",
@@ -272,11 +276,12 @@ exports.create = async (req, res) => {
 
 						const instructorObj = {
 							name: req.body.name,
-							about: req.body.about,
-							imageUrl: image,
+							about: req.body.aboutInstructor,
 							courseId: courseId
 						};
-
+						if (req.file && req.file.filename) {
+							instructorObj.imageUrl = "uploads/instructor/" + req.file.filename;
+						}
 						await courseInstructor.create(instructorObj, { transaction });
 
 						await transaction.commit();
@@ -296,9 +301,11 @@ exports.create = async (req, res) => {
 			}
 		}
 	} catch (err) {
+		console.log("error", err);
 		emails.errorEmail(req, err);
 		res.status(500).send({
-			message: err.message || "Some error occurred."
+			message: err.message || "Some error occurred.",
+			err
 		});
 	}
 };

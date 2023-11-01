@@ -1,13 +1,13 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const courseTaskAssessmentDetailController = require('./courseAssesmentDetail.controller');
+const courseTaskAssessmentDetailController = require("./courseAssesmentDetail.controller");
 
-router.post('/create', courseTaskAssessmentDetailController.create);
+router.post("/create", courseTaskAssessmentDetailController.create);
 
-router.put('/update', courseTaskAssessmentDetailController.update);
+router.post("/update", courseTaskAssessmentDetailController.update);
 
-router.delete('/delete', courseTaskAssessmentDetailController.delete);
+router.post("/delete", courseTaskAssessmentDetailController.delete);
 
-router.get('/list', courseTaskAssessmentDetailController.list);
+router.post("/list", courseTaskAssessmentDetailController.list);
 
 module.exports = router;
