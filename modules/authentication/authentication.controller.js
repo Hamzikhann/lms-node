@@ -3,6 +3,8 @@ const jwt = require("../../utils/jwt");
 const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const Joi = require("@hapi/joi");
+
+const Clients = db.clients;
 const Users = db.users;
 const UserProfile = db.userProfile;
 const Roles = db.roles;
@@ -30,6 +32,10 @@ exports.login = async (req, res) => {
 					{
 						model: Roles,
 						attributes: ["title"]
+					},
+					{
+						model: Clients,
+						attributes: ["name", "website", "logoURL"]
 					}
 				],
 				attributes: ["id", "firstName", "lastName", "email", "clientId", "roleId"]
