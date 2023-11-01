@@ -1,4 +1,6 @@
-const { CourseTaskAssessment } = require('../../models');
+const { courseTaskAssessment } = require('../../models');
+const { courseTaskAssessmentDetail } = require('../../models');
+
 const crypto = require('../../utils/crypto');
 const Joi = require('@hapi/joi');
 
@@ -10,6 +12,11 @@ exports.create = async (req, res) => {
       estimatedTime: Joi.number().required(),
       startTime: Joi.date().required(),
       courseId: Joi.string().required(),
+
+      question: Joi.string().optional(),
+      options: Joi.array().items(Joi.string()).optional(),
+      answer: Joi.string().optional(),
+      type: Joi.string().optional(),
     });
 
     const { error, value } = joiSchema.validate(req.body);
@@ -21,14 +28,38 @@ exports.create = async (req, res) => {
       });
     }
 
-    const courseTaskAssessment = await CourseTaskAssessment.create({
-      title: req.body.title,
-      description: req.body.description,
-      estimatedTime: req.body.estimatedTime,
-      startTime: req.body.startTime,
-      courseId: crypto.decrypt(req.body.courseId),
-    });
+    courseTaskAssessment.create({
+        title: req.body.title,
+        description: req.body.description,
+        estimatedTime: req.body.estimatedTime,
+        startTime: req.body.startTime,
+        courseId: crypto.decrypt(req.body.courseId),
+        isActive: "Y",
+      }).then((response)=>{
+        if(req.body.question){
+          courseTaskAssessmentDetail.create({
+                question: req.body.question,
+                options: req.body.options,
+                answer: req.body.answer,
+                type: req.body.type,
+                CourseTaskAssessmentId: response.id,
+                isActive: 'Y',
+              }).then((response)=>{
+                res.status(201).json(courseTaskAssessment,courseTaskAssessmentDetail)
 
+              }).catch((err)=>{
+                res.status(500).json({
+                  message: err.message || 'Some error occurred.',
+                });
+              })
+        }
+        res.status(201).json(courseTaskAssessment)
+      })
+.catch((err)=>{
+  res.status(500).json({
+    message: err.message || 'Some error occurred.',
+  });
+})
     res.status(201).json(courseTaskAssessment);
   } catch (error) {
     res.status(500).json({
@@ -45,6 +76,12 @@ exports.update = async (req, res) => {
       estimatedTime: Joi.number().required(),
       startTime: Joi.date().required(),
       courseId: Joi.string().required(),
+      courseTaskAssesmentId:Joi.string().required(),
+      question: Joi.string().optional(),
+      options: Joi.array().items(Joi.string()).optional(),
+      answer: Joi.string().optional(),
+      type: Joi.string().optional(),
+      courseTaskAssesmentDetailId: Joi.string().optional(),
     });
 
     const { error, value } = joiSchema.validate(req.body);
@@ -56,12 +93,22 @@ exports.update = async (req, res) => {
       });
     }
 
-    const updated = await CourseTaskAssessment.update(req.body, {
-      where: { id: req.params.id },
+    const updated = await courseTaskAssessment.update(req.body, {
+      where: { id: courseTaskAssesmentId },
     });
+    if(req.body.question){
+     let courseAssesmentDetail=await courseTaskAssessmentDetail.update({
+        question: req.body.question,
+        options: req.body.options,
+        answer: req.body.answer,
+        type: req.body.type,
+        CourseTaskAssessmentId: courseAssesmentId.id,
+        isActive: 'Y',
+      },{where: { id: courseTaskAssesmentDetailId }})
+    }
 
     if (updated[0] === 1) {
-      const updatedCourseTaskAssessment = await CourseTaskAssessment.findByPk(req.params.id);
+      const updatedCourseTaskAssessment = await courseTaskAssessment.findByPk(req.params.id);
       return res.status(200).json(updatedCourseTaskAssessment);
     } else {
       throw new Error('Course Task Assessment not found');
@@ -75,11 +122,12 @@ exports.update = async (req, res) => {
 
 exports.delete = async (req, res) => {
   try {
-    const deleted = await CourseTaskAssessment.destroy({
-      where: { id: req.params.id },
-    });
+    const deleted = await courseTaskAssessment.update(
+      { isActive: "N" },
+      { where: { id: req.body.id } }
+    );
 
-    if (deleted) {
+    if (deleted[0] === 1) {
       res.status(204).send('Course Task Assessment deleted');
     } else {
       throw new Error('Course Task Assessment not found');
@@ -91,7 +139,7 @@ exports.delete = async (req, res) => {
   }
 };
 
-exports.list = async (req, res) => {
+exports.detail = async (req, res) => {
   try {
     const joiSchema = Joi.object({
       courseId: Joi.string().required(),
@@ -106,8 +154,11 @@ exports.list = async (req, res) => {
       });
     }
 
-    const courseTaskAssessments = await CourseTaskAssessment.findAll({
-      where: { courseId: crypto.decrypt(req.params.courseId) },
+    const courseTaskAssessments = await courseTaskAssessment.findAll({
+      where: { courseId: crypto.decrypt(req.body.courseId) },
+      include: [{
+        model: courseTaskAssessmentDetail,
+      }]
     });
 
     res.status(200).json(courseTaskAssessments);
