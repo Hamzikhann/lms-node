@@ -1,17 +1,20 @@
 "use strict";
 
 module.exports = (sequelize, DataTypes) => {
-    const CourseTaskAssessment = sequelize.define('CourseTaskAssessment', {
+    const table = sequelize.define('courseTaskAssessment', {
       title: DataTypes.STRING,
       description: DataTypes.TEXT,
       estimatedTime: DataTypes.INTEGER,
       startTime: DataTypes.DATE,
+      isActive: {
+				type: DataTypes.STRING,
+				allowNull: false,
+				defaultValue: "Y"
+			}
     });
-  
-    CourseTaskAssessment.associate = (models) => {
-      CourseTaskAssessment.belongsTo(models.courseTasks);
-      CourseTaskAssessment.hasMany(models.CourseTaskAssessmentDetail);
+    table.associate = (models) => {
+      table.belongsTo(models.courseTasks);
+      table.hasMany(models.courseTaskAssessmentDetail);
     };
-  
-    return CourseTaskAssessment;
+    return table;
   };

@@ -1,19 +1,23 @@
 "use strict";
 
 module.exports = (sequelize, DataTypes) => {
-    const CourseTaskAssessmentDetail = sequelize.define('CourseTaskAssessmentDetail', {
+    const table = sequelize.define('courseTaskAssessmentDetail', {
       question: DataTypes.TEXT,
       options: {
-        type: DataTypes.JSON, // or DataTypes.JSONB for PostgreSQL
+        type: DataTypes.JSON,
         allowNull: true,
       },
       answer: DataTypes.TEXT,
       type: DataTypes.STRING,
+      isActive: {
+				type: DataTypes.STRING,
+				allowNull: false,
+				defaultValue: "Y"
+			}
     });
-  
-    CourseTaskAssessmentDetail.associate = (models) => {
-      CourseTaskAssessmentDetail.belongsTo(models.CourseTaskAssessment);
+    table.associate = (models) => {
+      table.belongsTo(models.courseTaskAssessment);
     };
   
-    return CourseTaskAssessmentDetail;
+    return table;
   };

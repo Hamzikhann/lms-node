@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const courseTaskAssessmentController = require('./courseAssesment.controller');
 
-router.post('/', courseTaskAssessmentController.create);
+router.post('/create', courseTaskAssessmentController.create);
 
-router.put('/:id', courseTaskAssessmentController.update);
+router.put('/update', courseTaskAssessmentController.update);
 
-router.delete('/:id', courseTaskAssessmentController.delete);
+router.delete('/delete', courseTaskAssessmentController.delete);
 
-router.get('/list/:courseTaskId', courseTaskAssessmentController.list);
+router.get('/detail', courseTaskAssessmentController.detail);
 
 module.exports = router;

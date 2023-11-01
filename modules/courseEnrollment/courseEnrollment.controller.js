@@ -3,7 +3,6 @@ const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
-const { sequelize } = require("../../models");
 const { Op } = require("sequelize");
 
 const Users = db.users;
@@ -165,4 +164,55 @@ const enrollment = async (req, res) => {
 	}
 };
 
-module.exports = { enrollment };
+const enroll = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			required: Joi.string().required(),
+			courseAssignmentId: Joi.string().required(),
+			courseEnrollmentTypeId: Joi.string().required(),
+			userDepartmentId: Joi.string().optional().allow(null).allow(""),
+			userId: Joi.string().optional().allow(null).allow("")
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseAssignmentId = crypto.decrypt(req.body.courseAssignmentId);
+			const courseEnrollmentTypeId = crypto.decrypt(req.body.courseEnrollmentTypeId);
+			const userId = req.body.userId ? crypto.decrypt(req.body.userId) : null;
+			const userDepartmentId = req.body.userDepartmentId ? crypto.decrypt(req.body.userDepartmentId) : null;
+
+			const enrollmentObj = {
+				required: req.body.required,
+				courseEnrollmentTypeId,
+				courseAssignmentId,
+				userId,
+				userDepartmentId
+			};
+
+			let enrollmentExists = await CourseEnrollemnt.findAll({
+				where: { courseAssignmentId, courseEnrollmentTypeId, isActive: "Y" }
+			});
+			console.log(enrollmentExists);
+			if (courseEnrollmentTypeId == 1 && enrollmentExists) {
+				res.status(401).send({ message: "this enrollment exits" });
+			} else {
+				CourseEnrollemnt.create(enrollmentObj).then((response) => {
+					res.status(200).send({ data: response, message: "Enrollment created for all" });
+				});
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+module.exports = { enrollment, enroll };

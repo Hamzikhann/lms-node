@@ -2,22 +2,22 @@
 
 const express = require("express");
 const router = express.Router();
+const InstructorController = require("./courseInstructor.controller");
+const fileUpload = require("../../utils/fileUpload");
 
-const courseEnrollmentController = require("./courseEnrollment.controller");
+const { upload } = fileUpload("instructor");
 
-router.post("/enroll", (req, res) => {
-	console.log(req.role);
+router.post("/update", upload.single("image"), (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		courseEnrollmentController.enrollment(req, res);
+		InstructorController.update(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
 
-router.post("/", (req, res) => {
-	console.log(req.role);
+router.post("/detail", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		courseEnrollmentController.enroll(req, res);
+		InstructorController.detail(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}

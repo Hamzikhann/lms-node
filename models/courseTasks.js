@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
 		table.belongsTo(models.courseModules);
 		table.belongsTo(models.courseTaskTypes);
 		table.hasOne(models.courseTaskContent);
+		table.hasMany(models.courseTaskAssessment)
 	};
 	return table;
 };
