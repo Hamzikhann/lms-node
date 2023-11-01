@@ -12,6 +12,7 @@ config/config.json
 uploads/clients/
 uploads/documents/
 uploads/users/
+uploads/instructor/
 
 # Compiled Java class files
 *.class
