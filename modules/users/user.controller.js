@@ -226,7 +226,7 @@ exports.updateProfileImage = async (req, res) => {
 			});
 		} else {
 			let userId = crypto.decrypt(req.userId);
-			console.log(req.file);
+			// console.log(req.file);
 			let imageUrl = "uploads/users/" + req.file.filename;
 			var updateUser = await UserProfile.update({ imageUrl }, { where: { userId: userId, isActive: "Y" } });
 

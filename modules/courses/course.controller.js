@@ -42,6 +42,7 @@ exports.list = (req, res) => {
 			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
 		})
 			.then((data) => {
+				console.log(data);
 				encryptHelper(data);
 				res.send(data);
 			})
@@ -214,7 +215,10 @@ exports.create = async (req, res) => {
 			status: Joi.string().required(),
 			objectives: Joi.string().optional().allow(null).allow([]),
 			classId: Joi.string().required(),
-			courseDepartmentId: Joi.string().required()
+			courseDepartmentId: Joi.string().required(),
+			name: Joi.string().required(),
+			about: Joi.string().required(),
+			imageUrl: Joi.any().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -223,6 +227,8 @@ exports.create = async (req, res) => {
 				message: message
 			});
 		} else {
+			let image = "uploads/instructor/" + req.file.filename;
+
 			const courseObj = {
 				title: req.body.title.trim(),
 				about: req.body.about,
@@ -263,6 +269,15 @@ exports.create = async (req, res) => {
 							courseId: courseId
 						};
 						await courseSyllabus.create(syllabus, { transaction });
+
+						const instructorObj = {
+							name: req.body.name,
+							about: req.body.about,
+							imageUrl: image,
+							courseId: courseId
+						};
+
+						await courseInstructor.create(instructorObj, { transaction });
 
 						await transaction.commit();
 						encryptHelper(result);

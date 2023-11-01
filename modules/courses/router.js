@@ -3,6 +3,9 @@
 const express = require("express");
 const router = express.Router();
 const courseController = require("./course.controller");
+const fileUpload = require("../../utils/fileUpload");
+
+const { upload } = fileUpload("instructor");
 
 router.post("/list", (req, res) => {
 	if (req.role == "Administrator") {
@@ -16,7 +19,7 @@ router.post("/list", (req, res) => {
 	}
 });
 
-router.post("/create", (req, res) => {
+router.post("/create", upload.single("image"), (req, res) => {
 	if (req.role == "Administrator") {
 		courseController.create(req, res);
 	} else {
