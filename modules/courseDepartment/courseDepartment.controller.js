@@ -5,7 +5,10 @@ const CourseDepartment = db.courseDepartments;
 
 exports.list = async (req, res) => {
 	try {
-		CourseDepartment.findAll({ where: { isActive: "Y" } })
+		CourseDepartment.findAll({
+			where: { isActive: "Y" },
+			attributes: ["id", "title"]
+		})
 			.then((response) => {
 				res.status(200).send({ message: "All Course Department has been retrived", data: response });
 			})
