@@ -63,7 +63,7 @@ exports.update = (req, res) => {
 				about: req.body.about
 			};
 			if (req.file) {
-				instructorObj.imageUrl = "uploads/instructor/" + req.file.filename;
+				instructorObj.imageUrl = "uploads/instructors/" + req.file.filename;
 			}
 			CourseInstructor.update(instructorObj, { where: { id: instructorId } })
 				.then((response) => {
