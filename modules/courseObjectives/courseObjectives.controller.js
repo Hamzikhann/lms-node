@@ -4,7 +4,7 @@ const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
 
-const CourseObjective = db.courseObjectives;
+const CourseObjectives = db.courseObjectives;
 
 exports.list = (req, res) => {
 	try {
@@ -19,7 +19,7 @@ exports.list = (req, res) => {
 			});
 		} else {
 			const courseId = crypto.decrypt(req.body.courseId);
-			CourseObjective.findAll({ where: { courseId: courseId, isActive: "Y" } })
+			CourseObjectives.findAll({ where: { courseId: courseId, isActive: "Y" } })
 				.then((response) => {
 					encryptHelper(response);
 					res.status(200).send({ message: "All Course Objectives are retrived", data: response });
@@ -56,7 +56,7 @@ exports.create = (req, res) => {
 				description: req.body.description,
 				courseId: crypto.decrypt(req.body.courseId)
 			};
-			CourseObjective.create(objectiveObj)
+			CourseObjectives.create(objectiveObj)
 				.then((response) => {
 					res.status(200).send({ message: "Objective of Course has been created", data: response });
 				})
@@ -93,7 +93,7 @@ exports.update = async (req, res) => {
 				description: req.body.description
 			};
 
-			const updatedObjective = await CourseObjective.update(objectiveObj, { where: { id: objectiveId } });
+			const updatedObjective = await CourseObjectives.update(objectiveObj, { where: { id: objectiveId } });
 			if (updatedObjective == 1) {
 				res.status(200).send({ message: "Course objectives has been updated" });
 			} else {
@@ -125,7 +125,7 @@ exports.delete = async (req, res) => {
 				isActive: "N"
 			};
 
-			const updatedObjective = await CourseObjective.update(objectiveObj, { where: { id: objectiveId } });
+			const updatedObjective = await CourseObjectives.update(objectiveObj, { where: { id: objectiveId } });
 			if (updatedObjective == 1) {
 				res.status(200).send({ message: "Course Objective has been deleted" });
 			} else {

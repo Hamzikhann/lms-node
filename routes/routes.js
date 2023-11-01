@@ -42,7 +42,7 @@ class Routes {
 		this.app.use("/api/course/enrollments", jwt.protect, courseEnrollmentRouteHandler);
 		this.app.use("/api/course/task/assesments/questions", jwt.protect, courseAssesmentDetailRouteHandler);
 		this.app.use("/api/course/task/assesments", jwt.protect, courseAssesmentRouteHandler);
-		this.app.use("/api/course/instructor", jwt.protect, courseInstructorRouteHandler);
+		this.app.use("/api/course/instructors", jwt.protect, courseInstructorRouteHandler);
 	}
 	routesConfig() {
 		this.appRoutes();

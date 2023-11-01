@@ -8,6 +8,7 @@ const Client = db.clients;
 const Users = db.users;
 const CourseEnrollments = db.courseEnrollments;
 const Course = db.courses;
+
 exports.list = async (req, res) => {
 	try {
 		Client.findAll({

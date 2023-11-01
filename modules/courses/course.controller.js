@@ -280,7 +280,7 @@ exports.create = async (req, res) => {
 							courseId: courseId
 						};
 						if (req.file && req.file.filename) {
-							instructorObj.imageUrl = "uploads/instructor/" + req.file.filename;
+							instructorObj.imageUrl = "uploads/instructors/" + req.file.filename;
 						}
 						await courseInstructor.create(instructorObj, { transaction });
 
