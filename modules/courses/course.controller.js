@@ -333,52 +333,10 @@ exports.detail = (req, res) => {
 						required: false,
 						attributes: ["id", "name", "about", "imageUrl"]
 					},
-					{
-						model: courseBooks,
-						where: { isActive: "Y" },
-						required: false,
-						attributes: ["id", "title", "edition", "author", "publisher", "bookUrl"]
-					},
-					{
-						model: courseFaqs,
-						where: { isActive: "Y" },
-						required: false,
-						attributes: ["id", "title", "description"]
-					},
-					{
-						model: courseUsefulLinks,
-						where: { isActive: "Y" },
-						required: false,
-						attributes: ["id", "title", "description", "linkUrl"]
-					},
+
 					{
 						model: courseSyllabus,
 						where: { isActive: "Y" },
-						include: [
-							{
-								model: courseModule,
-								where: { isActive: "Y" },
-								include: [
-									{
-										model: courseTasks,
-										where: { isActive: "Y" },
-										include: [
-											{
-												model: courseTaskTypes,
-												where: { isActive: "Y" },
-												required: false,
-												attributes: ["id", "title"]
-											}
-										],
-										required: false,
-										attributes: ["id", "title", "description", "estimatedTime"]
-									}
-								],
-								required: false,
-								attributes: ["id", "title", "description"]
-							}
-						],
-						required: false,
 						attributes: ["id", "title"]
 					}
 				],
