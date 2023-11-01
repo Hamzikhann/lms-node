@@ -93,8 +93,8 @@ exports.update = async (req, res) => {
 				description: req.body.description
 			};
 
-			const upatedObjective = await CourseObjective.update(objectiveObj, { where: { id: objectiveId } });
-			if (upatedObjective == 1) {
+			const updatedObjective = await CourseObjective.update(objectiveObj, { where: { id: objectiveId } });
+			if (updatedObjective == 1) {
 				res.status(200).send({ message: "Course objectives has been updated" });
 			} else {
 				res.status(500).send({ message: "Unable to update course objective, maybe course objective doesnt exists" });
@@ -127,7 +127,7 @@ exports.delete = async (req, res) => {
 
 			const updatedObjective = await CourseObjective.update(objectiveObj, { where: { id: objectiveId } });
 			if (updatedObjective == 1) {
-				res.status(200).send({ message: "Course Objective has been deleted", data: upatedObjective });
+				res.status(200).send({ message: "Course Objective has been deleted" });
 			} else {
 				res.status(500).send({ message: "Unable to delete course objective, maybe course objective doesnt exists" });
 			}
