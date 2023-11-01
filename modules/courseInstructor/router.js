@@ -7,17 +7,11 @@ const fileUpload = require("../../utils/fileUpload");
 
 const { upload } = fileUpload("instructor");
 
-router.post("/update", upload.single("image"), (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
-		InstructorController.update(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
+router.post("/list", InstructorController.list);
 
-router.post("/detail", (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
-		InstructorController.detail(req, res);
+router.post("/update", upload.single("image"), (req, res) => {
+	if (req.role == "Administrator") {
+		InstructorController.update(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
