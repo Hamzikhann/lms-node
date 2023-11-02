@@ -404,46 +404,33 @@ exports.update = async (req, res) => {
 		} else {
 			const courseId = crypto.decrypt(req.body.courseId);
 
-			const alreadyExist = await Classes.findOne({
-				where: {
-					title: req.body.title.trim()
-				},
-				attributes: ["id"]
-			});
-			if (alreadyExist) {
-				res.status(401).send({
-					title: "Already exist.",
-					message: "Class is already exist with same name."
-				});
-			} else {
-				const courseObject = {
-					title: req.body.title.trim(),
-					about: req.body.about,
-					code: req.body.code,
-					level: req.body.level,
-					language: req.body.language,
-					status: req.body.status,
-					courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId)
-				};
-				Classes.update(courseObject, { where: { id: courseId, isActive: "Y" } })
-					.then((num) => {
-						if (num == 1) {
-							res.send({
-								message: "Course was updated successfully."
-							});
-						} else {
-							res.send({
-								message: `Cannot update Course. Maybe Course was not found or req.body is empty!`
-							});
-						}
-					})
-					.catch((err) => {
-						emails.errorEmail(req, err);
-						res.status(500).send({
-							message: "Error updating Class"
+			const courseObject = {
+				title: req.body.title.trim(),
+				about: req.body.about,
+				code: req.body.code,
+				level: req.body.level,
+				language: req.body.language,
+				status: req.body.status,
+				courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId)
+			};
+			Courses.update(courseObject, { where: { id: courseId, isActive: "Y" } })
+				.then((num) => {
+					if (num == 1) {
+						res.send({
+							message: "Course was updated successfully."
 						});
+					} else {
+						res.send({
+							message: `Cannot update Course. Maybe Course was not found or req.body is empty!`
+						});
+					}
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: "Error updating Class"
 					});
-			}
+				});
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
