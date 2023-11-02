@@ -216,8 +216,8 @@ exports.create = async (req, res) => {
 			objectives: Joi.any().optional(),
 			classId: Joi.string().required(),
 			courseDepartmentId: Joi.string().required(),
-			name: Joi.string().required(),
-			aboutInstructor: Joi.string().required(),
+			instructorName: Joi.string().required(),
+			instructorAbout: Joi.string().required(),
 			image: Joi.any().optional()
 		});
 		console.log("body");
@@ -275,8 +275,8 @@ exports.create = async (req, res) => {
 						await courseSyllabus.create(syllabus, { transaction });
 
 						const instructorObj = {
-							name: req.body.name,
-							about: req.body.aboutInstructor,
+							name: req.body.instructorName,
+							about: req.body.instructorAbout,
 							courseId: courseId
 						};
 						if (req.file && req.file.filename) {
