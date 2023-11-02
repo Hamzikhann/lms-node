@@ -262,7 +262,10 @@ exports.create = async (req, res) => {
 						if (courseObjectivesArr) {
 							courseObjectivesArr = JSON.parse(courseObjectivesArr);
 							courseObjectivesArr.forEach((objective) => {
-								objective.courseId = courseId;
+								objective = {
+									description: objective,
+									courseId
+								};
 							});
 							if (courseObjectivesArr.length > 0)
 								await courseObjectives.bulkCreate(courseObjectivesArr, { transaction });
