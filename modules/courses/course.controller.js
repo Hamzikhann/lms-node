@@ -258,23 +258,23 @@ exports.create = async (req, res) => {
 					.then(async (result) => {
 						const courseId = result.id;
 
-						const courseObjectivesArr = req.body.objectives;
+						var courseObjectivesArr = req.body.objectives;
 						if (courseObjectivesArr) {
 							courseObjectivesArr = JSON.parse(courseObjectivesArr);
 							courseObjectivesArr.forEach((objective) => {
 								objective.courseId = courseId;
 							});
 							if (courseObjectivesArr.length > 0)
-								await courseObjectives.bulkInsert(courseObjectivesArr, { transaction });
+								await courseObjectives.bulkCreate(courseObjectivesArr, { transaction });
 						}
 
-						const syllabus = {
+						var syllabus = {
 							title: "Table of Content",
 							courseId: courseId
 						};
 						await courseSyllabus.create(syllabus, { transaction });
 
-						const instructorObj = {
+						var instructorObj = {
 							name: req.body.instructorName,
 							about: req.body.instructorAbout,
 							courseId: courseId
