@@ -49,7 +49,7 @@ router.post("/detail", (req, res) => {
 });
 
 router.post("/delete", (req, res) => {
-	if (req.role == "Admin") {
+	if (req.role == "Administrator") {
 		courseController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
