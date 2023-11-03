@@ -96,7 +96,7 @@ exports.update = async (req, res) => {
 				estimatedTime: req.body.estimatedTime,
 				startTime: req.body.startTime
 			};
-			const updatedObj = await courseTaskAssessments.update(assessment, {
+			const updatedObj = await CourseTaskAssessments.update(assessment, {
 				where: { id: assessmentId }
 			});
 			if (updatedObj == 1) {
@@ -129,7 +129,7 @@ exports.delete = async (req, res) => {
 			const assessment = {
 				isActive: "N"
 			};
-			const updatedObj = await courseTaskAssessments.update(assessment, {
+			const updatedObj = await CourseTaskAssessments.update(assessment, {
 				where: { id: assessmentId }
 			});
 			if (updatedObj == 1) {
@@ -159,7 +159,7 @@ exports.detail = async (req, res) => {
 			});
 		} else {
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
-			const courseTaskAssessments = await courseTaskAssessments.findAll({
+			const courseTaskAssessments = await CourseTaskAssessments.findAll({
 				where: { courseTaskId, isActive: "Y" },
 				include: [
 					{
