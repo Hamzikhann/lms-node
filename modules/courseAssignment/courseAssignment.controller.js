@@ -24,7 +24,7 @@ exports.list = (req, res) => {
 							attributes: ["title", "code", "level"]
 						}
 					],
-					attributes: ["id", "courseId"]
+					attributes: ["id", "courseId", "clientId"]
 				}
 			],
 			attributes: ["id", "name", "logoURL"]
