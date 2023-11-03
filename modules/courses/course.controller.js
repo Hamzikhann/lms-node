@@ -213,7 +213,7 @@ exports.listAssigned = (req, res) => {
 				{
 					model: courseAssignments,
 					where: { clientId, isActive: "Y" },
-					attributes: []
+					attributes: ["id"]
 				}
 			],
 			attributes: ["title", "code", "level", "language", "level"]
