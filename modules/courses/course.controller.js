@@ -293,15 +293,14 @@ exports.create = async (req, res) => {
 
 						var courseObjectivesArr = req.body.objectives;
 						if (courseObjectivesArr) {
-							courseObjectivesArr = JSON.parse(courseObjectivesArr);
+							const objectives = [];
 							courseObjectivesArr.forEach((objective) => {
-								objective = {
+								objectives.push({
 									description: objective,
 									courseId
-								};
+								});
 							});
-							if (courseObjectivesArr.length > 0)
-								await courseObjectives.bulkCreate(courseObjectivesArr, { transaction });
+							if (objectives.length > 0) await courseObjectives.bulkCreate(objectives, { transaction });
 						}
 
 						var syllabus = {
