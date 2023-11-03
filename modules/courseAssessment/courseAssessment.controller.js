@@ -7,6 +7,46 @@ const { sequelize } = require("../../models");
 const CourseTaskAssessments = db.courseTaskAssessments;
 const CourseTaskAssessmentQuestions = db.courseTaskAssessmentQuestions;
 
+exports.list = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseTaskId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			return res.status(400).json({
+				message: message
+			});
+		} else {
+			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
+			const courseTaskAssessments = await CourseTaskAssessments.findAll({
+				where: { courseTaskId, isActive: "Y" },
+				include: [
+					{
+						model: CourseTaskAssessmentQuestions,
+						where: { isActive: "Y" },
+						required: false,
+						attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+					}
+				],
+				attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+			});
+
+			encryptHelper(courseTaskAssessments);
+			res.send({
+				message: "Task assessment detail has been retrieved",
+				data: courseTaskAssessments
+			});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).json({
+			message: err.message || "Failed to fetch Course Task Assessments"
+		});
+	}
+};
+
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
@@ -142,46 +182,6 @@ exports.delete = async (req, res) => {
 		emails.errorEmail(req, err);
 		res.status(500).json({
 			message: err.message || "Failed to delete Course Task Assessment"
-		});
-	}
-};
-
-exports.detail = async (req, res) => {
-	try {
-		const joiSchema = Joi.object({
-			courseTaskId: Joi.string().required()
-		});
-		const { error, value } = joiSchema.validate(req.body);
-		if (error) {
-			const message = error.details[0].message.replace(/"/g, "");
-			return res.status(400).json({
-				message: message
-			});
-		} else {
-			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
-			const courseTaskAssessments = await CourseTaskAssessments.findAll({
-				where: { courseTaskId, isActive: "Y" },
-				include: [
-					{
-						model: CourseTaskAssessmentQuestions,
-						where: { isActive: "Y" },
-						required: false,
-						attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
-					}
-				],
-				attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
-			});
-
-			encryptHelper(courseTaskAssessments);
-			res.send({
-				message: "Task assessment detail has been retrieved",
-				data: courseTaskAssessments
-			});
-		}
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).json({
-			message: err.message || "Failed to fetch Course Task Assessments"
 		});
 	}
 };
