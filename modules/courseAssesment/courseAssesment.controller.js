@@ -11,7 +11,7 @@ exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
-			description: Joi.string().optional(),
+			description: Joi.string().optional().allow(""),
 			estimatedTime: Joi.number().required(),
 			startTime: Joi.string().required(),
 			courseTaskId: Joi.string().required(),
@@ -77,7 +77,7 @@ exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
-			description: Joi.string().optional(),
+			description: Joi.string().optional().allow(""),
 			estimatedTime: Joi.number().required(),
 			startTime: Joi.string().required(),
 			courseTaskAssesmentId: Joi.string().required()
