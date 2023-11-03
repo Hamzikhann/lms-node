@@ -7,7 +7,9 @@ const { Op } = require("sequelize");
 
 const Users = db.users;
 const Clients = db.clients;
+const Courses = db.courses;
 const CourseDepartments = db.courseDepartments;
+const CourseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
 const CourseEnrollmentTypes = db.courseEnrollmentTypes;
 const UserDepartments = db.userDepartments;

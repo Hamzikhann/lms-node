@@ -14,14 +14,6 @@ router.post("/list", (req, res) => {
 	}
 });
 
-router.post("/list/assignments", (req, res) => {
-	if (req.role == "Administrator") {
-		clientController.listAssignments(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
-
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {
 		clientController.create(req, res);
