@@ -94,7 +94,9 @@ exports.create = async (req, res) => {
 			});
 		} else {
 			const courseAssignmentId = crypto.decrypt(req.body.assignmentId);
-			const courseEnrollmentTypeId = courseEnrollmentTypeId ? crypto.decrypt(req.body.courseEnrollmentTypeId) : null;
+			const courseEnrollmentTypeId = req.body.courseEnrollmentTypeId
+				? crypto.decrypt(req.body.courseEnrollmentTypeId)
+				: null;
 			const userDepartmentId = req.body.userDepartmentId ? crypto.decrypt(req.body.userDepartmentId) : null;
 			const userId = req.body.userId ? crypto.decrypt(req.body.userId) : null;
 
