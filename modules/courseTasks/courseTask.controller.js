@@ -9,6 +9,7 @@ const CourseModule = db.courseModules;
 const CourseTasks = db.courseTasks;
 const CourseTaskContent = db.courseTaskContent;
 const CourseTaskTypes = db.courseTaskTypes;
+const CourseTaskProgress = db.courseTaskProgress;
 
 exports.create = async (req, res) => {
 	try {
@@ -281,6 +282,92 @@ exports.delete = async (req, res) => {
 					message: "Unable to delete the task, maybe the task doesn't exists."
 				});
 			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.createProgress = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			currentTime: Joi.string().required(),
+			percentage: Joi.string().required(),
+			courseTaskId: Joi.string().required(),
+			courseEnrollmentId: Joi.string().required(),
+			courseId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const taskProgressObj = {
+				currentTime: req.body.currentTime,
+				percentage: req.body.percentage,
+				courseTaskId: crypto.decrypt(req.body.courseTaskId),
+				courseEnrollmentId: crypto.decrypt(req.body.courseEnrollmentId),
+				courseId: crypto.decrypt(req.body.courseId),
+				clientId: crypto.decrypt(req.clientId),
+				userId: crypto.decrypt(req.userId)
+			};
+			let transaction = await sequelize.transaction();
+
+			CourseTaskProgress.findOne({
+				where: {
+					courseTaskId: taskProgressObj.courseTaskId,
+					courseEnrollmentId: taskProgressObj.courseEnrollmentId,
+					userId: taskProgressObj.userId,
+					courseId: taskProgressObj.courseId
+				},
+				isActive: "Y"
+			})
+				.then(async (response) => {
+					console.log(response);
+					if (response) {
+						CourseTaskProgress.update(
+							taskProgressObj,
+							{ where: { courseTaskId: taskProgressObj.courseTaskId }, isActive: "Y" },
+							{ transaction }
+						)
+							.then(async (response) => {
+								await transaction.commit();
+								res.status(200).send({ message: "Task Progress updated", data: response });
+							})
+							.catch(async (err) => {
+								await transaction.rollback();
+								emails.errorEmail(req, err);
+								res.status(500).send({
+									message: err.message || "Some error occurred."
+								});
+							});
+					} else {
+						CourseTaskProgress.create(taskProgressObj, { transaction })
+							.then(async (response) => {
+								await transaction.commit();
+								encryptHelper(response);
+								res.status(200).send({ message: "Task Prohress is created for the user", data: response });
+							})
+							.catch(async (err) => {
+								await transaction.rollback();
+								emails.errorEmail(req, err);
+								res.status(500).send({
+									message: err.message || "Some error occurred."
+								});
+							});
+					}
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
+				});
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);

@@ -65,7 +65,7 @@ exports.listForClient = (req, res) => {
 		const clientId = crypto.decrypt(req.clientId);
 
 		Courses.findAll({
-			where: { isActive: "Y" },
+			where: { isActive: "Y", status: "P" },
 			include: [
 				{
 					model: courseDepartment,
@@ -123,7 +123,7 @@ exports.listForUser = (req, res) => {
 					include: [
 						{
 							model: Courses,
-							where: { isActive: "Y" },
+							where: { isActive: "Y", status: "P" },
 							include: [
 								{
 									model: courseDepartment,
@@ -141,7 +141,7 @@ exports.listForUser = (req, res) => {
 							attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
 						}
 					],
-					attributes: ["id", "dateFrom", "dateTo"]
+					attributes: ["id", "required"]
 				}
 			],
 			attributes: ["id"]

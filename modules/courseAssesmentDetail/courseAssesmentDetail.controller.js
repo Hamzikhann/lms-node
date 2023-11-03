@@ -56,14 +56,11 @@ exports.update = async (req, res) => {
 		}
 
 		const updated = await courseTaskAssessmentDetail.update(req.body, {
-			where: { id: req.body.courseTaskAssesmentDetailId }
+			where: { id: crypto.decrypt(req.body.courseTaskAssesmentDetailId) }
 		});
 
 		if (updated[0]) {
-			const updatedCourseTaskAssessmentDetail = await courseTaskAssessmentDetail.findByPk(
-				req.body.courseTaskAssesmentDetailId
-			);
-			res.status(200).json(updatedCourseTaskAssessmentDetail);
+			res.status(200).json({ message: "Question is updated", data: updated });
 		} else {
 			res.status(404).json({ message: "Course Task Assessment Detail not found" });
 		}
@@ -74,22 +71,38 @@ exports.update = async (req, res) => {
 
 exports.delete = async (req, res) => {
 	try {
-		const updated = await courseTaskAssessmentDetail.update({ isActive: "N" }, { where: { id: req.body.id } });
+		const joiSchema = Joi.object({
+			courseTaskAssessmentId: Joi.string().required()
+		});
 
-		if (updated[0]) {
-			res.status(204).send("Course Task Assessment Detail deleted");
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			return res.status(400).json({
+				message: message
+			});
 		} else {
-			res.status(404).json({ message: "Course Task Assessment Detail not found" });
+			const updated = await courseTaskAssessmentDetail.update(
+				{ isActive: "N" },
+				{ where: { id: crypto.decrypt(req.body.courseTaskAssessmentId) } }
+			);
+
+			if (updated[0]) {
+				res.status(204).send("Course Task Assessment Detail deleted");
+			} else {
+				res.status(404).json({ message: "Course Task Assessment Detail not found" });
+			}
 		}
 	} catch (error) {
 		res.status(500).json({ error: "Failed to delete Course Task Assessment Detail" });
 	}
 };
 
-exports.list = async (req, res) => {
+exports.detail = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			CourseTaskAssessmentId: Joi.string().required()
+			courseTaskAssessmentId: Joi.string().required()
 		});
 
 		const { error, value } = joiSchema.validate(req.body);
@@ -104,7 +117,7 @@ exports.list = async (req, res) => {
 		const courseTaskAssessmentDetails = await courseTaskAssessmentDetail.findAll({
 			where: { courseTaskAssessmentId: crypto.decrypt(req.body.courseTaskAssessmentId), isActive: "Y" }
 		});
-
+		encryptHelper(courseTaskAssessmentDetails);
 		res.status(200).json(courseTaskAssessmentDetails);
 	} catch (error) {
 		res.status(500).json({ error: "Failed to fetch Course Task Assessment Details" });

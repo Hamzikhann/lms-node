@@ -8,6 +8,7 @@ const fileUpload = require("../../utils/fileUpload");
 const { upload } = fileUpload("instructor");
 
 router.post("/list", (req, res) => {
+	console.log(req.role);
 	if (req.role == "Administrator") {
 		courseController.list(req, res);
 	} else if (req.role == "Client") {

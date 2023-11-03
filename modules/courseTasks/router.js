@@ -32,4 +32,7 @@ router.post("/delete", (req, res) => {
 	}
 });
 
+router.post("/progress", (req, res) => {
+	courseTaskController.createProgress(req, res);
+});
 module.exports = router;
