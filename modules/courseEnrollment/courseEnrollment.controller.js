@@ -128,6 +128,7 @@ exports.create = async (req, res) => {
 					userId
 				};
 				const response = await CourseEnrollments.create(enrollmentObj);
+				encryptHelper(response);
 				res.send({
 					message: "All users have been enrolled to this course already",
 					data: response
