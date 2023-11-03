@@ -14,6 +14,14 @@ router.post("/list", (req, res) => {
 	}
 });
 
+router.post("/list/assignments", (req, res) => {
+	if (req.role == "Administrator") {
+		clientController.listAssignments(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {
 		clientController.create(req, res);
@@ -31,7 +39,7 @@ router.post("/update", (req, res) => {
 });
 
 router.post("/update/image", upload.single("image"), (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
+	if (req.role == "Administrator") {
 		clientController.updateImage(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });

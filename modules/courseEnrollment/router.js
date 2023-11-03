@@ -5,19 +5,25 @@ const router = express.Router();
 
 const courseEnrollmentController = require("./courseEnrollment.controller");
 
-router.post("/enroll", (req, res) => {
-	console.log(req.role);
-	if (req.role == "Administrator" || req.role == "Client") {
-		courseEnrollmentController.enrollment(req, res);
+router.post("/list", (req, res) => {
+	if (req.role == "Client") {
+		courseEnrollmentController.list(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
 
-router.post("/", (req, res) => {
-	console.log(req.role);
-	if (req.role == "Administrator" || req.role == "Client") {
-		courseEnrollmentController.enroll(req, res);
+router.post("/create", (req, res) => {
+	if (req.role == "Client") {
+		courseEnrollmentController.create(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
+router.post("/delete", (req, res) => {
+	if (req.role == "Client") {
+		courseEnrollmentController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}

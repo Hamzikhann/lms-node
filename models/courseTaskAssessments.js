@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = (sequelize, DataTypes) => {
-	const table = sequelize.define("courseTaskAssessment", {
+	const table = sequelize.define("courseTaskAssessments", {
 		title: DataTypes.STRING,
 		description: DataTypes.TEXT,
 		estimatedTime: DataTypes.STRING,
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
 	});
 	table.associate = (models) => {
 		table.belongsTo(models.courseTasks);
-		table.hasMany(models.courseTaskAssessmentDetail);
+		table.hasMany(models.courseTaskAssessmentQuestions);
 	};
 	return table;
 };

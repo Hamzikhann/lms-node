@@ -4,7 +4,6 @@ const express = require("express");
 const router = express.Router();
 const courseTaskController = require("./courseTask.controller");
 
-router.post("/list", courseTaskController.list);
 router.post("/list/types", courseTaskController.listTypes);
 router.post("/detail", courseTaskController.detail);
 

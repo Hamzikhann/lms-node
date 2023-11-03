@@ -101,49 +101,6 @@ exports.create = async (req, res) => {
 	}
 };
 
-exports.list = (req, res) => {
-	try {
-		const joiSchema = Joi.object({
-			courseId: Joi.string().required()
-		});
-		const { error, value } = joiSchema.validate(req.body);
-		if (error) {
-			const message = error.details[0].message.replace(/"/g, "");
-			res.status(400).send({
-				message: message
-			});
-		} else {
-			const courseId = crypto.decrypt(req.body.courseId);
-			CourseTasks.findAll({
-				where: { isActive: "Y" },
-				include: [
-					{
-						model: CourseModule,
-						where: { courseId, isActive: "Y" },
-						attributes: []
-					}
-				],
-				attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
-			})
-				.then((response) => {
-					encryptHelper(response);
-					res.status(200).send({ message: "All Course Tasks are retrived", data: response });
-				})
-				.catch((err) => {
-					emails.errorEmail(req, err);
-					res.status(500).send({
-						message: "Some error occurred."
-					});
-				});
-		}
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
 exports.listTypes = (req, res) => {
 	try {
 		CourseTaskTypes.findAll({
