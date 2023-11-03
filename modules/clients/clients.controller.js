@@ -43,6 +43,7 @@ exports.listAssignments = (req, res) => {
 				{
 					model: CourseAssignments,
 					where: { isActive: "Y" },
+					required: false,
 					include: [
 						{
 							model: Courses,
