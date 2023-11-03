@@ -4,14 +4,14 @@ const emails = require("../../utils/emails");
 
 const Joi = require("@hapi/joi");
 const CourseAssignments = db.courseAssignments;
-const Client = db.clients;
+const Clients = db.clients;
 const Users = db.users;
 const CourseEnrollments = db.courseEnrollments;
-const Course = db.courses;
+const Courses = db.courses;
 
 exports.list = async (req, res) => {
 	try {
-		Client.findAll({
+		Clients.findAll({
 			where: { isActive: "Y" },
 			attributes: { exclude: ["createdAt", "updatedAt", "isActive"] }
 		})
@@ -87,7 +87,7 @@ exports.create = async (req, res) => {
 				message: message
 			});
 		} else {
-			const client = await Client.findOne({ where: { name: req.body.name, isActive: "Y" } });
+			const client = await Clients.findOne({ where: { name: req.body.name, isActive: "Y" } });
 
 			if (client) {
 				res.status(401).send({
@@ -100,7 +100,7 @@ exports.create = async (req, res) => {
 					logoURL: req.body.logo
 				};
 
-				Client.create(clientObj)
+				Clients.create(clientObj)
 					.then(async (client) => {
 						encryptHelper(client);
 						res.status(200).send({
@@ -146,7 +146,7 @@ exports.update = async (req, res) => {
 				logoURL: req.body.logo
 			};
 
-			const updatedClient = Client.update(clientObj, { where: { id: clientId, isActive: "Y" } });
+			const updatedClient = Clients.update(clientObj, { where: { id: clientId, isActive: "Y" } });
 			if (updatedClient == 1) {
 				res.status(200).send({
 					message: "Client updated successfully."
@@ -181,7 +181,7 @@ exports.updateImage = async (req, res) => {
 			const clientId = req.role == "Administrator" ? crypto.decrypt(req.body.clientId) : crypto.decrypt(req.clientId);
 			const logoURL = "uploads/clients/" + req.file.filename;
 
-			const updateClient = await Client.update({ logoURL }, { where: { id: clientId, isActive: "Y" } });
+			const updateClient = await Clients.update({ logoURL }, { where: { id: clientId, isActive: "Y" } });
 			if (updateClient == 1) {
 				res.status(200).send({ message: "Client logo Updated" });
 			} else {
@@ -215,7 +215,7 @@ exports.delete = async (req, res) => {
 				isActive: "N"
 			};
 
-			const updatedClient = Client.update(clientObj, { where: { id: clientId, isActive: "Y" } });
+			const updatedClient = Clients.update(clientObj, { where: { id: clientId, isActive: "Y" } });
 			if (updatedClient == 1) {
 				res.status(200).send({
 					message: "Client deleted successfully."
