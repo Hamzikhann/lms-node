@@ -7,7 +7,7 @@ const CourseAssignmentController = require("./courseAssignment.controller");
 
 router.post("/list", (req, res) => {
 	if (req.role == "Administrator") {
-		clientController.list(req, res);
+		CourseAssignmentController.list(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
