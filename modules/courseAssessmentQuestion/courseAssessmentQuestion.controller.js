@@ -59,7 +59,7 @@ exports.update = async (req, res) => {
 			options: Joi.any().optional(),
 			answer: Joi.string().required(),
 			type: Joi.string().required(),
-			courseTaskAssessmentQuestonId: Joi.string().required()
+			courseTaskAssessmentQuestionId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -68,7 +68,7 @@ exports.update = async (req, res) => {
 				message: message
 			});
 		} else {
-			const courseTaskAssessmentQuestonId = crypto.decrypt(req.body.courseTaskAssessmentQuestonId);
+			const courseTaskAssessmentQuestionId = crypto.decrypt(req.body.courseTaskAssessmentQuestionId);
 			const assessmentQuestion = {
 				title: req.body.title,
 				options: JSON.stringify(req.body.options),
@@ -77,7 +77,7 @@ exports.update = async (req, res) => {
 			};
 
 			const updatedObj = await CourseTaskAssessmentQuestions.update(assessmentQuestion, {
-				where: { id: courseTaskAssessmentQuestonId }
+				where: { id: courseTaskAssessmentQuestionId }
 			});
 			if (updatedObj == 1) {
 				res.send({ message: "Task assessment question has been updated" });
