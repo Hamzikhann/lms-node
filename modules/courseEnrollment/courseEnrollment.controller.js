@@ -153,5 +153,3 @@ exports.delete = async (req, res) => {
 		});
 	}
 };
-
-module.exports = { enrollment, enroll };
