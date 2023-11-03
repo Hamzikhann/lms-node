@@ -1,18 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const courseTaskAssessmentDetailController = require("./courseAssesmentDetail.controller");
+const courseAssesmentQuestionController = require("./courseAssesmentQuestion.controller");
 
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {
-		courseTaskAssessmentDetailController.create(req, res);
+		courseAssesmentQuestionController.create(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
 
 router.post("/update", (req, res) => {
-	if (req.role == "Administrator" || req.role == "client") {
-		courseTaskAssessmentDetailController.update(req, res);
+	if (req.role == "Administrator") {
+		courseAssesmentQuestionController.update(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
@@ -20,14 +20,10 @@ router.post("/update", (req, res) => {
 
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator") {
-		courseTaskAssessmentDetailController.delete(req, res);
+		courseAssesmentQuestionController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
-});
-
-router.post("/detail", (req, res) => {
-	courseTaskAssessmentDetailController.detail(req, res);
 });
 
 module.exports = router;
