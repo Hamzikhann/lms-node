@@ -132,7 +132,7 @@ exports.list = (req, res) => {
 				.catch((err) => {
 					emails.errorEmail(req, err);
 					res.status(500).send({
-						message: "Some error occurred."
+						message: err.message || "Some error occurred."
 					});
 				});
 		}
