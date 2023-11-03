@@ -207,17 +207,18 @@ exports.listForUser = (req, res) => {
 exports.listAssigned = (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
-		Courses.findAll({
-			where: { isActive: "Y", status: "P" },
-			include: [
-				{
-					model: courseAssignments,
-					where: { clientId, isActive: "Y" },
-					attributes: []
-				}
-			],
-			attributes: ["title", "code", "level", "language", "level"]
-		})
+		courseAssignments
+			.findAll({
+				where: { clientId, isActive: "Y" },
+				include: [
+					{
+						model: Courses,
+						where: { isActive: "Y", status: "P" },
+						attributes: ["title", "code", "level", "language", "level"]
+					}
+				],
+				attributes: ["id"]
+			})
 			.then((response) => {
 				encryptHelper(response);
 				res.status(200).send({ message: "Clients assigned courses list has been retrived", data: response });
