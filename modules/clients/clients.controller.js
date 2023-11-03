@@ -57,7 +57,10 @@ exports.listAssignments = (req, res) => {
 		})
 			.then((response) => {
 				encryptHelper(response);
-				res.status(200).send({ message: "Clients assigned courses list has been retrived" });
+				res.status(200).send({
+					message: "Clients assigned courses list has been retrived",
+					data: response
+				});
 			})
 			.catch((err) => {
 				emails.errorEmail(req, err);
