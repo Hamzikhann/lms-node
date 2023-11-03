@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const courseTaskAssessmentController = require("./courseAssesment.controller");
+const courseTaskAssessmentController = require("./courseAssessment.controller");
 
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {

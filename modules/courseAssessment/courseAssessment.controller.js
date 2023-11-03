@@ -80,7 +80,7 @@ exports.update = async (req, res) => {
 			description: Joi.string().optional().allow(""),
 			estimatedTime: Joi.string().required(),
 			startTime: Joi.string().required(),
-			courseTaskAssesmentId: Joi.string().required()
+			courseTaskAssessmentId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -89,7 +89,7 @@ exports.update = async (req, res) => {
 				message: message
 			});
 		} else {
-			const assessmentId = crypto.decrypt(req.body.courseTaskAssesmentId);
+			const assessmentId = crypto.decrypt(req.body.courseTaskAssessmentId);
 			const assessment = {
 				title: req.body.title,
 				description: req.body.description,
@@ -116,7 +116,7 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			courseTaskAssesmentId: Joi.string().required()
+			courseTaskAssessmentId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -125,7 +125,7 @@ exports.delete = async (req, res) => {
 				message: message
 			});
 		} else {
-			const assessmentId = crypto.decrypt(req.body.courseTaskAssesmentId);
+			const assessmentId = crypto.decrypt(req.body.courseTaskAssessmentId);
 			const assessment = {
 				isActive: "N"
 			};
