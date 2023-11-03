@@ -56,6 +56,25 @@ exports.list = async (req, res) => {
 	}
 };
 
+exports.listTypes = async (req, res) => {
+	try {
+		const types = CourseEnrollmentTypes.findAll({
+			where: { isActive: "Y" },
+			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "userDepartmentId"] }
+		});
+
+		res.send({
+			message: "Enrollment Types list retrieved",
+			data: types
+		});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
