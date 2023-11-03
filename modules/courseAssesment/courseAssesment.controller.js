@@ -48,7 +48,7 @@ exports.create = async (req, res) => {
 						question.options = JSON.stringify(question.options);
 						question.courseTaskAssessmentId = response.id;
 					});
-					await CourseTaskAssessmentQuestions.bulkCreate({ transaction });
+					await CourseTaskAssessmentQuestions.bulkCreate(questions, { transaction });
 					await transaction.commit();
 					encryptHelper(response);
 					res.send({
