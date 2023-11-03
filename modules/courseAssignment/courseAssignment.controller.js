@@ -9,8 +9,8 @@ const CourseAssignments = db.courseAssignments;
 exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			dateFrom: Joi.string().required(),
-			dateTo: Joi.string().required(),
+			dateFrom: Joi.string().optional(),
+			dateTo: Joi.string().optional(),
 			courseId: Joi.string().required(),
 			clientId: Joi.string().required()
 		});
