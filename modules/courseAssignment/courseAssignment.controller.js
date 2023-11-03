@@ -5,7 +5,6 @@ const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
 
 const CourseAssignments = db.courseAssignments;
-const Course = db.courses;
 
 exports.create = (req, res) => {
 	try {
@@ -32,7 +31,7 @@ exports.create = (req, res) => {
 			CourseAssignments.create(assignmentObj)
 				.then((response) => {
 					encryptHelper(response);
-					res.status(200).send({ message: "Course Assignment to the client is created" });
+					res.status(200).send({ message: "Course has been assigned to the client", data: response });
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
@@ -49,37 +48,7 @@ exports.create = (req, res) => {
 	}
 };
 
-exports.list = (req, res) => {
-	try {
-		CourseAssignments.findAll({
-			where: { isActive: "Y" },
-			include: [
-				{
-					model: Course,
-					where: { isActive: "Y" }
-				}
-			],
-			attributes: { exclude: ["createdAt", "updatedAt"] }
-		})
-			.then((response) => {
-				encryptHelper(response);
-				res.status(200).send({ message: "All assignments are retrived" });
-			})
-			.catch((err) => {
-				emails.errorEmail(req, err);
-				res.status(500).send({
-					message: err.message || "Some error occurred."
-				});
-			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-exports.delete = (req, res) => {
+exports.delete = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			courseAssignmentId: Joi.string().required()
@@ -91,15 +60,14 @@ exports.delete = (req, res) => {
 				message: message
 			});
 		} else {
-			CourseAssignments.update({ isActive: "N" }, { where: { id: crypto.decrypt(req.body.courseAssignmentId) } });
-			then((response) => {
-				res.status(200).send({ message: "Course Assignment is deleted", data: response });
-			}).catch((err) => {
-				emails.errorEmail(req, err);
-				res.status(500).send({
-					message: err.message || "Some error occurred."
-				});
-			});
+			const courseAssignmentId = crypto.decrypt(req.body.courseAssignmentId);
+			const updatedObj = await CourseAssignments.update({ isActive: "N" }, { where: { id: courseAssignmentId } });
+
+			if (updatedObj == 1) {
+				res.status(200).send({ message: "Course Assignment has been deleted" });
+			} else {
+				res.status(200).send({ message: "Unable to delete course assignment" });
+			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);

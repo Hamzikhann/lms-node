@@ -13,14 +13,6 @@ router.post("/create", (req, res) => {
 	}
 });
 
-router.post("/list", (req, res) => {
-	if (req.role == "Administrator") {
-		CourseAssignmentController.list(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
-
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator") {
 		CourseAssignmentController.delete(req, res);

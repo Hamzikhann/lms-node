@@ -35,6 +35,43 @@ exports.list = async (req, res) => {
 		});
 	}
 };
+exports.listAssignments = (req, res) => {
+	try {
+		Clients.findAll({
+			where: { isActive: "Y" },
+			include: [
+				{
+					model: CourseAssignments,
+					where: { isActive: "Y" },
+					include: [
+						{
+							model: Courses,
+							where: { isActive: "Y" },
+							attributes: ["title", "code", "level"]
+						}
+					],
+					attributes: ["id", "courseId"]
+				}
+			],
+			attributes: ["id", "name", "logoURL"]
+		})
+			.then((response) => {
+				encryptHelper(response);
+				res.status(200).send({ message: "Clients assigned courses list has been retrived" });
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({

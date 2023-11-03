@@ -8,13 +8,20 @@ const fileUpload = require("../../utils/fileUpload");
 const { upload } = fileUpload("instructor");
 
 router.post("/list", (req, res) => {
-	console.log(req.role);
 	if (req.role == "Administrator") {
 		courseController.list(req, res);
 	} else if (req.role == "Client") {
 		courseController.listForClient(req, res);
 	} else if (req.role == "User") {
 		courseController.listForUser(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
+router.post("/list/assigned", (req, res) => {
+	if (req.role == "Client") {
+		courseController.listAssigned(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
@@ -32,14 +39,6 @@ router.post("/create", upload.single("image"), (req, res) => {
 router.post("/update", (req, res) => {
 	if (req.role == "Administrator") {
 		courseController.update(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
-
-router.post("/enroll", (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
-		courseController.enrollment(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
