@@ -7,7 +7,9 @@ const { Op } = require("sequelize");
 
 const Users = db.users;
 const Clients = db.clients;
+const Courses = db.courses;
 const CourseDepartments = db.courseDepartments;
+const CourseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
 const CourseEnrollmentTypes = db.courseEnrollmentTypes;
 const UserDepartments = db.userDepartments;
@@ -15,7 +17,7 @@ const UserDepartments = db.userDepartments;
 exports.list = async (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
-		const enrollments = CourseAssignments.findAll({
+		const enrollments = await CourseAssignments.findAll({
 			where: { clientId, isActive: "Y" },
 			include: [
 				{
@@ -42,9 +44,30 @@ exports.list = async (req, res) => {
 			attributes: ["id", "courseId"]
 		});
 
+		encryptHelper(enrollments);
 		res.send({
 			message: "Assigned courses enrollments list retrieved",
 			data: enrollments
+		});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.listTypes = async (req, res) => {
+	try {
+		const types = await CourseEnrollmentTypes.findAll({
+			where: { isActive: "Y" },
+			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "userDepartmentId"] }
+		});
+
+		encryptHelper(types);
+		res.send({
+			message: "Enrollment Types list retrieved",
+			data: types
 		});
 	} catch (err) {
 		emails.errorEmail(req, err);
@@ -71,7 +94,9 @@ exports.create = async (req, res) => {
 			});
 		} else {
 			const courseAssignmentId = crypto.decrypt(req.body.assignmentId);
-			const courseEnrollmentTypeId = courseEnrollmentTypeId ? crypto.decrypt(req.body.courseEnrollmentTypeId) : null;
+			const courseEnrollmentTypeId = req.body.courseEnrollmentTypeId
+				? crypto.decrypt(req.body.courseEnrollmentTypeId)
+				: null;
 			const userDepartmentId = req.body.userDepartmentId ? crypto.decrypt(req.body.userDepartmentId) : null;
 			const userId = req.body.userId ? crypto.decrypt(req.body.userId) : null;
 
@@ -103,6 +128,7 @@ exports.create = async (req, res) => {
 					userId
 				};
 				const response = await CourseEnrollments.create(enrollmentObj);
+				encryptHelper(response);
 				res.send({
 					message: "All users have been enrolled to this course already",
 					data: response
@@ -120,7 +146,7 @@ exports.create = async (req, res) => {
 exports.delete = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			enrollmentId: Joi.string().required()
+			courseEnrollmentId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -129,7 +155,7 @@ exports.delete = async (req, res) => {
 				message: message
 			});
 		} else {
-			const enrollmentId = crypto.decrypt(req.body.enrollmentId);
+			const enrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 			const enrollment = { isActive: "N" };
 
 			const updatedObj = await CourseEnrollments.update(enrollment, {
