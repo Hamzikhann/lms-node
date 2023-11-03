@@ -211,7 +211,7 @@ exports.listAssigned = (req, res) => {
 			where: { isActive: "Y", status: "P" },
 			include: [
 				{
-					model: CourseAssignments,
+					model: courseAssignments,
 					where: { clientId, isActive: "Y" },
 					attributes: []
 				}
