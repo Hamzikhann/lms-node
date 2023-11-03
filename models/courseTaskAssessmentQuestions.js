@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
 	const table = sequelize.define("courseTaskAssessmentQuestions", {
 		title: DataTypes.TEXT,
 		options: DataTypes.TEXT,
-		answer: DataTypes.TEXT,
+		answer: DataTypes.STRING,
 		type: DataTypes.STRING,
 		isActive: {
 			type: DataTypes.STRING,

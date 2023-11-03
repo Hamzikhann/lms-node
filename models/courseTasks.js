@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
 		"courseTasks",
 		{
 			title: DataTypes.STRING,
-			description: DataTypes.STRING,
+			description: DataTypes.TEXT,
 			estimatedTime: DataTypes.STRING,
 			isActive: {
 				type: DataTypes.STRING,

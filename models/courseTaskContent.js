@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
 	const table = sequelize.define(
 		"courseTaskContent",
 		{
-			description: DataTypes.STRING,
+			description: DataTypes.TEXT,
 			videoLink: DataTypes.STRING,
 			handoutLink: DataTypes.STRING,
 			isActive: {

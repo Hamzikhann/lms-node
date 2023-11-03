@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
 		"courseUsefulLinks",
 		{
 			title: DataTypes.STRING,
-			description: DataTypes.STRING,
+			description: DataTypes.TEXT,
 			linkUrl: DataTypes.STRING,
 			isActive: {
 				type: DataTypes.STRING,
