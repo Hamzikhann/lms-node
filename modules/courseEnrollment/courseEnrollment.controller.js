@@ -145,7 +145,7 @@ exports.create = async (req, res) => {
 exports.delete = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			enrollmentId: Joi.string().required()
+			courseEnrollmentId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -154,7 +154,7 @@ exports.delete = async (req, res) => {
 				message: message
 			});
 		} else {
-			const enrollmentId = crypto.decrypt(req.body.enrollmentId);
+			const enrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 			const enrollment = { isActive: "N" };
 
 			const updatedObj = await CourseEnrollments.update(enrollment, {
