@@ -216,8 +216,8 @@ exports.create = async (req, res) => {
 			objectives: Joi.any().optional(),
 			classId: Joi.string().required(),
 			courseDepartmentId: Joi.string().required(),
-			name: Joi.string().required(),
-			aboutInstructor: Joi.string().required(),
+			instructorName: Joi.string().required(),
+			instructorAbout: Joi.string().required(),
 			image: Joi.any().optional()
 		});
 		console.log("body");
@@ -258,25 +258,28 @@ exports.create = async (req, res) => {
 					.then(async (result) => {
 						const courseId = result.id;
 
-						const courseObjectivesArr = req.body.objectives;
+						var courseObjectivesArr = req.body.objectives;
 						if (courseObjectivesArr) {
 							courseObjectivesArr = JSON.parse(courseObjectivesArr);
 							courseObjectivesArr.forEach((objective) => {
-								objective.courseId = courseId;
+								objective = {
+									description: objective,
+									courseId
+								};
 							});
 							if (courseObjectivesArr.length > 0)
-								await courseObjectives.bulkInsert(courseObjectivesArr, { transaction });
+								await courseObjectives.bulkCreate(courseObjectivesArr, { transaction });
 						}
 
-						const syllabus = {
+						var syllabus = {
 							title: "Table of Content",
 							courseId: courseId
 						};
 						await courseSyllabus.create(syllabus, { transaction });
 
-						const instructorObj = {
-							name: req.body.name,
-							about: req.body.aboutInstructor,
+						var instructorObj = {
+							name: req.body.instructorName,
+							about: req.body.instructorAbout,
 							courseId: courseId
 						};
 						if (req.file && req.file.filename) {
@@ -404,46 +407,33 @@ exports.update = async (req, res) => {
 		} else {
 			const courseId = crypto.decrypt(req.body.courseId);
 
-			const alreadyExist = await Classes.findOne({
-				where: {
-					title: req.body.title.trim()
-				},
-				attributes: ["id"]
-			});
-			if (alreadyExist) {
-				res.status(401).send({
-					title: "Already exist.",
-					message: "Class is already exist with same name."
-				});
-			} else {
-				const courseObject = {
-					title: req.body.title.trim(),
-					about: req.body.about,
-					code: req.body.code,
-					level: req.body.level,
-					language: req.body.language,
-					status: req.body.status,
-					courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId)
-				};
-				Classes.update(courseObject, { where: { id: courseId, isActive: "Y" } })
-					.then((num) => {
-						if (num == 1) {
-							res.send({
-								message: "Course was updated successfully."
-							});
-						} else {
-							res.send({
-								message: `Cannot update Course. Maybe Course was not found or req.body is empty!`
-							});
-						}
-					})
-					.catch((err) => {
-						emails.errorEmail(req, err);
-						res.status(500).send({
-							message: "Error updating Class"
+			const courseObject = {
+				title: req.body.title.trim(),
+				about: req.body.about,
+				code: req.body.code,
+				level: req.body.level,
+				language: req.body.language,
+				status: req.body.status,
+				courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId)
+			};
+			Courses.update(courseObject, { where: { id: courseId, isActive: "Y" } })
+				.then((num) => {
+					if (num == 1) {
+						res.send({
+							message: "Course was updated successfully."
 						});
+					} else {
+						res.send({
+							message: `Cannot update Course. Maybe Course was not found or req.body is empty!`
+						});
+					}
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: "Error updating Class"
 					});
-			}
+				});
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
