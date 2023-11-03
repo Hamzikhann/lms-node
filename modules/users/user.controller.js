@@ -12,7 +12,9 @@ const UserDepartments = db.userDepartments;
 const UserDesignations = db.userDesignations;
 const Roles = db.roles;
 const UserProfile = db.userProfile;
-
+const Course = db.courses;
+const CourseAssignments = db.courseAssignments;
+const CourseEnrollments = db.courseEnrollments;
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
@@ -500,6 +502,44 @@ exports.delete = (req, res) => {
 					message: "Error deleting User"
 				});
 			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.dashboard = async (req, res) => {
+	try {
+		const userId = crypto.decrypt(req.userId);
+		const clientId = crypto.decrypt(req.clientId);
+		console.log(clientId);
+
+		const courseAssignment = await CourseAssignments.findAll({
+			where: { clientId: clientId },
+			isActive: "Y",
+			// include: [
+			// 	{
+			// 		modal: Course,
+			// 		where: { isActive: "Y" }
+			// 	}
+			// ]
+			attributes: ["id"]
+		});
+		let ids = [];
+		courseAssignment.forEach((e) => {
+			ids.push(e.id);
+		});
+		console.log(ids);
+		const courseEnrollment = await CourseEnrollments.count({
+			where: {
+				courseAssignmentId: ids,
+				isActive: "Y"
+			}
+		});
+
+		res.send({ data: courseEnrollment });
 	} catch (err) {
 		emails.errorEmail(req, err);
 		res.status(500).send({
