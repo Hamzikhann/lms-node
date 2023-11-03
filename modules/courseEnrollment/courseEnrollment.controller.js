@@ -17,33 +17,36 @@ const UserDepartments = db.userDepartments;
 exports.list = async (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
-		const enrollments = await CourseAssignments.findAll({
-			where: { clientId, isActive: "Y" },
+		const enrollments = await CourseEnrollments.findAll({
+			where: { isActive: "Y" },
 			include: [
 				{
-					model: CourseEnrollments,
-					where: { isActive: "Y" },
-					include: [
-						{
-							model: CourseEnrollmentTypes,
-							attributes: ["title"]
-						},
-						{
-							model: UserDepartments,
-							attributes: ["title"]
-						}
-					],
-					attributes: { exclude: ["isActive", "createdAt", "updatedAt", "userDepartmentId"] }
+					model: CourseEnrollmentTypes,
+					attributes: ["title"]
 				},
 				{
-					model: Courses,
-					where: { isActive: "Y", status: "P" },
-					attributes: ["title", "code", "level", "language", "level"]
+					model: CourseAssignments,
+					where: { clientId, isActive: "Y" },
+					include: [
+						{
+							model: Courses,
+							where: { isActive: "Y", status: "P" },
+							attributes: ["title", "code", "level", "language", "level"]
+						}
+					],
+					attributes: ["id", "courseId"]
+				},
+				{
+					model: UserDepartments,
+					attributes: ["title"]
+				},
+				{
+					model: Users,
+					attributes: ["firstName", "lastName"]
 				}
 			],
-			attributes: ["id", "courseId"]
+			attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
 		});
-
 		encryptHelper(enrollments);
 		res.send({
 			message: "Assigned courses enrollments list retrieved",
