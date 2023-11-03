@@ -24,7 +24,7 @@ exports.create = (req, res) => {
 		} else {
 			const assignmentObj = {
 				dateFrom: req.body.dateFrom,
-				dataTo: req.body.dateTo,
+				dateTo: req.body.dateTo,
 				courseId: crypto.decrypt(req.body.courseId),
 				clientId: crypto.decrypt(req.body.clientId)
 			};
@@ -32,7 +32,7 @@ exports.create = (req, res) => {
 			CourseAssignments.create(assignmentObj)
 				.then((response) => {
 					encryptHelper(response);
-					res.status(200).send({ message: "Course Assignment to the client is created" });
+					res.status(200).send({ message: "Course Assignment to the client is created", data: response });
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
@@ -63,7 +63,7 @@ exports.list = (req, res) => {
 		})
 			.then((response) => {
 				encryptHelper(response);
-				res.status(200).send({ message: "All assignments are retrived" });
+				res.status(200).send({ message: "All assignments are retrived", data: response });
 			})
 			.catch((err) => {
 				emails.errorEmail(req, err);
@@ -91,15 +91,16 @@ exports.delete = (req, res) => {
 				message: message
 			});
 		} else {
-			CourseAssignments.update({ isActive: "N" }, { where: { id: crypto.decrypt(req.body.courseAssignmentId) } });
-			then((response) => {
-				res.status(200).send({ message: "Course Assignment is deleted", data: response });
-			}).catch((err) => {
-				emails.errorEmail(req, err);
-				res.status(500).send({
-					message: err.message || "Some error occurred."
+			CourseAssignments.update({ isActive: "N" }, { where: { id: crypto.decrypt(req.body.courseAssignmentId) } })
+				.then((response) => {
+					res.status(200).send({ message: "Course Assignment is deleted", data: response });
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
 				});
-			});
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);

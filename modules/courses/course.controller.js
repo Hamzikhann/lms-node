@@ -242,7 +242,8 @@ exports.create = async (req, res) => {
 
 			const alreadyExist = await Courses.findOne({
 				where: {
-					title: courseObj.title.trim()
+					title: courseObj.title.trim(),
+					isActive: "Y"
 				},
 				attributes: ["id"]
 			});
