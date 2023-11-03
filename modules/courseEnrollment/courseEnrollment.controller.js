@@ -17,7 +17,7 @@ const UserDepartments = db.userDepartments;
 exports.list = async (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
-		const enrollments = CourseAssignments.findAll({
+		const enrollments = await CourseAssignments.findAll({
 			where: { clientId, isActive: "Y" },
 			include: [
 				{
@@ -44,6 +44,7 @@ exports.list = async (req, res) => {
 			attributes: ["id", "courseId"]
 		});
 
+		encryptHelper(enrollments);
 		res.send({
 			message: "Assigned courses enrollments list retrieved",
 			data: enrollments
@@ -58,11 +59,12 @@ exports.list = async (req, res) => {
 
 exports.listTypes = async (req, res) => {
 	try {
-		const types = CourseEnrollmentTypes.findAll({
+		const types = await CourseEnrollmentTypes.findAll({
 			where: { isActive: "Y" },
 			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "userDepartmentId"] }
 		});
 
+		encryptHelper(types);
 		res.send({
 			message: "Enrollment Types list retrieved",
 			data: types
