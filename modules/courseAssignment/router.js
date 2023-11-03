@@ -2,23 +2,20 @@
 
 const express = require("express");
 const router = express.Router();
-const courseTaskController = require("./courseTask.controller");
 
-router.post("/list", courseTaskController.list);
-router.post("/list/types", courseTaskController.listTypes);
-router.post("/detail", courseTaskController.detail);
+const CourseAssignmentController = require("./courseAssignment.controller");
 
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {
-		courseTaskController.create(req, res);
+		CourseAssignmentController.create(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
 
-router.post("/update", (req, res) => {
+router.post("/list", (req, res) => {
 	if (req.role == "Administrator") {
-		courseTaskController.update(req, res);
+		CourseAssignmentController.list(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
@@ -26,13 +23,10 @@ router.post("/update", (req, res) => {
 
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator") {
-		courseTaskController.delete(req, res);
+		CourseAssignmentController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
 
-router.post("/progress", (req, res) => {
-	courseTaskController.createProgress(req, res);
-});
 module.exports = router;

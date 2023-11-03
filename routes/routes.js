@@ -17,8 +17,9 @@ const courseModuleRouteHandler = require("../modules/courseModule/router");
 const courseTaskRouteHandler = require("../modules/courseTasks/router");
 const courseEnrollmentRouteHandler = require("../modules/courseEnrollment/router");
 const courseInstructorRouteHandler = require("../modules/courseInstructor/router");
-const courseAssesmentDetailRouteHandler = require("../modules/courseAssesmentDetail/router");
+const courseAssesmentQuestionRouteHandler = require("../modules/courseAssesmentQuestion/router");
 const courseAssesmentRouteHandler = require("../modules/courseAssesment/router");
+const courseAssignmentRouteHandler = require("../modules/courseAssignment/router");
 
 class Routes {
 	constructor(app) {
@@ -40,9 +41,10 @@ class Routes {
 		this.app.use("/api/course/modules", jwt.protect, courseModuleRouteHandler);
 		this.app.use("/api/course/tasks", jwt.protect, courseTaskRouteHandler);
 		this.app.use("/api/course/enrollments", jwt.protect, courseEnrollmentRouteHandler);
-		this.app.use("/api/course/task/assesments/questions", jwt.protect, courseAssesmentDetailRouteHandler);
+		this.app.use("/api/course/task/assesments/question", jwt.protect, courseAssesmentQuestionRouteHandler);
 		this.app.use("/api/course/task/assesments", jwt.protect, courseAssesmentRouteHandler);
 		this.app.use("/api/course/instructors", jwt.protect, courseInstructorRouteHandler);
+		this.app.use("/api/course/assignment", jwt.protect, courseAssignmentRouteHandler);
 	}
 	routesConfig() {
 		this.appRoutes();

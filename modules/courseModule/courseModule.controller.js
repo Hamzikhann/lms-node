@@ -8,6 +8,7 @@ const CourseModule = db.courseModules;
 const CourseTasks = db.courseTasks;
 const CourseTaskContent = db.courseTaskContent;
 const CourseTaskTypes = db.courseTaskTypes;
+const CourseTaskProgress = db.courseTaskProgress;
 
 exports.list = (req, res) => {
 	try {
@@ -37,6 +38,10 @@ exports.list = (req, res) => {
 							{
 								model: CourseTaskTypes,
 								attributes: ["title"]
+							},
+							{
+								model: CourseTaskProgress,
+								attributes: ["id", "currentTime", "percentage"]
 							}
 						],
 						required: false,
@@ -49,6 +54,7 @@ exports.list = (req, res) => {
 					res.status(200).send({ message: "Course modules and their tasks have been retrived", data: response });
 				})
 				.catch((err) => {
+					console.log(err);
 					emails.errorEmail(req, err);
 					res.status(500).send({
 						message: "Some error occurred.",
