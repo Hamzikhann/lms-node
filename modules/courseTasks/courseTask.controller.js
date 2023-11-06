@@ -10,6 +10,7 @@ const CourseTasks = db.courseTasks;
 const CourseTaskContent = db.courseTaskContent;
 const CourseTaskTypes = db.courseTaskTypes;
 const CourseTaskProgress = db.courseTaskProgress;
+const CourseProgress = db.courseProgress;
 
 exports.create = async (req, res) => {
 	try {
@@ -255,7 +256,8 @@ exports.createProgress = async (req, res) => {
 			percentage: Joi.string().required(),
 			courseTaskId: Joi.string().required(),
 			courseEnrollmentId: Joi.string().required(),
-			courseId: Joi.string().required()
+			courseId: Joi.string().required(),
+			courseSyllabusId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -264,6 +266,8 @@ exports.createProgress = async (req, res) => {
 				message: message
 			});
 		} else {
+			const courseSyllabusId = crypto.decrypt(req.body.courseSyllabusId);
+
 			const taskProgressObj = {
 				currentTime: req.body.currentTime,
 				percentage: req.body.percentage,
@@ -293,6 +297,47 @@ exports.createProgress = async (req, res) => {
 							{ transaction }
 						)
 							.then(async (response) => {
+								const taksProgress = await CourseTaskProgress.findAll({
+									where: {
+										courseEnrollmentId: taskProgressObj.courseEnrollmentId,
+										userId: taskProgressObj.userId,
+										courseId: taskProgressObj.courseId
+									},
+									attributes: ["percentage"]
+								});
+
+								const allModules = await CourseModule.findAll({
+									where: { courseSyllabusId: courseSyllabusId },
+									isActive: "Y"
+								});
+
+								let moduleIds = [];
+								allModules.forEach((e) => {
+									moduleIds.push(e.id);
+								});
+
+								const allTasks = await CourseTasks.count({ where: { courseModuleId: moduleIds }, isActive: "Y" });
+								console.log(allTasks, "all ");
+								let percentage = 0;
+								taksProgress.forEach((e) => {
+									percentage += JSON.parse(e.percentage);
+								});
+								console.log(percentage, "per");
+								let courseProgress = (percentage / (JSON.parse(allTasks) * 100)) * 100;
+
+								console.log(courseProgress, "course per");
+
+								const courseProgressObj = {
+									percentage: courseProgress,
+									userId: taskProgressObj.userId,
+									clientId: taskProgressObj.clientId,
+									courseEnrollmentId: taskProgressObj.courseEnrollmentId
+								};
+
+								const progressCourse = await CourseProgress.update(courseProgressObj, {
+									where: { courseId: taskProgressObj.courseId }
+								});
+
 								await transaction.commit();
 								res.status(200).send({ message: "Task Progress updated", data: response });
 							})
