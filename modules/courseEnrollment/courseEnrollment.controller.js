@@ -248,7 +248,7 @@ exports.create = async (req, res) => {
 			courseEnrollmentTypeId: Joi.string().required(),
 			userDepartmentId: Joi.string().optional().allow(null).allow(""),
 			userId: Joi.string().optional().allow(null).allow(""),
-			teamsId: Joi.string().optional()
+			teamId: Joi.string().optional()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -302,11 +302,13 @@ exports.create = async (req, res) => {
 					raw: true
 				});
 				var allUsersIds = allUsers.map((obj) => obj.id);
+				console.log(allUsersIds);
+				console.log(alreadyEnrolledUsersIds);
+				// var uniqueUsers = allUsersIds
+				// 	.filter((item) => !alreadyEnrolledUsersIds.includes(item))
+				// 	.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
 
-				var uniqueUsers = allUsersIds
-					.filter((item) => !alreadyEnrolledUsersIds.includes(item))
-					.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
-
+				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
 				uniqueUsers.forEach((user) => {
 					enrollmentArr.push({
 						userId: user,
@@ -316,6 +318,7 @@ exports.create = async (req, res) => {
 						userDepartmentId
 					});
 				});
+				console.log(uniqueUsers);
 			} else if (courseEnrollmentTypeId == 3) {
 				var allUsers = await Users.findAll({
 					where: { clientId: clientId, isActive: "Y", roleId: 3, id: userId },
@@ -362,7 +365,7 @@ exports.create = async (req, res) => {
 						required: req.body.required,
 						courseAssignmentId,
 						courseEnrollmentTypeId,
-						userDepartmentId
+						teamId
 					});
 				});
 			}
