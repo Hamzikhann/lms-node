@@ -18,7 +18,7 @@ router.post("/create", upload.single("handout"), (req, res) => {
 	}
 });
 
-router.post("/update", (req, res) => {
+router.post("/update", upload.single("handout"), (req, res) => {
 	if (req.role == "Administrator") {
 		courseTaskController.update(req, res);
 	} else {
