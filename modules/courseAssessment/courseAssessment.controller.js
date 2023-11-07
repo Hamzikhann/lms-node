@@ -53,7 +53,7 @@ exports.create = async (req, res) => {
 			title: Joi.string().required(),
 			description: Joi.string().optional().allow(""),
 			estimatedTime: Joi.string().required(),
-			startTime: Joi.string().required(),
+			startTime: Joi.string().optional(),
 			courseTaskId: Joi.string().required(),
 			questions: Joi.array().items(
 				Joi.object().keys({
@@ -85,7 +85,7 @@ exports.create = async (req, res) => {
 					questions.forEach((question) => {
 						question.title = question.title.trim();
 						question.answer = question.answer.trim();
-						question.options = JSON.stringify(question.options);
+						question.options = question.options;
 						question.courseTaskAssessmentId = response.id;
 					});
 					await CourseTaskAssessmentQuestions.bulkCreate(questions, { transaction });

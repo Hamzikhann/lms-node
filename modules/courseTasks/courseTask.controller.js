@@ -18,8 +18,7 @@ exports.create = async (req, res) => {
 			title: Joi.string().required(),
 			estimatedTime: Joi.string().required(),
 			contentDescription: Joi.string().required(),
-			contentVideoLink: Joi.string().required(),
-			contentHandoutLink: Joi.string().required(),
+			contentVideoLink: Joi.string().optional(),
 			courseTaskTypeId: Joi.string().required(),
 			courseModuleId: Joi.string().required()
 		});
@@ -53,10 +52,11 @@ exports.create = async (req, res) => {
 
 						CourseTasks.create(taskObj, { transaction })
 							.then((task) => {
+								let handoutPdf = req.file ? "uploads/documents/" + req.file.filename : null;
 								const contentObj = {
 									description: req.body.contentDescription,
 									videoLink: req.body.contentVideoLink,
-									handoutLink: req.body.contentHandoutLink,
+									handoutLink: handoutPdf,
 									courseTaskId: task.id
 								};
 								CourseTaskContent.create(contentObj, { transaction })

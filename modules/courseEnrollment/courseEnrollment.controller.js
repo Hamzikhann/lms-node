@@ -326,10 +326,12 @@ exports.create = async (req, res) => {
 					raw: true
 				});
 				var allUsersIds = allUsers.map((obj) => obj.id);
-
-				var uniqueUsers = allUsersIds
-					.filter((item) => !alreadyEnrolledUsersIds.includes(item))
-					.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
+				console.log(allUsersIds);
+				console.log(alreadyEnrolledUsers);
+				// var uniqueUsers = allUsersIds
+				// 	.filter((item) => !alreadyEnrolledUsersIds.includes(item))
+				// 	.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
+				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
 
 				uniqueUsers.forEach((user) => {
 					enrollmentArr.push({
@@ -340,6 +342,7 @@ exports.create = async (req, res) => {
 						userDepartmentId
 					});
 				});
+				console.log(uniqueUsers);
 			} else if (courseEnrollmentTypeId == 4) {
 				var allUsers = await TeamUsers.findAll({
 					where: { teamId, clientId, isActive: "Y" },
