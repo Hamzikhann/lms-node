@@ -71,7 +71,7 @@ exports.update = async (req, res) => {
 			const courseTaskAssessmentQuestionId = crypto.decrypt(req.body.courseTaskAssessmentQuestionId);
 			const assessmentQuestion = {
 				title: req.body.title,
-				options: JSON.stringify(req.body.options),
+				options: req.body.options,
 				answer: req.body.answer,
 				type: req.body.type
 			};
