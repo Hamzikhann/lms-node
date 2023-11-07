@@ -22,6 +22,7 @@ module.exports = (sequelize, DataTypes) => {
 		table.belongsTo(models.courseAssignments);
 		table.belongsTo(models.userDepartments);
 		table.belongsTo(models.users);
+		table.belongsTo(models.teams);
 	};
 	return table;
 };
