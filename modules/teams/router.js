@@ -5,20 +5,11 @@ const router = express.Router();
 
 const teamController = require("./teams.controller");
 
-router.post("/create", (req, res) => {
-	if (req.role == "Administrator") {
-		teamController.create(req, res);
-	} else {
-		res.status(403).send({ message: "Forbidden Access" });
-	}
-});
+router.post("/list", teamController.list);
 
-router.post("/list", (req, res) => {
-	teamController.list(req, res);
-});
-router.post("/detail", (req, res) => {
+router.post("/create", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
-		teamController.detail(req, res);
+		teamController.create(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
@@ -31,7 +22,7 @@ router.post("/update", (req, res) => {
 	}
 });
 router.post("/delete", (req, res) => {
-	if (req.role == "Administrator") {
+	if (req.role == "Administrator" || req.role == "Client") {
 		teamController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
