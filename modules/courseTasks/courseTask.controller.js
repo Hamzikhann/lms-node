@@ -18,7 +18,7 @@ exports.create = async (req, res) => {
 			title: Joi.string().required(),
 			estimatedTime: Joi.string().required(),
 			contentDescription: Joi.string().required(),
-			contentVideoLink: Joi.string().optional(),
+			contentVideoLink: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseModuleId: Joi.string().required()
 		});
@@ -169,8 +169,7 @@ exports.update = async (req, res) => {
 			title: Joi.string().required(),
 			estimatedTime: Joi.string().required(),
 			contentDescription: Joi.string().required(),
-			contentVideoLink: Joi.string().required(),
-			contentHandoutLink: Joi.string().required(),
+			contentVideoLink: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseTaskId: Joi.string().required()
 		});
@@ -190,10 +189,12 @@ exports.update = async (req, res) => {
 
 			const updatedTask = await CourseTasks.update(taskObj, { where: { id: courseTaskId } });
 			if (updatedTask == 1) {
+				let handoutPdf = req.file ? "uploads/documents/" + req.file.filename : req.body.handout;
+
 				const contentObj = {
 					description: req.body.contentDescription,
 					videoLink: req.body.contentVideoLink,
-					handoutLink: req.body.contentHandoutLink
+					handoutLink: handoutPdf
 				};
 				const updateContent = await CourseTaskContent.update(contentObj, { where: { courseTaskId: courseTaskId } });
 
