@@ -41,6 +41,8 @@ exports.list = (req, res) => {
 							},
 							{
 								model: CourseTaskProgress,
+								where: { userId: crypto.decrypt(req.userId) },
+								required: false,
 								attributes: ["id", "currentTime", "percentage"]
 							}
 						],
