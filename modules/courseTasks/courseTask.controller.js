@@ -295,7 +295,7 @@ exports.delete = async (req, res) => {
 exports.createProgress = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			currentTime: Joi.string().required(),
+			currentTime: Joi.string().optional().allow(""),
 			percentage: Joi.string().required(),
 			courseTaskId: Joi.string().required(),
 			courseEnrollmentId: Joi.string().required(),
