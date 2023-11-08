@@ -168,6 +168,43 @@ exports.detail = async (req, res) => {
 	}
 };
 
+exports.enrollment = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseId = crypto.decrypt(req.body.courseId);
+
+			const response = await CourseEnrollments.findOne({
+				where: { isActive: "Y" },
+				include: [
+					{
+						model: CourseAssignments,
+						where: { courseId, isActive: "Y" },
+						attributes: []
+					}
+				],
+				attributes: ["id"]
+			});
+
+			encryptHelper(response);
+			res.status(200).send({ message: "The course enrollment detail has been retrived", data: response });
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({

@@ -8,6 +8,7 @@ const { upload } = fileUpload("documents");
 
 router.post("/list/types", courseTaskController.listTypes);
 router.post("/detail", courseTaskController.detail);
+router.post("/enrollment", courseTaskController.getEnrollment);
 
 router.post("/create", upload.single("handout"), (req, res) => {
 	console.log(req.role);
