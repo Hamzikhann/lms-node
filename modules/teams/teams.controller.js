@@ -66,7 +66,7 @@ exports.list = (req, res) => {
 					attributes: ["id"]
 				}
 			],
-			attributess: ["id", "title"]
+			attributes: ["id", "title"]
 		})
 			.then((response) => {
 				encryptHelper(response);
