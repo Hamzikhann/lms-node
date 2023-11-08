@@ -113,10 +113,9 @@ exports.listForUser = (req, res) => {
 		// Get all courses for the logged in user enrollment
 		// Get all courses for the logged in user department enrollment
 		// Get all courses for the logged in user client
-		console.log(req.clientId);
 
 		CourseEnrollments.findAll({
-			where: { isActive: "Y" },
+			where: { isActive: "Y", userId: crypto.decrypt(req.userId) },
 			include: [
 				{
 					model: courseAssignments,
@@ -145,7 +144,7 @@ exports.listForUser = (req, res) => {
 					attributes: ["id"]
 				}
 			],
-			attributes: ["id"]
+			attributes: []
 		})
 			.then((data) => {
 				encryptHelper(data);
