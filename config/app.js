@@ -11,6 +11,8 @@ class AppConfig {
 	includeConfig() {
 		global.crypto = require("../utils/crypto");
 
+		console.log(crypto.decrypt("ekZnSDRwQW9BVnFqMkFmbHJwMS94Zz09"));
+
 		this.app.use(cors());
 		this.app.use(bodyParser.json({ limit: "5mb" }));
 		this.app.use("/uploads", express.static("uploads"));

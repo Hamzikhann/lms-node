@@ -181,9 +181,10 @@ exports.getEnrollment = async (req, res) => {
 			});
 		} else {
 			const courseId = crypto.decrypt(req.body.courseId);
+			const userId = crypto.decrypt(req.userId);
 
 			const response = await CourseEnrollments.findOne({
-				where: { isActive: "Y" },
+				where: { isActive: "Y", userId },
 				include: [
 					{
 						model: CourseAssignments,
@@ -193,7 +194,6 @@ exports.getEnrollment = async (req, res) => {
 				],
 				attributes: ["id"]
 			});
-
 			encryptHelper(response);
 			res.status(200).send({ message: "The course enrollment detail has been retrived", data: response });
 		}
