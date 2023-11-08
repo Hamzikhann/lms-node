@@ -9,10 +9,8 @@ const TeamUsers = db.teamUsers;
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			name: Joi.string().required(),
-			clientId: Joi.string().required(),
 			// userId: Joi.string().required(),
-			userId: Joi.array(Joi.items().string()).optional(),
+			userIds: Joi.array(Joi.items().string()).optional(),
 			teamId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
@@ -42,16 +40,16 @@ exports.create = async (req, res) => {
 			// 		});
 			// 	});
 
-			const userIds = req.body.userId;
+			const userIds = req.body.userIds;
 			let teamUser = {
 				name: req.body.name,
-				clientId: req.body.clientId,
-				teamId: req.body.teamId
+				teamId: crypto.decrypt(req.body.teamId),
+				clientId: crypto.decrypt(req.clientId)
 			};
 
 			const teamUserObj = [];
-			userIds.forEach((e) => {
-				teamUser.userId = crypto.decrypt(e);
+			userIds.forEach((id) => {
+				teamUser.userId = crypto.decrypt(id);
 				teamUserObj.push(teamUser);
 			});
 			let transaction = await sequelize.transaction();
