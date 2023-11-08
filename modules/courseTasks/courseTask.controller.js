@@ -310,7 +310,7 @@ exports.createProgress = async (req, res) => {
 		} else {
 			const taskProgressObj = {
 				currentTime: req.body.currentTime,
-				percentage: req.body.percentage,
+				percentage: req.body.percentage ? req.body.percentage : "0",
 				courseTaskId: crypto.decrypt(req.body.courseTaskId),
 				courseEnrollmentId: crypto.decrypt(req.body.courseEnrollmentId),
 				courseId: crypto.decrypt(req.body.courseId),
