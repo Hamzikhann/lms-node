@@ -43,6 +43,10 @@ exports.list = async (req, res) => {
 					attributes: ["title"]
 				},
 				{
+					model: Teams,
+					attributes: ["title"]
+				},
+				{
 					model: Users,
 					attributes: ["firstName", "lastName"]
 				}
