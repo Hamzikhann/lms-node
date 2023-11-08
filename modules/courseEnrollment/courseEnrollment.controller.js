@@ -47,7 +47,7 @@ exports.list = async (req, res) => {
 					attributes: ["firstName", "lastName"]
 				}
 			],
-			attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+			attributes: { exclude: ["isActive", "updatedAt"] }
 		});
 		encryptHelper(enrollments);
 		res.send({
