@@ -10,7 +10,7 @@ exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			// userId: Joi.string().required(),
-			userIds: Joi.array(Joi.items().string()).optional(),
+			userIds: Joi.any().required(),
 			teamId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
