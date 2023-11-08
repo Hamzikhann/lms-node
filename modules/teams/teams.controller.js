@@ -7,6 +7,7 @@ const { sequelize } = require("../../models");
 
 const Teams = db.teams;
 const TeamUsers = db.teamUsers;
+const Users = db.users;
 const Client = db.clients;
 
 exports.create = (req, res) => {
