@@ -90,7 +90,7 @@ exports.create = async (req, res) => {
 			courseEnrollmentTypeId: Joi.string().required(),
 			userDepartmentId: Joi.string().optional().allow(null).allow(""),
 			userId: Joi.string().optional().allow(null).allow(""),
-			teamId: Joi.string().optional()
+			teamId: Joi.string().optional().allow(null).allow("")
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
