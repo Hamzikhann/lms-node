@@ -13,8 +13,7 @@ const Client = db.clients;
 exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			clientId: Joi.string().required()
+			title: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -25,7 +24,7 @@ exports.create = (req, res) => {
 		} else {
 			const teamObj = {
 				title: req.body.title,
-				clientId: crypto.decrypt(req.body.clientId)
+				clientId: crypto.decrypt(req.clientId)
 			};
 			Teams.create(teamObj)
 				.then((response) => {
