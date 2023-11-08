@@ -168,7 +168,7 @@ exports.detail = async (req, res) => {
 	}
 };
 
-exports.enrollment = async (req, res) => {
+exports.getEnrollment = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			courseId: Joi.string().required()
