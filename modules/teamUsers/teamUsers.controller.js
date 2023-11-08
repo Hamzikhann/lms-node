@@ -3,6 +3,7 @@ const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
+const { sequelize } = require("../../models");
 
 const TeamUsers = db.teamUsers;
 
