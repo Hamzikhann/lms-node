@@ -82,126 +82,126 @@ exports.listTypes = async (req, res) => {
 	}
 };
 
-exports.create = async (req, res) => {
-	try {
-		const joiSchema = Joi.object({
-			required: Joi.string().required(),
-			assignmentId: Joi.string().required(),
-			courseEnrollmentTypeId: Joi.string().required(),
-			userDepartmentId: Joi.string().optional().allow(null).allow(""),
-			userId: Joi.string().optional().allow(null).allow(""),
-			teamsId: Joi.string().optional()
-		});
-		const { error, value } = joiSchema.validate(req.body);
-		if (error) {
-			const message = error.details[0].message.replace(/"/g, "");
-			res.status(400).send({
-				message: message
-			});
-		} else {
-			const courseAssignmentId = crypto.decrypt(req.body.assignmentId);
-			const courseEnrollmentTypeId = req.body.courseEnrollmentTypeId
-				? crypto.decrypt(req.body.courseEnrollmentTypeId)
-				: null;
-			const userDepartmentId = req.body.userDepartmentId ? crypto.decrypt(req.body.userDepartmentId) : null;
-			const userId = req.body.userId ? crypto.decrypt(req.body.userId) : null;
-			const teamId = req.body.teamsId ? crypto.decrypt(req.body.teamsId) : null;
-			// const enrollmentExists = await CourseEnrollments.findOne({
-			// 	where: {
-			// 		courseAssignmentId: courseAssignmentId,
-			// 		isActive: "Y"
-			// 	}
-			// });
-			if (courseEnrollmentTypeId == 1) {
-				if (enrollmentExists) {
-					res.status(401).send({
-						message: "Unable to enroll course, it is already enrolled to all users.."
-					});
-				} else {
-					const enrollmentObj = {
-						required: req.body.required,
-						courseEnrollmentTypeId,
-						courseAssignmentId,
-						userDepartmentId,
-						userId,
-						teamId
-					};
-					console.log(enrollmentObj);
-					const response = await CourseEnrollments.create(enrollmentObj);
-					encryptHelper(response);
-					res.send({
-						message: "All users have been enrolled to this course already",
-						data: response
-					});
-				}
-			}
-			// else if (courseEnrollmentTypeId == 2) {
-			// 	if (enrollmentExists && enrollmentExists.userDepartmentId == userDepartmentId) {
-			// 		res.status(401).send({
-			// 			message: "Unable to enroll course, it is already enrolled to this department."
-			// 		});
-			// 	}
-			// } else if (courseEnrollmentTypeId == 3) {
-			// 	if (enrollmentExists && enrollmentExists.userId == userId) {
-			// 		res.status(401).send({
-			// 			message: "Unable to enroll course, it is already enrolled to this user."
-			// 		});
-			// 	}
-			// }
-			else if (courseEnrollmentTypeId == 4) {
-				if (enrollmentExists && enrollmentExists.courseEnrollmentTypeId == 1) {
-					res.status(401).send({
-						message: "Unable to enroll course, it is already enrolled to all users.."
-					});
-				} else {
-					if (enrollmentExists && enrollmentExists.teamId == teamId) {
-						res.status(401).send({
-							message: "Unable to enroll course, it is already enrolled to this Team."
-						});
-					} else {
-						const enrollmentObj = {
-							required: req.body.required,
-							courseEnrollmentTypeId,
-							courseAssignmentId,
-							userDepartmentId,
-							userId,
-							teamId
-						};
-						console.log(enrollmentObj);
-						const response = await CourseEnrollments.create(enrollmentObj);
-						encryptHelper(response);
-						res.send({
-							message: "All users have been enrolled to this course already",
-							data: response
-						});
-					}
-				}
-			}
-			// else {
-			// 	console.log(888);
-			// 	const enrollmentObj = {
-			// 		required: req.body.required,
-			// 		courseEnrollmentTypeId,
-			// 		courseAssignmentId,
-			// 		userDepartmentId,
-			// 		userId,
-			// 		teamsId
-			// 	};
-			// 	const response = await CourseEnrollments.create(enrollmentObj);
-			// 	encryptHelper(response);
-			// 	res.send({
-			// 		message: "All users have been enrolled to this course already",
-			// 		data: response
-			// 	});
-			// }
-		}
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
+// exports.create = async (req, res) => {
+// 	try {
+// 		const joiSchema = Joi.object({
+// 			required: Joi.string().required(),
+// 			assignmentId: Joi.string().required(),
+// 			courseEnrollmentTypeId: Joi.string().required(),
+// 			userDepartmentId: Joi.string().optional().allow(null).allow(""),
+// 			userId: Joi.string().optional().allow(null).allow(""),
+// 			teamsId: Joi.string().optional()
+// 		});
+// 		const { error, value } = joiSchema.validate(req.body);
+// 		if (error) {
+// 			const message = error.details[0].message.replace(/"/g, "");
+// 			res.status(400).send({
+// 				message: message
+// 			});
+// 		} else {
+// 			const courseAssignmentId = crypto.decrypt(req.body.assignmentId);
+// 			const courseEnrollmentTypeId = req.body.courseEnrollmentTypeId
+// 				? crypto.decrypt(req.body.courseEnrollmentTypeId)
+// 				: null;
+// 			const userDepartmentId = req.body.userDepartmentId ? crypto.decrypt(req.body.userDepartmentId) : null;
+// 			const userId = req.body.userId ? crypto.decrypt(req.body.userId) : null;
+// 			const teamId = req.body.teamsId ? crypto.decrypt(req.body.teamsId) : null;
+// 			// const enrollmentExists = await CourseEnrollments.findOne({
+// 			// 	where: {
+// 			// 		courseAssignmentId: courseAssignmentId,
+// 			// 		isActive: "Y"
+// 			// 	}
+// 			// });
+// 			if (courseEnrollmentTypeId == 1) {
+// 				if (enrollmentExists) {
+// 					res.status(401).send({
+// 						message: "Unable to enroll course, it is already enrolled to all users.."
+// 					});
+// 				} else {
+// 					const enrollmentObj = {
+// 						required: req.body.required,
+// 						courseEnrollmentTypeId,
+// 						courseAssignmentId,
+// 						userDepartmentId,
+// 						userId,
+// 						teamId
+// 					};
+// 					console.log(enrollmentObj);
+// 					const response = await CourseEnrollments.create(enrollmentObj);
+// 					encryptHelper(response);
+// 					res.send({
+// 						message: "All users have been enrolled to this course already",
+// 						data: response
+// 					});
+// 				}
+// 			}
+// 			// else if (courseEnrollmentTypeId == 2) {
+// 			// 	if (enrollmentExists && enrollmentExists.userDepartmentId == userDepartmentId) {
+// 			// 		res.status(401).send({
+// 			// 			message: "Unable to enroll course, it is already enrolled to this department."
+// 			// 		});
+// 			// 	}
+// 			// } else if (courseEnrollmentTypeId == 3) {
+// 			// 	if (enrollmentExists && enrollmentExists.userId == userId) {
+// 			// 		res.status(401).send({
+// 			// 			message: "Unable to enroll course, it is already enrolled to this user."
+// 			// 		});
+// 			// 	}
+// 			// }
+// 			else if (courseEnrollmentTypeId == 4) {
+// 				if (enrollmentExists && enrollmentExists.courseEnrollmentTypeId == 1) {
+// 					res.status(401).send({
+// 						message: "Unable to enroll course, it is already enrolled to all users.."
+// 					});
+// 				} else {
+// 					if (enrollmentExists && enrollmentExists.teamId == teamId) {
+// 						res.status(401).send({
+// 							message: "Unable to enroll course, it is already enrolled to this Team."
+// 						});
+// 					} else {
+// 						const enrollmentObj = {
+// 							required: req.body.required,
+// 							courseEnrollmentTypeId,
+// 							courseAssignmentId,
+// 							userDepartmentId,
+// 							userId,
+// 							teamId
+// 						};
+// 						console.log(enrollmentObj);
+// 						const response = await CourseEnrollments.create(enrollmentObj);
+// 						encryptHelper(response);
+// 						res.send({
+// 							message: "All users have been enrolled to this course already",
+// 							data: response
+// 						});
+// 					}
+// 				}
+// 			}
+// 			// else {
+// 			// 	console.log(888);
+// 			// 	const enrollmentObj = {
+// 			// 		required: req.body.required,
+// 			// 		courseEnrollmentTypeId,
+// 			// 		courseAssignmentId,
+// 			// 		userDepartmentId,
+// 			// 		userId,
+// 			// 		teamsId
+// 			// 	};
+// 			// 	const response = await CourseEnrollments.create(enrollmentObj);
+// 			// 	encryptHelper(response);
+// 			// 	res.send({
+// 			// 		message: "All users have been enrolled to this course already",
+// 			// 		data: response
+// 			// 	});
+// 			// }
+// 		}
+// 	} catch (err) {
+// 		emails.errorEmail(req, err);
+// 		res.status(500).send({
+// 			message: err.message || "Some error occurred."
+// 		});
+// 	}
+// };
 
 exports.delete = async (req, res) => {
 	try {

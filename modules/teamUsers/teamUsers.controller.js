@@ -3,6 +3,7 @@ const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
+const { sequelize } = require("../../models");
 
 const TeamUsers = db.teamUsers;
 
@@ -41,17 +42,26 @@ exports.create = async (req, res) => {
 			// 	});
 
 			const userIds = req.body.userIds;
-			let teamUser = {
-				name: req.body.name,
-				teamId: crypto.decrypt(req.body.teamId),
-				clientId: crypto.decrypt(req.clientId)
-			};
 
-			const teamUserObj = [];
-			userIds.forEach((id) => {
-				teamUser.userId = crypto.decrypt(id);
+			const existedUsesr = await TeamUsers.findAll({
+				where: { teamId: crypto.decrypt(req.body.teamId), isActive: "Y" },
+				attributes: ["userId"]
+			});
+			encryptHelper(existedUsesr);
+			var existedUsesrIds = existedUsesr.map((obj) => obj.userId);
+
+			var uniqueUsers = userIds.filter((item) => !existedUsesrIds.includes(item));
+
+			let teamUserObj = [];
+			uniqueUsers.forEach((id) => {
+				let teamUser = {
+					teamId: crypto.decrypt(req.body.teamId),
+					clientId: crypto.decrypt(req.clientId),
+					userId: crypto.decrypt(id)
+				};
 				teamUserObj.push(teamUser);
 			});
+			console.log(teamUserObj);
 			let transaction = await sequelize.transaction();
 			TeamUsers.bulkCreate(teamUserObj, { transaction })
 				.then(async (response) => {
