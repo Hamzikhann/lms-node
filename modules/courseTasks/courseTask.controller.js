@@ -346,6 +346,25 @@ exports.createProgress = async (req, res) => {
 									attributes: ["percentage"]
 								});
 
+								var tasks = await CourseTasks.count({
+									where: { isActive: "Y" },
+									include: [
+										{
+											model: CourseModule,
+											where: { isActive: "Y" },
+											include: [
+												{
+													model: CourseSyllabus,
+													where: { isActive: "Y", courseId: taskProgressObj.courseId }
+												}
+											],
+											attributes: []
+										}
+									]
+								});
+
+								// check tasks count;
+
 								var syllabusId = await CourseEnrollments.findOne({
 									where: { id: crypto.decrypt(req.body.courseEnrollmentId) },
 									isActive: "Y",
@@ -387,6 +406,7 @@ exports.createProgress = async (req, res) => {
 
 								const allTasks = await CourseTasks.count({ where: { courseModuleId: moduleIds }, isActive: "Y" });
 								// console.log(allTasks, "all ");
+
 								let percentage = 0;
 								taksProgress.forEach((e) => {
 									percentage += JSON.parse(e.percentage);
@@ -394,7 +414,9 @@ exports.createProgress = async (req, res) => {
 								// console.log(percentage, "per");
 								let courseProgress = (percentage / (JSON.parse(allTasks) * 100)) * 100;
 
-								// console.log(courseProgress, "course per");
+								// Find one course progress exists for client, user, enrollmentId, course
+								// if exists update course progress based on id update percentage
+								// if doesn't doesn't exists create new
 
 								const courseProgressObj = {
 									percentage: courseProgress,
@@ -420,6 +442,8 @@ exports.createProgress = async (req, res) => {
 					} else {
 						CourseTaskProgress.create(taskProgressObj, { transaction })
 							.then(async (response) => {
+								// Course Progress Update
+
 								await transaction.commit();
 								encryptHelper(response);
 								res.status(200).send({ message: "Task Prohress is created for the user", data: response });
@@ -447,3 +471,9 @@ exports.createProgress = async (req, res) => {
 		});
 	}
 };
+
+function courseProgressUpdate() {
+	// Find one course progress exists for client, user, enrollmentId, course
+	// if exists update course progress based on id update percentage
+	// if doesn't doesn't exists create new
+}
