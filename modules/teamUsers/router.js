@@ -6,7 +6,7 @@ const router = express.Router();
 const teamUserController = require("./teamUsers.controller");
 
 router.post("/create", (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
+	if (req.role == "Client") {
 		teamUserController.create(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
@@ -14,7 +14,7 @@ router.post("/create", (req, res) => {
 });
 
 router.post("/delete", (req, res) => {
-	if (req.role == "Administrator" || req.role == "Client") {
+	if (req.role == "Client") {
 		teamUserController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
