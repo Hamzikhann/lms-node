@@ -4,6 +4,7 @@ const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
+const courseEnrollments = require("../../models/courseEnrollments");
 
 const CourseModule = db.courseModules;
 const CourseTasks = db.courseTasks;
@@ -11,6 +12,10 @@ const CourseTaskContent = db.courseTaskContent;
 const CourseTaskTypes = db.courseTaskTypes;
 const CourseTaskProgress = db.courseTaskProgress;
 const CourseProgress = db.courseProgress;
+const CourseAssignments = db.courseAssignments;
+const Courses = db.courses;
+const CourseSyllabus = db.courseSyllabus;
+const CourseEnrollments = db.courseEnrollments;
 
 exports.create = async (req, res) => {
 	try {
@@ -257,8 +262,7 @@ exports.createProgress = async (req, res) => {
 			percentage: Joi.string().required(),
 			courseTaskId: Joi.string().required(),
 			courseEnrollmentId: Joi.string().required(),
-			courseId: Joi.string().required(),
-			courseSyllabusId: Joi.string().required()
+			courseId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -267,8 +271,6 @@ exports.createProgress = async (req, res) => {
 				message: message
 			});
 		} else {
-			const courseSyllabusId = crypto.decrypt(req.body.courseSyllabusId);
-
 			const taskProgressObj = {
 				currentTime: req.body.currentTime,
 				percentage: req.body.percentage,
@@ -290,7 +292,7 @@ exports.createProgress = async (req, res) => {
 				isActive: "Y"
 			})
 				.then(async (response) => {
-					console.log(response);
+					// console.log(response);
 					if (response) {
 						CourseTaskProgress.update(
 							taskProgressObj,
@@ -307,26 +309,55 @@ exports.createProgress = async (req, res) => {
 									attributes: ["percentage"]
 								});
 
+								var syllabusId = await CourseEnrollments.findOne({
+									where: { id: crypto.decrypt(req.body.courseEnrollmentId) },
+									isActive: "Y",
+									include: [
+										{
+											model: CourseAssignments,
+											where: { isActive: "Y" },
+											attributes: ["id"],
+											include: [
+												{
+													model: Courses,
+													where: { isActive: "Y" },
+													include: [
+														{
+															model: CourseSyllabus,
+															where: { isActive: "Y" },
+															attributes: ["id"]
+														}
+													],
+													attributes: ["id"]
+												}
+											],
+											attributes: ["id"]
+										}
+									],
+									attributes: ["id"],
+									raw: true
+								});
+								const courseSyllabusId = syllabusId["courseAssignment.course.courseSyllabus.id"];
+
 								const allModules = await CourseModule.findAll({
 									where: { courseSyllabusId: courseSyllabusId },
 									isActive: "Y"
 								});
-
 								let moduleIds = [];
 								allModules.forEach((e) => {
 									moduleIds.push(e.id);
 								});
 
 								const allTasks = await CourseTasks.count({ where: { courseModuleId: moduleIds }, isActive: "Y" });
-								console.log(allTasks, "all ");
+								// console.log(allTasks, "all ");
 								let percentage = 0;
 								taksProgress.forEach((e) => {
 									percentage += JSON.parse(e.percentage);
 								});
-								console.log(percentage, "per");
+								// console.log(percentage, "per");
 								let courseProgress = (percentage / (JSON.parse(allTasks) * 100)) * 100;
 
-								console.log(courseProgress, "course per");
+								// console.log(courseProgress, "course per");
 
 								const courseProgressObj = {
 									percentage: courseProgress,

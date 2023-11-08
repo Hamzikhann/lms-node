@@ -49,7 +49,7 @@ exports.create = (req, res) => {
 exports.list = (req, res) => {
 	try {
 		Teams.findAll({
-			where: { isActive: "Y" },
+			where: { isActive: "Y", clientId: crypto.decrypt(req.clientId) },
 			include: [
 				{
 					model: TeamUsers,
