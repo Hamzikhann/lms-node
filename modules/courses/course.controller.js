@@ -114,37 +114,35 @@ exports.listForUser = (req, res) => {
 		// Get all courses for the logged in user department enrollment
 		// Get all courses for the logged in user client
 
-		CourseEnrollments.findAll({
-			where: { isActive: "Y", userId: crypto.decrypt(req.userId) },
+		Courses.findAll({
+			where: { isActive: "Y", status: "P" },
 			include: [
 				{
-					model: courseAssignments,
+					model: courseDepartment,
 					where: { isActive: "Y" },
+					required: false,
+					attributes: ["id", "title", "isActive"]
+				},
+				{
+					model: courseInstructor,
+					where: { isActive: "Y" },
+					required: false,
+					attributes: ["id", "name", "isActive"]
+				},
+				{
+					model: courseAssignments,
+					where: { clientId, isActive: "Y" },
 					include: [
 						{
-							model: Courses,
-							where: { isActive: "Y", status: "D" },
-							include: [
-								{
-									model: courseDepartment,
-									where: { isActive: "Y" },
-									required: false,
-									attributes: ["id", "title", "isActive"]
-								},
-								{
-									model: courseInstructor,
-									where: { isActive: "Y" },
-									required: false,
-									attributes: ["id", "name", "isActive"]
-								}
-							],
-							attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
+							model: CourseEnrollments,
+							where: { isActive: "Y", userId: crypto.decrypt(req.userId) },
+							attributes: []
 						}
 					],
 					attributes: ["id"]
 				}
 			],
-			attributes: []
+			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
 		})
 			.then((data) => {
 				encryptHelper(data);
