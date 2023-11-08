@@ -60,13 +60,13 @@ exports.list = (req, res) => {
 							model: Users,
 							where: { isActive: "Y" },
 							required: false,
-							attribute: ["firstName", "lastName"]
+							attributes: ["firstName", "lastName"]
 						}
 					],
-					attribute: ["id"]
+					attributes: ["id"]
 				}
 			],
-			attribute: ["id", "title"]
+			attributes: ["id", "title"]
 		})
 			.then((response) => {
 				encryptHelper(response);
