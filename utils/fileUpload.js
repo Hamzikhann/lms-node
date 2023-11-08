@@ -13,11 +13,12 @@ function fileUpload(dest) {
 	const upload = multer({
 		storage: fileStorage,
 		fileFilter: (req, files, cb) => {
-			if (files.mimetype == "image/png" || files.mimetype === "image/jpeg" || files.mimetype == "text/plain") {
+			console.log(files);
+			if (files.mimetype === "application/pdf") {
 				cb(null, true);
 			} else {
 				cb(null, false);
-				return cb(new Error("only png and jpg files are allowed"));
+				return cb(new Error("only PDF files are allowed"));
 			}
 		},
 		limit: { fileSize: 1024 }

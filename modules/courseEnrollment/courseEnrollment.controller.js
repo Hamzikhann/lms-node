@@ -13,6 +13,8 @@ const CourseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
 const CourseEnrollmentTypes = db.courseEnrollmentTypes;
 const UserDepartments = db.userDepartments;
+const Teams = db.teams;
+const TeamUsers = db.teamUsers;
 
 exports.list = async (req, res) => {
 	try {
@@ -41,11 +43,15 @@ exports.list = async (req, res) => {
 					attributes: ["title"]
 				},
 				{
+					model: Teams,
+					attributes: ["title"]
+				},
+				{
 					model: Users,
 					attributes: ["firstName", "lastName"]
 				}
 			],
-			attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+			attributes: { exclude: ["isActive", "updatedAt"] }
 		});
 		encryptHelper(enrollments);
 		res.send({
@@ -87,7 +93,8 @@ exports.create = async (req, res) => {
 			assignmentId: Joi.string().required(),
 			courseEnrollmentTypeId: Joi.string().required(),
 			userDepartmentId: Joi.string().optional().allow(null).allow(""),
-			userId: Joi.string().optional().allow(null).allow("")
+			userId: Joi.string().optional().allow(null).allow(""),
+			teamId: Joi.string().optional().allow(null).allow("")
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -102,40 +109,135 @@ exports.create = async (req, res) => {
 				: null;
 			const userDepartmentId = req.body.userDepartmentId ? crypto.decrypt(req.body.userDepartmentId) : null;
 			const userId = req.body.userId ? crypto.decrypt(req.body.userId) : null;
+			const teamId = req.body.teamId ? crypto.decrypt(req.body.teamId) : null;
+			const clientId = crypto.decrypt(req.clientId);
 
-			const enrollmentExists = await CourseEnrollments.findOne({
-				where: {
-					courseAssignmentId: courseAssignmentId,
-					courseEnrollmentTypeId,
-					isActive: "Y"
-				}
+			var alreadyEnrolledUsers = await CourseEnrollments.findAll({
+				where: { courseAssignmentId, isActive: "Y" },
+				// , courseEnrollmentTypeId: courseEnrollmentTypeId
+				attributes: ["userId"],
+				raw: true
 			});
-			if (enrollmentExists && courseEnrollmentTypeId == 1) {
-				res.status(401).send({
-					message: "Unable to enroll course, it is already enrolled to all users.."
+			var alreadyEnrolledUsersIds = alreadyEnrolledUsers.map((obj) => obj.userId);
+
+			var enrollmentArr = [];
+
+			if (courseEnrollmentTypeId == 1) {
+				var allUsers = await Users.findAll({
+					where: { clientId: clientId, isActive: "Y", roleId: 3 },
+					attributes: ["id"],
+					raw: true
 				});
-			} else if (enrollmentExists && enrollmentExists.userDepartmentId == userDepartmentId) {
-				res.status(401).send({
-					message: "Unable to enroll course, it is already enrolled to this department."
+				var allUsersIds = allUsers.map((obj) => obj.id);
+
+				var uniqueUsers = allUsersIds
+					.filter((item) => !alreadyEnrolledUsersIds.includes(item))
+					.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
+
+				uniqueUsers.forEach((user) => {
+					enrollmentArr.push({
+						userId: user,
+						required: req.body.required,
+						courseAssignmentId,
+						courseEnrollmentTypeId
+					});
 				});
-			} else if (enrollmentExists && enrollmentExists.userId == userId) {
-				res.status(401).send({
-					message: "Unable to enroll course, it is already enrolled to this user."
+			} else if (courseEnrollmentTypeId == 2) {
+				var allUsers = await Users.findAll({
+					where: { clientId: clientId, isActive: "Y", roleId: 3, userDepartmentId },
+					attributes: ["id"],
+					raw: true
 				});
+				var allUsersIds = allUsers.map((obj) => obj.id);
+				console.log(allUsersIds);
+				console.log(alreadyEnrolledUsersIds);
+				// var uniqueUsers = allUsersIds
+				// 	.filter((item) => !alreadyEnrolledUsersIds.includes(item))
+				// 	.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
+
+				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
+				uniqueUsers.forEach((user) => {
+					enrollmentArr.push({
+						userId: user,
+						required: req.body.required,
+						courseAssignmentId,
+						courseEnrollmentTypeId,
+						userDepartmentId
+					});
+				});
+				console.log(uniqueUsers);
+			} else if (courseEnrollmentTypeId == 3) {
+				var allUsers = await Users.findAll({
+					where: { clientId: clientId, isActive: "Y", roleId: 3, id: userId },
+					attributes: ["id"],
+					raw: true
+				});
+				var allUsersIds = allUsers.map((obj) => obj.id);
+				console.log(allUsersIds);
+				console.log(alreadyEnrolledUsers);
+				// var uniqueUsers = allUsersIds
+				// 	.filter((item) => !alreadyEnrolledUsersIds.includes(item))
+				// 	.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
+				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
+
+				uniqueUsers.forEach((user) => {
+					enrollmentArr.push({
+						userId: user,
+						required: req.body.required,
+						courseAssignmentId,
+						courseEnrollmentTypeId,
+						userDepartmentId
+					});
+				});
+				console.log(uniqueUsers);
+			} else if (courseEnrollmentTypeId == 4) {
+				var allUsers = await TeamUsers.findAll({
+					where: { teamId, clientId, isActive: "Y" },
+					include: [
+						{
+							model: Users,
+							where: { roleId: 3 },
+							attributes: []
+						}
+					],
+					attributes: ["userId"],
+					raw: true
+				});
+				var allUsersIds = allUsers.map((obj) => obj.userId);
+
+				// var uniqueUsers = allUsersIds
+				// 	.filter((item) => !alreadyEnrolledUsersIds.includes(item))
+				// 	.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
+				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
+				// console.log(allUsersIds);
+				// console.log(alreadyEnrolledUsersIds);
+				// console.log(uniqueUsers);
+
+				uniqueUsers.forEach((user) => {
+					enrollmentArr.push({
+						userId: user,
+						required: req.body.required,
+						courseAssignmentId,
+						courseEnrollmentTypeId,
+						teamId
+					});
+				});
+			}
+
+			if (enrollmentArr.length > 0) {
+				CourseEnrollments.bulkCreate(enrollmentArr)
+					.then((response) => {
+						encryptHelper(response);
+						res.send({ message: "All users have been enrolled to this course", data: response });
+					})
+					.catch((err) => {
+						emails.errorEmail(req, err);
+						res.status(500).send({
+							message: err.message || "Some error occurred."
+						});
+					});
 			} else {
-				const enrollmentObj = {
-					required: req.body.required,
-					courseEnrollmentTypeId,
-					courseAssignmentId,
-					userDepartmentId,
-					userId
-				};
-				const response = await CourseEnrollments.create(enrollmentObj);
-				encryptHelper(response);
-				res.send({
-					message: "All users have been enrolled to this course already",
-					data: response
-				});
+				res.send({ message: "Users already enrolled to this course", data: [] });
 			}
 		}
 	} catch (err) {

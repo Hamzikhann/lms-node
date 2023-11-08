@@ -4,12 +4,18 @@ const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
+const courseEnrollments = require("../../models/courseEnrollments");
 
 const CourseModule = db.courseModules;
 const CourseTasks = db.courseTasks;
 const CourseTaskContent = db.courseTaskContent;
 const CourseTaskTypes = db.courseTaskTypes;
 const CourseTaskProgress = db.courseTaskProgress;
+const CourseProgress = db.courseProgress;
+const CourseAssignments = db.courseAssignments;
+const Courses = db.courses;
+const CourseSyllabus = db.courseSyllabus;
+const CourseEnrollments = db.courseEnrollments;
 
 exports.create = async (req, res) => {
 	try {
@@ -17,8 +23,7 @@ exports.create = async (req, res) => {
 			title: Joi.string().required(),
 			estimatedTime: Joi.string().required(),
 			contentDescription: Joi.string().required(),
-			contentVideoLink: Joi.string().required(),
-			contentHandoutLink: Joi.string().required(),
+			contentVideoLink: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseModuleId: Joi.string().required()
 		});
@@ -52,10 +57,11 @@ exports.create = async (req, res) => {
 
 						CourseTasks.create(taskObj, { transaction })
 							.then((task) => {
+								let handoutPdf = req.file ? "uploads/documents/" + req.file.filename : null;
 								const contentObj = {
 									description: req.body.contentDescription,
 									videoLink: req.body.contentVideoLink,
-									handoutLink: req.body.contentHandoutLink,
+									handoutLink: handoutPdf,
 									courseTaskId: task.id
 								};
 								CourseTaskContent.create(contentObj, { transaction })
@@ -162,14 +168,50 @@ exports.detail = async (req, res) => {
 	}
 };
 
+exports.getEnrollment = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseId = crypto.decrypt(req.body.courseId);
+			const userId = crypto.decrypt(req.userId);
+
+			const response = await CourseEnrollments.findOne({
+				where: { isActive: "Y", userId },
+				include: [
+					{
+						model: CourseAssignments,
+						where: { courseId, isActive: "Y" },
+						attributes: []
+					}
+				],
+				attributes: ["id"]
+			});
+			encryptHelper(response);
+			res.status(200).send({ message: "The course enrollment detail has been retrived", data: response });
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
 			estimatedTime: Joi.string().required(),
 			contentDescription: Joi.string().required(),
-			contentVideoLink: Joi.string().required(),
-			contentHandoutLink: Joi.string().required(),
+			contentVideoLink: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseTaskId: Joi.string().required()
 		});
@@ -189,10 +231,12 @@ exports.update = async (req, res) => {
 
 			const updatedTask = await CourseTasks.update(taskObj, { where: { id: courseTaskId } });
 			if (updatedTask == 1) {
+				let handoutPdf = req.file ? "uploads/documents/" + req.file.filename : req.body.handout;
+
 				const contentObj = {
 					description: req.body.contentDescription,
 					videoLink: req.body.contentVideoLink,
-					handoutLink: req.body.contentHandoutLink
+					handoutLink: handoutPdf
 				};
 				const updateContent = await CourseTaskContent.update(contentObj, { where: { courseTaskId: courseTaskId } });
 
@@ -251,7 +295,7 @@ exports.delete = async (req, res) => {
 exports.createProgress = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			currentTime: Joi.string().required(),
+			currentTime: Joi.string().optional().allow(""),
 			percentage: Joi.string().required(),
 			courseTaskId: Joi.string().required(),
 			courseEnrollmentId: Joi.string().required(),
@@ -285,7 +329,7 @@ exports.createProgress = async (req, res) => {
 				isActive: "Y"
 			})
 				.then(async (response) => {
-					console.log(response);
+					// console.log(response);
 					if (response) {
 						CourseTaskProgress.update(
 							taskProgressObj,
@@ -293,6 +337,76 @@ exports.createProgress = async (req, res) => {
 							{ transaction }
 						)
 							.then(async (response) => {
+								const taksProgress = await CourseTaskProgress.findAll({
+									where: {
+										courseEnrollmentId: taskProgressObj.courseEnrollmentId,
+										userId: taskProgressObj.userId,
+										courseId: taskProgressObj.courseId
+									},
+									attributes: ["percentage"]
+								});
+
+								var syllabusId = await CourseEnrollments.findOne({
+									where: { id: crypto.decrypt(req.body.courseEnrollmentId) },
+									isActive: "Y",
+									include: [
+										{
+											model: CourseAssignments,
+											where: { isActive: "Y" },
+											attributes: ["id"],
+											include: [
+												{
+													model: Courses,
+													where: { isActive: "Y" },
+													include: [
+														{
+															model: CourseSyllabus,
+															where: { isActive: "Y" },
+															attributes: ["id"]
+														}
+													],
+													attributes: ["id"]
+												}
+											],
+											attributes: ["id"]
+										}
+									],
+									attributes: ["id"],
+									raw: true
+								});
+								const courseSyllabusId = syllabusId["courseAssignment.course.courseSyllabus.id"];
+
+								const allModules = await CourseModule.findAll({
+									where: { courseSyllabusId: courseSyllabusId },
+									isActive: "Y"
+								});
+								let moduleIds = [];
+								allModules.forEach((e) => {
+									moduleIds.push(e.id);
+								});
+
+								const allTasks = await CourseTasks.count({ where: { courseModuleId: moduleIds }, isActive: "Y" });
+								// console.log(allTasks, "all ");
+								let percentage = 0;
+								taksProgress.forEach((e) => {
+									percentage += JSON.parse(e.percentage);
+								});
+								// console.log(percentage, "per");
+								let courseProgress = (percentage / (JSON.parse(allTasks) * 100)) * 100;
+
+								// console.log(courseProgress, "course per");
+
+								const courseProgressObj = {
+									percentage: courseProgress,
+									userId: taskProgressObj.userId,
+									clientId: taskProgressObj.clientId,
+									courseEnrollmentId: taskProgressObj.courseEnrollmentId
+								};
+
+								const progressCourse = await CourseProgress.update(courseProgressObj, {
+									where: { courseId: taskProgressObj.courseId }
+								});
+
 								await transaction.commit();
 								res.status(200).send({ message: "Task Progress updated", data: response });
 							})

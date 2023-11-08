@@ -72,10 +72,28 @@ exports.create = (req, res) => {
 				clientId: crypto.decrypt(req.body.clientId)
 			};
 
-			CourseAssignments.create(assignmentObj)
+			CourseAssignments.findOne({
+				where: {
+					courseId: crypto.decrypt(req.body.courseId),
+					clientId: crypto.decrypt(req.body.clientId)
+				}
+			})
 				.then((response) => {
-					encryptHelper(response);
-					res.status(200).send({ message: "Course has been assigned to the client", data: response });
+					if (response) {
+						res.send({ message: "This course is already assigned to the client. " });
+					} else {
+						CourseAssignments.create(assignmentObj)
+							.then((response) => {
+								encryptHelper(response);
+								res.status(200).send({ message: "Course has been assigned to the client", data: response });
+							})
+							.catch((err) => {
+								emails.errorEmail(req, err);
+								res.status(500).send({
+									message: err.message || "Some error occurred."
+								});
+							});
+					}
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);

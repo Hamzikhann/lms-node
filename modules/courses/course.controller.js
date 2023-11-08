@@ -20,6 +20,7 @@ const courseModule = db.courseModules;
 const courseTasks = db.courseTasks;
 const courseTaskTypes = db.courseTaskTypes;
 const User = db.users;
+const CourseProgress = db.courseProgress;
 
 exports.list = (req, res) => {
 	try {
@@ -112,39 +113,36 @@ exports.listForUser = (req, res) => {
 		// Get all courses for the logged in user enrollment
 		// Get all courses for the logged in user department enrollment
 		// Get all courses for the logged in user client
-		console.log(req.clientId);
 
-		CourseEnrollments.findAll({
-			where: { isActive: "Y" },
+		Courses.findAll({
+			where: { isActive: "Y", status: "P" },
 			include: [
 				{
-					model: courseAssignments,
+					model: courseDepartment,
 					where: { isActive: "Y" },
+					required: false,
+					attributes: ["id", "title", "isActive"]
+				},
+				{
+					model: courseInstructor,
+					where: { isActive: "Y" },
+					required: false,
+					attributes: ["id", "name", "isActive"]
+				},
+				{
+					model: courseAssignments,
+					where: { clientId, isActive: "Y" },
 					include: [
 						{
-							model: Courses,
-							where: { isActive: "Y", status: "P" },
-							include: [
-								{
-									model: courseDepartment,
-									where: { isActive: "Y" },
-									required: false,
-									attributes: ["id", "title", "isActive"]
-								},
-								{
-									model: courseInstructor,
-									where: { isActive: "Y" },
-									required: false,
-									attributes: ["id", "name", "isActive"]
-								}
-							],
-							attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
+							model: CourseEnrollments,
+							where: { isActive: "Y", userId: crypto.decrypt(req.userId) },
+							attributes: []
 						}
 					],
-					attributes: ["id", "required"]
+					attributes: ["id"]
 				}
 			],
-			attributes: ["id"]
+			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
 		})
 			.then((data) => {
 				encryptHelper(data);
@@ -319,6 +317,8 @@ exports.create = async (req, res) => {
 							instructorObj.imageUrl = "uploads/instructors/" + req.file.filename;
 						}
 						await courseInstructor.create(instructorObj, { transaction });
+
+						await CourseProgress.create({ courseId: courseId }, { transaction });
 
 						await transaction.commit();
 						encryptHelper(result);

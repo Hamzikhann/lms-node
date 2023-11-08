@@ -3,11 +3,15 @@
 const express = require("express");
 const router = express.Router();
 const courseTaskController = require("./courseTask.controller");
+const fileUpload = require("../../utils/fileUpload");
+const { upload } = fileUpload("documents");
 
 router.post("/list/types", courseTaskController.listTypes);
 router.post("/detail", courseTaskController.detail);
+router.post("/enrollment", courseTaskController.getEnrollment);
 
-router.post("/create", (req, res) => {
+router.post("/create", upload.single("handout"), (req, res) => {
+	console.log(req.role);
 	if (req.role == "Administrator") {
 		courseTaskController.create(req, res);
 	} else {
@@ -15,7 +19,7 @@ router.post("/create", (req, res) => {
 	}
 });
 
-router.post("/update", (req, res) => {
+router.post("/update", upload.single("handout"), (req, res) => {
 	if (req.role == "Administrator") {
 		courseTaskController.update(req, res);
 	} else {

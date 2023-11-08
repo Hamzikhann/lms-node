@@ -15,6 +15,7 @@ const UserProfile = db.userProfile;
 const Course = db.courses;
 const CourseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
+const CourseProgress = db.courseProgress;
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
@@ -516,6 +517,8 @@ exports.dashboard = async (req, res) => {
 		const clientId = crypto.decrypt(req.clientId);
 		console.log(clientId);
 
+		const indivisualAssigned = await CourseEnrollments.findAll({ where: { userId: userId } });
+
 		const courseAssignment = await CourseAssignments.findAll({
 			where: { clientId: clientId },
 			isActive: "Y",
@@ -532,14 +535,52 @@ exports.dashboard = async (req, res) => {
 			ids.push(e.id);
 		});
 		console.log(ids);
-		const courseEnrollment = await CourseEnrollments.count({
+		const courseEnrollmentCount = await CourseEnrollments.count({
 			where: {
 				courseAssignmentId: ids,
+
 				isActive: "Y"
 			}
 		});
+		console.log(courseEnrollmentCount);
+		const courseEnrollment = await CourseEnrollments.findAll({
+			where: { courseAssignmentId: ids, isActive: "Y" },
+			include: [
+				{
+					model: CourseAssignments,
+					where: { isActive: "Y" },
+					include: [
+						{
+							model: Course,
+							where: { isActive: "Y" },
+							attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] },
+							include: [
+								{
+									model: CourseProgress,
+									where: { isActive: "Y" },
+									attributes: ["id", "percentage"]
+								}
+							]
+						}
+					],
+					attributes: ["id"]
+				}
+			],
+			attributes: ["id"]
+		});
+		// const courseProgress = await CourseProgress.findAll({
+		// 	where: {
+		// 		userId: userId,
+		// 		clientId: clientId,
+		// 		isActive: "Y"
+		// 	}
+		// });
 
-		res.send({ data: courseEnrollment });
+		let dashboardData = {
+			userCourses: courseEnrollment,
+			courseEnrollmentCount: courseEnrollmentCount
+		};
+		res.send({ data: dashboardData });
 	} catch (err) {
 		emails.errorEmail(req, err);
 		res.status(500).send({
