@@ -114,6 +114,7 @@ exports.create = async (req, res) => {
 
 			var alreadyEnrolledUsers = await CourseEnrollments.findAll({
 				where: { courseAssignmentId, isActive: "Y" },
+				// , courseEnrollmentTypeId: courseEnrollmentTypeId
 				attributes: ["userId"],
 				raw: true
 			});
@@ -204,9 +205,13 @@ exports.create = async (req, res) => {
 				});
 				var allUsersIds = allUsers.map((obj) => obj.userId);
 
-				var uniqueUsers = allUsersIds
-					.filter((item) => !alreadyEnrolledUsersIds.includes(item))
-					.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
+				// var uniqueUsers = allUsersIds
+				// 	.filter((item) => !alreadyEnrolledUsersIds.includes(item))
+				// 	.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
+				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
+				// console.log(allUsersIds);
+				// console.log(alreadyEnrolledUsersIds);
+				// console.log(uniqueUsers);
 
 				uniqueUsers.forEach((user) => {
 					enrollmentArr.push({
