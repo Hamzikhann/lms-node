@@ -519,65 +519,17 @@ exports.dashboard = async (req, res) => {
 
 		const indivisualAssigned = await CourseEnrollments.findAll({ where: { userId: userId } });
 
-		const courseAssignment = await CourseAssignments.findAll({
-			where: { clientId: clientId },
-			isActive: "Y",
-			// include: [
-			// 	{
-			// 		modal: Course,
-			// 		where: { isActive: "Y" }
-			// 	}
-			// ]
-			attributes: ["id"]
-		});
-		let ids = [];
-		courseAssignment.forEach((e) => {
-			ids.push(e.id);
-		});
-		console.log(ids);
 		const courseEnrollmentCount = await CourseEnrollments.count({
 			where: {
-				courseAssignmentId: ids,
+				userId: userId,
 
 				isActive: "Y"
 			}
 		});
 		console.log(courseEnrollmentCount);
-		const courseEnrollment = await CourseEnrollments.findAll({
-			where: { courseAssignmentId: ids, isActive: "Y" },
-			include: [
-				{
-					model: CourseAssignments,
-					where: { isActive: "Y" },
-					include: [
-						{
-							model: Course,
-							where: { isActive: "Y" },
-							attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] },
-							include: [
-								{
-									model: CourseProgress,
-									where: { isActive: "Y" },
-									attributes: ["id", "percentage"]
-								}
-							]
-						}
-					],
-					attributes: ["id"]
-				}
-			],
-			attributes: ["id"]
-		});
-		// const courseProgress = await CourseProgress.findAll({
-		// 	where: {
-		// 		userId: userId,
-		// 		clientId: clientId,
-		// 		isActive: "Y"
-		// 	}
-		// });
 
 		let dashboardData = {
-			userCourses: courseEnrollment,
+			userCourses: indivisualAssigned,
 			courseEnrollmentCount: courseEnrollmentCount
 		};
 		res.send({ data: dashboardData });
