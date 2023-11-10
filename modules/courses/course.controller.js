@@ -318,7 +318,7 @@ exports.create = async (req, res) => {
 						}
 						await courseInstructor.create(instructorObj, { transaction });
 
-						await CourseProgress.create({ courseId: courseId }, { transaction });
+						// await CourseProgress.create({ courseId: courseId }, { transaction });
 
 						await transaction.commit();
 						encryptHelper(result);
