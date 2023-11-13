@@ -50,7 +50,6 @@ router.post("/update/profile", usersController.updateProfile);
 router.post("/update/profile/image", upload.single("image"), usersController.updateProfileImage);
 router.post("/update/password", usersController.changePassword);
 router.post("/detail", usersController.detail);
-router.post("/dashboard", usersController.dashboard);
 
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator" || req.role == "Client") {
