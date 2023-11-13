@@ -12,7 +12,7 @@ const CourseTaskContent = db.courseTaskContent;
 const CourseTaskTypes = db.courseTaskTypes;
 const CourseTaskProgress = db.courseTaskProgress;
 const CourseAssignments = db.courseAssignments;
-const Courses = db.courses;
+const CoursesAchivements = db.coursesAchivements;
 const CourseSyllabus = db.courseSyllabus;
 const CourseEnrollments = db.courseEnrollments;
 
@@ -153,6 +153,11 @@ exports.detail = async (req, res) => {
 					{
 						model: CourseTaskTypes,
 						attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+					},
+					{
+						model: CourseTaskProgress,
+						where: { courseTaskId, isActive: "Y" },
+						attributes: ["id", "percentage"]
 					}
 				]
 			});
@@ -388,6 +393,31 @@ exports.createProgress = async (req, res) => {
 	}
 };
 
+exports.reset = (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseEnrollmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
+			const userId = crypto.decrypt(req.userId);
+
+			CourseEnrollments.update({ courseProgress: 0 }, { where: { courseEnrollmentId, userId, isActive: "Y" } });
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 async function courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId, transaction) {
 	var allTasksCount = await CourseTasks.count({
 		where: { isActive: "Y" },
@@ -427,6 +457,11 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 		{ courseProgress: courseProgress },
 		{ where: { id: courseEnrollmentId, userId: userId, isActive: "Y" }, transaction }
 	);
+
+	if (courseProgress == 100) {
+		const achivements = CoursesAchivements.create({ courseEnrollmentId: courseEnrollmentId }, { transaction });
+	}
+
 	console.log("Course progresss exists so updating ", courseProgressUpdated);
 	return 1;
 }

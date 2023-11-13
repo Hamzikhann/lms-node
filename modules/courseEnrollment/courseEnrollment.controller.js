@@ -284,3 +284,41 @@ exports.delete = async (req, res) => {
 		});
 	}
 };
+
+exports.detail = (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseEnrollmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const userId = crypto.decrypt(req.userId);
+			const courseEnrollmentId = crypto.decrypt(req.body.courseId);
+
+			CourseEnrollments.findOne({
+				where: { userId, courseEnrollmentId },
+				isActive: "Y",
+				attributes: ["courseProgress"]
+			})
+				.then((response) => {
+					res.send({ data: response });
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};

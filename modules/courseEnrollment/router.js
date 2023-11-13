@@ -29,6 +29,10 @@ router.post("/create", (req, res) => {
 	}
 });
 
+router.post("/detail", (req, res) => {
+	courseEnrollmentController.detail(req, res);
+});
+
 router.post("/delete", (req, res) => {
 	if (req.role == "Client") {
 		courseEnrollmentController.delete(req, res);
