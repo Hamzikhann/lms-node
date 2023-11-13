@@ -16,7 +16,6 @@ const UserProfile = db.userProfile;
 const Course = db.courses;
 const CourseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
-const CourseProgress = db.courseProgress;
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({

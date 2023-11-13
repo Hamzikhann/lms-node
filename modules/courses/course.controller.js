@@ -20,7 +20,6 @@ const courseModule = db.courseModules;
 const courseTasks = db.courseTasks;
 const courseTaskTypes = db.courseTaskTypes;
 const User = db.users;
-const CourseProgress = db.courseProgress;
 
 exports.list = (req, res) => {
 	try {
@@ -317,8 +316,6 @@ exports.create = async (req, res) => {
 							instructorObj.imageUrl = "uploads/instructors/" + req.file.filename;
 						}
 						await courseInstructor.create(instructorObj, { transaction });
-
-						// await CourseProgress.create({ courseId: courseId }, { transaction });
 
 						await transaction.commit();
 						encryptHelper(result);

@@ -11,7 +11,6 @@ const CourseTasks = db.courseTasks;
 const CourseTaskContent = db.courseTaskContent;
 const CourseTaskTypes = db.courseTaskTypes;
 const CourseTaskProgress = db.courseTaskProgress;
-const CourseProgress = db.courseProgress;
 const CourseAssignments = db.courseAssignments;
 const Courses = db.courses;
 const CourseSyllabus = db.courseSyllabus;
@@ -422,7 +421,7 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 		percentage += JSON.parse(e.percentage);
 	});
 	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
-	console.log(courseProgress, courseEnrollmentId, userId);
+	// console.log(courseProgress, courseEnrollmentId, userId);
 
 	const courseProgressUpdated = await CourseEnrollments.update(
 		{ courseProgress: courseProgress },
