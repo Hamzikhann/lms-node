@@ -42,6 +42,7 @@ exports.listByUser = (req, res) => {
 
 exports.listByCourse = (req, res) => {
 	try {
+		console.log("course");
 		const joiSchema = Joi.object({
 			courseId: Joi.string().required()
 		});
@@ -55,11 +56,11 @@ exports.listByCourse = (req, res) => {
 			const courseId = crypto.decrypt(req.body.courseId);
 
 			CourseAchivements.findAll({
-				where: { isActive },
+				where: { isActive: "Y" },
 				include: [
 					{
 						model: CourseEnrollments,
-						where: { isActive: "Y", userId: crypto.decrypt(req.userID) },
+						where: { isActive: "Y", userId: crypto.decrypt(req.userId) },
 						include: [
 							{
 								model: CourseAssignments,
@@ -70,7 +71,17 @@ exports.listByCourse = (req, res) => {
 						attributes: []
 					}
 				]
-			});
+			})
+				.then((response) => {
+					encryptHelper(response);
+					res.send({ data: response });
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred while creating the Quiz."
+					});
+				});
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);

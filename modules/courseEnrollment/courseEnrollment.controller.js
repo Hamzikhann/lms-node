@@ -301,7 +301,7 @@ exports.detail = (req, res) => {
 			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 
 			CourseEnrollments.findOne({
-				where: { userId, courseEnrollmentId },
+				where: { userId, id: courseEnrollmentId },
 				isActive: "Y",
 				attributes: ["courseProgress"]
 			})

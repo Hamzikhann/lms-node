@@ -3,9 +3,10 @@ const router = express.Router();
 const courseAchivementsController = require("./courseAchivements.controller");
 
 router.post("/list", (req, res) => {
-	if (req.role == "User" && !req.body.coureseId) {
+	console.log(req.role, req.body.courseId);
+	if (req.role == "User" && !req.body.courseId) {
 		courseAchivementsController.listByUser(req, res);
-	} else if (req.role == "User" && req.body.coureseId) {
+	} else if (req.role == "User" && req.body.courseId) {
 		courseAchivementsController.listByCourse(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
