@@ -298,7 +298,7 @@ exports.detail = (req, res) => {
 			});
 		} else {
 			const userId = crypto.decrypt(req.userId);
-			const courseEnrollmentId = crypto.decrypt(req.body.courseId);
+			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 
 			CourseEnrollments.findOne({
 				where: { userId, courseEnrollmentId },
