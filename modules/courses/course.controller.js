@@ -356,6 +356,8 @@ exports.detail = (req, res) => {
 				message: message
 			});
 		} else {
+			const userId = crypto.decrypt(req.userId);
+			const clientId = req.clientId ? crypto.decrypt(req.clientId) : null;
 			Courses.findOne({
 				where: { id: crypto.decrypt(req.body.courseId), isActive: "Y" },
 				include: [
@@ -393,6 +395,20 @@ exports.detail = (req, res) => {
 						model: courseSyllabus,
 						where: { isActive: "Y" },
 						attributes: ["id", "title"]
+					},
+					{
+						model: courseAssignments,
+						where: { clientId, isActive: "Y" },
+						required: false,
+						include: [
+							{
+								model: CourseEnrollments,
+								where: { userId, isActive: "Y" },
+								required: false,
+								attributes: ["id", "courseProgress"]
+							}
+						],
+						attributes: ["id"]
 					}
 				],
 				attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
