@@ -518,14 +518,24 @@ exports.dashboard = async (req, res) => {
 		const clientId = crypto.decrypt(req.clientId);
 		console.log(clientId);
 
-		// const indivisualAssigned = await CourseEnrollments.count({ where: { userId: userId } });
-
 		const totalEnrolledCourses = await CourseEnrollments.count({
 			where: {
 				userId: userId,
-
 				isActive: "Y"
-			}
+			},
+			include: [
+				{
+					model: CourseAssignments,
+					isActive: "Y",
+					include: [
+						{
+							model: Course,
+							isActive: "Y",
+							status: "P"
+						}
+					]
+				}
+			]
 		});
 
 		const inProgressCourses = await CourseEnrollments.count({
@@ -578,11 +588,6 @@ exports.dashboard = async (req, res) => {
 				}
 			]
 		});
-		console.log(totalEnrolledCourses);
-		console.log(inProgressCourses);
-		console.log(completedCourses);
-		console.log(inQueue);
-
 		let dashboardData = {
 			totalEnrolledCourses: totalEnrolledCourses,
 			inProgressCourses: inProgressCourses,

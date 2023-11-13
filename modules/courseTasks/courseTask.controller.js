@@ -327,8 +327,6 @@ exports.createProgress = async (req, res) => {
 			});
 
 			if (taskProgressExists) {
-				// console.log(taskProgressExists);
-
 				const progressId = taskProgressExists.id;
 				await CourseTaskProgress.update(
 					{
@@ -343,7 +341,6 @@ exports.createProgress = async (req, res) => {
 							await courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId, transaction);
 
 							await transaction.commit();
-							// encryptHelper(response);
 							res.status(200).send({ message: "Task Progress has been updated for the assigned course" });
 						}
 					})
@@ -372,7 +369,6 @@ exports.createProgress = async (req, res) => {
 							await courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId, transaction);
 
 							await transaction.commit();
-							// encryptHelper(response);
 							res.status(200).send({ message: "Task Progress has been created for the assigned course" });
 						}
 					})
@@ -426,36 +422,12 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 		percentage += JSON.parse(e.percentage);
 	});
 	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
-	console.log(typeof courseProgress);
 	console.log(courseProgress, courseEnrollmentId, userId);
 
-	// let courseProgressExists = await CourseProgress.findOne({
-	// 	where: {
-	// 		clientId,
-	// 		userId,
-	// 		courseEnrollmentId,
-	// 		courseId
-	// 	}
-	// });
-	// if (courseProgressExists) {
-	// const courseProgressId = courseProgressExists.id;
 	const courseProgressUpdated = await CourseEnrollments.update(
 		{ courseProgress: courseProgress },
 		{ where: { id: courseEnrollmentId, userId: userId, isActive: "Y" }, transaction }
 	);
 	console.log("Course progresss exists so updating ", courseProgressUpdated);
-	// } else {
-	// const courseProgressUpdated = await CourseProgress.create(
-	// 	{
-	// 		percentage: courseProgress,
-	// 		userId,
-	// 		clientId,
-	// 		courseEnrollmentId,
-	// 		courseId
-	// 	},
-	// 	{ transaction }
-	// );
-	// console.log("Course progresss doesnt exists so creating a new one ", courseProgressUpdated);
-	// }
 	return 1;
 }
