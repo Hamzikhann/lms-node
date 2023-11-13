@@ -136,7 +136,7 @@ exports.listForUser = (req, res) => {
 						{
 							model: CourseEnrollments,
 							where: { isActive: "Y", userId: crypto.decrypt(req.userId) },
-							attributes: []
+							attributes: ["id", "courseProgress"]
 						}
 					],
 					attributes: ["id"]
