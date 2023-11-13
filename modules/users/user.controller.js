@@ -5,6 +5,7 @@ const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const { sequelize } = require("../../models");
+const { Op } = require("sequelize");
 
 const Clients = db.clients;
 const Users = db.users;
@@ -517,20 +518,76 @@ exports.dashboard = async (req, res) => {
 		const clientId = crypto.decrypt(req.clientId);
 		console.log(clientId);
 
-		const indivisualAssigned = await CourseEnrollments.findAll({ where: { userId: userId } });
+		// const indivisualAssigned = await CourseEnrollments.count({ where: { userId: userId } });
 
-		const courseEnrollmentCount = await CourseEnrollments.count({
+		const totalEnrolledCourses = await CourseEnrollments.count({
 			where: {
 				userId: userId,
 
 				isActive: "Y"
 			}
 		});
-		console.log(courseEnrollmentCount);
+
+		const inProgressCourses = await CourseEnrollments.count({
+			where: { courseProgress: { [Op.lt]: 100, [Op.gt]: 0 }, userId },
+			include: [
+				{
+					model: CourseAssignments,
+					isActive: "Y",
+					include: [
+						{
+							model: Course,
+							isActive: "Y",
+							status: "P"
+						}
+					]
+				}
+			]
+		});
+
+		const completedCourses = await CourseEnrollments.count({
+			where: { courseProgress: { [Op.eq]: 100 }, userId },
+			include: [
+				{
+					model: CourseAssignments,
+					isActive: "Y",
+					include: [
+						{
+							model: Course,
+							isActive: "Y",
+							status: "P"
+						}
+					]
+				}
+			]
+		});
+
+		const inQueue = await CourseEnrollments.count({
+			where: { courseProgress: { [Op.eq]: 0 }, userId },
+			include: [
+				{
+					model: CourseAssignments,
+					isActive: "Y",
+					include: [
+						{
+							model: Course,
+							isActive: "Y",
+							status: "P"
+						}
+					]
+				}
+			]
+		});
+		console.log(totalEnrolledCourses);
+		console.log(inProgressCourses);
+		console.log(completedCourses);
+		console.log(inQueue);
 
 		let dashboardData = {
-			userCourses: indivisualAssigned,
-			courseEnrollmentCount: courseEnrollmentCount
+			totalEnrolledCourses: totalEnrolledCourses,
+			inProgressCourses: inProgressCourses,
+			completedCourses: completedCourses,
+			inQueue: inQueue
 		};
 		res.send({ data: dashboardData });
 	} catch (err) {

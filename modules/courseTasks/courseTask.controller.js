@@ -425,8 +425,10 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	allTasksProgress.forEach((e) => {
 		percentage += JSON.parse(e.percentage);
 	});
-	let courseProgress = (percentage / (allTasksCount * 100)) * 100;
-	console.log(courseProgress);
+	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
+	console.log(typeof courseProgress);
+	console.log(courseProgress, courseEnrollmentId, userId);
+
 	// let courseProgressExists = await CourseProgress.findOne({
 	// 	where: {
 	// 		clientId,
