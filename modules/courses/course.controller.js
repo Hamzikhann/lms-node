@@ -108,6 +108,7 @@ exports.listForClient = (req, res) => {
 exports.listForUser = (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
+		console.log(clientId, crypto.decrypt(req.userId));
 
 		// Get all courses for the logged in user enrollment
 		// Get all courses for the logged in user department enrollment
