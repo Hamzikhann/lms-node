@@ -15,6 +15,7 @@ const CourseEnrollmentTypes = db.courseEnrollmentTypes;
 const UserDepartments = db.userDepartments;
 const Teams = db.teams;
 const TeamUsers = db.teamUsers;
+const CourseTaskProgress = db.courseTaskProgress;
 
 exports.list = async (req, res) => {
 	try {
@@ -307,6 +308,48 @@ exports.detail = (req, res) => {
 			})
 				.then((response) => {
 					res.send({ data: response });
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.reset = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseEnrollmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
+			const userId = crypto.decrypt(req.userId);
+
+			CourseEnrollments.update({ courseProgress: 0 }, { where: { id: courseEnrollmentId, userId, isActive: "Y" } })
+				.then(async (response) => {
+					if (response) {
+						const restTaskProgress = await CourseTaskProgress.update(
+							{ percentage: "0" },
+							{ where: { courseEnrollmentId, userId } }
+						);
+						if (restTaskProgress) {
+							res.send({ message: "Coures progress and task progresses are reseted" });
+						}
+					}
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);

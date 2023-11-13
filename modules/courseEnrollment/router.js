@@ -41,4 +41,8 @@ router.post("/delete", (req, res) => {
 	}
 });
 
+router.post("/progress/reset", (req, res) => {
+	courseEnrollmentController.reset(req, res);
+});
+
 module.exports = router;
