@@ -29,7 +29,9 @@ exports.listByUser = (req, res) => {
 					],
 					attributes: []
 				}
-			]
+			],
+			order: [["id", "DESC"]],
+			attributes: ["id", "createdAt", "courseEnrollmentId"]
 		})
 			.then((response) => {
 				encryptHelper(response);
@@ -80,7 +82,9 @@ exports.listByCourse = (req, res) => {
 						],
 						attributes: []
 					}
-				]
+				],
+				order: [["id", "DESC"]],
+				attributes: ["id", "createdAt", "courseEnrollmentId"]
 			})
 				.then((response) => {
 					encryptHelper(response);
