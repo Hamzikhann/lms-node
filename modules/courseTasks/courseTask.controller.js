@@ -332,6 +332,7 @@ exports.createProgress = async (req, res) => {
 			});
 
 			if (taskProgressExists) {
+				console.log("task progress exists");
 				const progressId = taskProgressExists.id;
 				await CourseTaskProgress.update(
 					{
@@ -360,6 +361,7 @@ exports.createProgress = async (req, res) => {
 					});
 				// console.log("Task progress exists updating: ", updatedProgressTask);
 			} else {
+				console.log("task progress doesn't exists");
 				await CourseTaskProgress.create(
 					{
 						currentTime: req.body.currentTime,
@@ -374,6 +376,7 @@ exports.createProgress = async (req, res) => {
 				)
 					.then(async (response) => {
 						if (response) {
+							console.log(response);
 							await courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId, transaction);
 
 							await transaction.commit();
