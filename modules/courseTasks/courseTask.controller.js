@@ -143,6 +143,8 @@ exports.detail = async (req, res) => {
 			});
 		} else {
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
+			const userId = crypto.decrypt(req.userId);
+
 			const response = await CourseTasks.findOne({
 				where: { id: courseTaskId, isActive: "Y" },
 				include: [
@@ -156,7 +158,7 @@ exports.detail = async (req, res) => {
 					},
 					{
 						model: CourseTaskProgress,
-						where: { courseTaskId, isActive: "Y" },
+						where: { courseTaskId, userId, isActive: "Y" },
 						required: false,
 						attributes: ["id", "percentage"]
 					}
