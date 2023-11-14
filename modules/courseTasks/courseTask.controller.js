@@ -347,6 +347,9 @@ exports.createProgress = async (req, res) => {
 
 							await transaction.commit();
 							res.status(200).send({ message: "Task Progress has been updated for the assigned course" });
+						} else {
+							if (transaction) await transaction.rollback();
+							res.send(500).send({ message: "Unable to update task progress" });
 						}
 					})
 					.catch((err) => {
@@ -375,6 +378,9 @@ exports.createProgress = async (req, res) => {
 
 							await transaction.commit();
 							res.status(200).send({ message: "Task Progress has been created for the assigned course" });
+						} else {
+							if (transaction) await transaction.rollback();
+							res.send(500).send({ message: "Unable to update task progress" });
 						}
 					})
 					.catch((err) => {
@@ -383,7 +389,6 @@ exports.createProgress = async (req, res) => {
 							message: err.message || "Some error occurred."
 						});
 					});
-				// console.log("Task progress doesnt exists creating a new one: ", updatedProgressTask);
 			}
 		}
 	} catch (err) {
@@ -413,13 +418,10 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	});
 	console.log("allTasksCount: ", allTasksCount);
 
-	var allTasksProgress = await CourseTaskProgress.findAll(
-		{
-			where: { courseEnrollmentId, userId, courseId, isActive: "Y" },
-			attributes: ["percentage"]
-		},
-		{ transaction }
-	);
+	var allTasksProgress = await CourseTaskProgress.findAll({
+		where: { courseEnrollmentId, userId, courseId, isActive: "Y" },
+		attributes: ["percentage"]
+	});
 	console.log("allTasksProgress: ", allTasksProgress);
 
 	let percentage = 0;
@@ -427,7 +429,7 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 		percentage += JSON.parse(e.percentage);
 	});
 	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
-	// console.log(courseProgress, courseEnrollmentId, userId);
+	console.log(courseProgress);
 
 	const courseProgressUpdated = await CourseEnrollments.update(
 		{ courseProgress: courseProgress },
@@ -435,7 +437,7 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	);
 
 	if (courseProgress == 100) {
-		const achivements = CoursesAchivements.create({ courseEnrollmentId: courseEnrollmentId }, { transaction });
+		const achivements = await CoursesAchivements.create({ courseEnrollmentId: courseEnrollmentId }, { transaction });
 	}
 
 	console.log("Course progresss exists so updating ", courseProgressUpdated);
