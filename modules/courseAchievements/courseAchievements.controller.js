@@ -12,12 +12,21 @@ const CourseAssignments = db.courseAssignments;
 exports.listByUser = (req, res) => {
 	try {
 		const userId = crypto.decrypt(req.userId);
+		const clientId = crypto.decrypt(req.clientId);
+
 		CourseAchivements.findAll({
 			where: { isActive: "Y" },
 			include: [
 				{
 					model: CourseEnrollments,
 					where: { userId, isActive: "Y" },
+					include: [
+						{
+							model: CourseAssignments,
+							where: { clientId, isActive: "Y" },
+							attributes: []
+						}
+					],
 					attributes: []
 				}
 			]
@@ -42,7 +51,6 @@ exports.listByUser = (req, res) => {
 
 exports.listByCourse = (req, res) => {
 	try {
-		console.log("course");
 		const joiSchema = Joi.object({
 			courseId: Joi.string().required()
 		});
@@ -54,17 +62,19 @@ exports.listByCourse = (req, res) => {
 			});
 		} else {
 			const courseId = crypto.decrypt(req.body.courseId);
+			const clientId = crypto.decrypt(req.clientId);
+			const userId = crypto.decrypt(req.userId);
 
 			CourseAchivements.findAll({
 				where: { isActive: "Y" },
 				include: [
 					{
 						model: CourseEnrollments,
-						where: { isActive: "Y", userId: crypto.decrypt(req.userId) },
+						where: { userId, isActive: "Y" },
 						include: [
 							{
 								model: CourseAssignments,
-								where: { isActive: "Y", courseId },
+								where: { courseId, clientId, isActive: "Y" },
 								attributes: []
 							}
 						],
