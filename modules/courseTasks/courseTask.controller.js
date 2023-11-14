@@ -12,7 +12,7 @@ const CourseTaskContent = db.courseTaskContent;
 const CourseTaskTypes = db.courseTaskTypes;
 const CourseTaskProgress = db.courseTaskProgress;
 const CourseAssignments = db.courseAssignments;
-const CoursesAchivements = db.coursesAchivements;
+const CourseAchievements = db.courseAchievements;
 const CourseSyllabus = db.courseSyllabus;
 const CourseEnrollments = db.courseEnrollments;
 
@@ -437,7 +437,7 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	);
 
 	if (courseProgress == 100) {
-		const achivements = await CoursesAchivements.create({ courseEnrollmentId: courseEnrollmentId }, { transaction });
+		const achivements = await CourseAchievements.create({ courseEnrollmentId: courseEnrollmentId }, { transaction });
 	}
 
 	console.log("Course progresss exists so updating ", courseProgressUpdated);

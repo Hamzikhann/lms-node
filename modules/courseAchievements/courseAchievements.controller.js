@@ -5,7 +5,7 @@ const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
 
-const CourseAchivements = db.courseAchivements;
+const CourseAchievements = db.courseAchievements;
 const CourseEnrollments = db.courseEnrollments;
 const CourseAssignments = db.courseAssignments;
 
@@ -14,7 +14,7 @@ exports.listByUser = (req, res) => {
 		const userId = crypto.decrypt(req.userId);
 		const clientId = crypto.decrypt(req.clientId);
 
-		CourseAchivements.findAll({
+		CourseAchievements.findAll({
 			where: { isActive: "Y" },
 			include: [
 				{
@@ -65,7 +65,7 @@ exports.listByCourse = (req, res) => {
 			const clientId = crypto.decrypt(req.clientId);
 			const userId = crypto.decrypt(req.userId);
 
-			CourseAchivements.findAll({
+			CourseAchievements.findAll({
 				where: { isActive: "Y" },
 				include: [
 					{
