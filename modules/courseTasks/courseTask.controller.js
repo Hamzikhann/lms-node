@@ -319,8 +319,6 @@ exports.createProgress = async (req, res) => {
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
 			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 
-			let transaction = await sequelize.transaction();
-
 			let taskProgressExists = await CourseTaskProgress.findOne({
 				where: {
 					isActive: "Y",
@@ -339,17 +337,14 @@ exports.createProgress = async (req, res) => {
 						currentTime: req.body.currentTime,
 						percentage: req.body.percentage
 					},
-					{ where: { id: progressId, isActive: "Y" } },
-					{ transaction }
+					{ where: { id: progressId, isActive: "Y" } }
 				)
 					.then(async (response) => {
 						if (response) {
-							await courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId, transaction);
+							await courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId);
 
-							await transaction.commit();
 							res.status(200).send({ message: "Task Progress has been updated for the assigned course" });
 						} else {
-							if (transaction) await transaction.rollback();
 							res.send(500).send({ message: "Unable to update task progress" });
 						}
 					})
@@ -362,27 +357,22 @@ exports.createProgress = async (req, res) => {
 				// console.log("Task progress exists updating: ", updatedProgressTask);
 			} else {
 				console.log("task progress doesn't exists");
-				await CourseTaskProgress.create(
-					{
-						currentTime: req.body.currentTime,
-						percentage: req.body.percentage ? req.body.percentage : "0",
-						courseTaskId,
-						courseEnrollmentId,
-						courseId,
-						clientId,
-						userId
-					},
-					{ transaction }
-				)
+				await CourseTaskProgress.create({
+					currentTime: req.body.currentTime,
+					percentage: req.body.percentage ? req.body.percentage : "0",
+					courseTaskId,
+					courseEnrollmentId,
+					courseId,
+					clientId,
+					userId
+				})
 					.then(async (response) => {
 						if (response) {
 							console.log(response);
-							await courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId, transaction);
+							await courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId);
 
-							await transaction.commit();
 							res.status(200).send({ message: "Task Progress has been created for the assigned course" });
 						} else {
-							if (transaction) await transaction.rollback();
 							res.send(500).send({ message: "Unable to update task progress" });
 						}
 					})
@@ -402,7 +392,7 @@ exports.createProgress = async (req, res) => {
 	}
 };
 
-async function courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId, transaction) {
+async function courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId) {
 	var allTasksCount = await CourseTasks.count({
 		where: { isActive: "Y" },
 		include: [
@@ -436,11 +426,11 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 
 	const courseProgressUpdated = await CourseEnrollments.update(
 		{ courseProgress: courseProgress },
-		{ where: { id: courseEnrollmentId, userId: userId, isActive: "Y" }, transaction }
+		{ where: { id: courseEnrollmentId, userId: userId, isActive: "Y" } }
 	);
 
 	if (courseProgress == 100) {
-		const achivements = await CourseAchievements.create({ courseEnrollmentId: courseEnrollmentId }, { transaction });
+		const achivements = await CourseAchievements.create({ courseEnrollmentId: courseEnrollmentId });
 	}
 
 	console.log("Course progresss exists so updating ", courseProgressUpdated);
