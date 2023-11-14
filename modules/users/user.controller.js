@@ -67,12 +67,33 @@ exports.create = async (req, res) => {
 					.then(async (user) => {
 						UserProfile.create({ userId: user.id }, { transaction })
 							.then(async (profile) => {
-								await transaction.commit();
+								if (user.roleId == 3 && user.clientId == crypto.decrypt(req.clientId)) {
+									// var clientCourse = await CourseAssignments.findAll({
+									// 	where: { clientId: crypto.decrypt(req.clientId), isActive: "Y" },
+									// 	attributes: ["id"]
+									// });
+									var course = await CourseEnrollments.findAll({
+										where: { courseEnrollmentTypeId: 1, isActive: "Y" },
+										include: [
+											{
+												model: CourseAssignments,
+												where: { clientId: crypto.decrypt(req.clientId) },
+												attributes: ["id"]
+											}
+										],
+										raw: true,
+										attributes: ["id"]
+									});
+								}
 
-								encryptHelper(user);
+								// await transaction.commit();
+
+								// encryptHelper(user);
+
 								res.status(200).send({
 									message: "User created successfully.",
-									data: user
+									data: user,
+									course: course
 								});
 							})
 							.catch(async (err) => {
