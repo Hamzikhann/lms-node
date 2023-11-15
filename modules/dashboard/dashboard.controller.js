@@ -1,4 +1,5 @@
 const db = require("../../models");
+const { Op } = require("sequelize");
 const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
