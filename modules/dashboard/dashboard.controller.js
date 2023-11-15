@@ -8,6 +8,9 @@ const Roles = db.roles;
 const Clients = db.clients;
 const Courses = db.courses;
 const CourseTasks = db.courseTasks;
+const CourseEnrollments = db.courseEnrollments;
+const CourseAssignments = db.courseAssignments;
+
 exports.findAllforAdministrator = async (req, res) => {
 	try {
 		const clients = await Clients.findAll({
@@ -77,9 +80,8 @@ exports.userDashboard = async (req, res) => {
 	try {
 		const userId = crypto.decrypt(req.userId);
 		const clientId = crypto.decrypt(req.clientId);
-		console.log(clientId);
 
-		const totalEnrolledCourses = await CourseEnrollments.count({
+		const enrolledCourses = await CourseEnrollments.count({
 			where: {
 				userId: userId,
 				isActive: "Y"
@@ -90,7 +92,7 @@ exports.userDashboard = async (req, res) => {
 					isActive: "Y",
 					include: [
 						{
-							model: Course,
+							model: Courses,
 							isActive: "Y",
 							status: "P"
 						}
@@ -107,7 +109,7 @@ exports.userDashboard = async (req, res) => {
 					isActive: "Y",
 					include: [
 						{
-							model: Course,
+							model: Courses,
 							isActive: "Y",
 							status: "P"
 						}
@@ -124,7 +126,7 @@ exports.userDashboard = async (req, res) => {
 					isActive: "Y",
 					include: [
 						{
-							model: Course,
+							model: Courses,
 							isActive: "Y",
 							status: "P"
 						}
@@ -133,7 +135,7 @@ exports.userDashboard = async (req, res) => {
 			]
 		});
 
-		const inQueue = await CourseEnrollments.count({
+		const inQueueCourses = await CourseEnrollments.count({
 			where: { courseProgress: { [Op.eq]: 0 }, userId },
 			include: [
 				{
@@ -141,7 +143,7 @@ exports.userDashboard = async (req, res) => {
 					isActive: "Y",
 					include: [
 						{
-							model: Course,
+							model: Courses,
 							isActive: "Y",
 							status: "P"
 						}
@@ -149,13 +151,18 @@ exports.userDashboard = async (req, res) => {
 				}
 			]
 		});
-		let dashboardData = {
-			totalEnrolledCourses: totalEnrolledCourses,
-			inProgressCourses: inProgressCourses,
-			completedCourses: completedCourses,
-			inQueue: inQueue
-		};
-		res.send({ data: dashboardData });
+
+		res.send({
+			message: "Retrieved statistics for the user",
+			data: {
+				courses: {
+					enrolled: enrolledCourses,
+					inProgress: inProgressCourses,
+					completed: completedCourses,
+					inQueue: inQueueCourses
+				}
+			}
+		});
 	} catch (err) {
 		emails.errorEmail(req, err);
 		res.status(500).send({
