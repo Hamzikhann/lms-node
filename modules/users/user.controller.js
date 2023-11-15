@@ -5,6 +5,7 @@ const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const { sequelize } = require("../../models");
+const { Op } = require("sequelize");
 
 const Clients = db.clients;
 const Users = db.users;
@@ -15,7 +16,9 @@ const UserProfile = db.userProfile;
 const Course = db.courses;
 const CourseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
-const CourseProgress = db.courseProgress;
+const TeamUsers = db.teamUsers;
+const Teams = db.teams;
+
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
@@ -67,9 +70,68 @@ exports.create = async (req, res) => {
 					.then(async (user) => {
 						UserProfile.create({ userId: user.id }, { transaction })
 							.then(async (profile) => {
+								if (user.roleId == 3 && user.clientId == crypto.decrypt(req.clientId)) {
+									const allCourse = await CourseEnrollments.findAll({
+										where: { courseEnrollmentTypeId: 1, isActive: "Y" },
+										include: [
+											{
+												model: CourseAssignments,
+												where: { clientId: crypto.decrypt(req.clientId) },
+												attributes: ["id"]
+											}
+										],
+										raw: true,
+										attributes: ["id"]
+									});
+
+									const depatrmentCourses = await CourseEnrollments.findAll({
+										where: { userDepartmentId: user.userDepartmentId, isActive: "Y" },
+										include: [
+											{
+												model: CourseAssignments,
+												where: { clientId: crypto.decrypt(req.clientId) },
+												attributes: ["id"]
+											}
+										],
+										raw: true,
+										attributes: ["id"]
+									});
+									const uniqueSet = new Set();
+									const uniqueAllCourses = allCourse.filter((course) => {
+										const courseId = course["courseAssignment.id"];
+										if (!uniqueSet.has(courseId)) {
+											uniqueSet.add(courseId);
+											return true;
+										}
+										return false;
+									});
+									const uniqueDepartment = depatrmentCourses.filter((course) => {
+										const courseId = course["courseAssignment.id"];
+										if (!uniqueSet.has(courseId)) {
+											uniqueSet.add(courseId);
+											return true;
+										}
+										return false;
+									});
+									const courseAssignmentIds = uniqueAllCourses.concat(uniqueDepartment);
+
+									var courseEnrollmentObj = [];
+									courseAssignmentIds.forEach((e) => {
+										let obj = {
+											userId: user.id,
+											courseEnrollmentTypeId: 4,
+											courseAssignmentId: e["courseAssignment.id"]
+										};
+										courseEnrollmentObj.push(obj);
+									});
+
+									const courseEnrollment = await CourseEnrollments.bulkCreate(courseEnrollmentObj, { transaction });
+								}
+
 								await transaction.commit();
 
 								encryptHelper(user);
+
 								res.status(200).send({
 									message: "User created successfully.",
 									data: user
@@ -503,84 +565,6 @@ exports.delete = (req, res) => {
 					message: "Error deleting User"
 				});
 			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred."
-		});
-	}
-};
-
-exports.dashboard = async (req, res) => {
-	try {
-		const userId = crypto.decrypt(req.userId);
-		const clientId = crypto.decrypt(req.clientId);
-		console.log(clientId);
-
-		const indivisualAssigned = await CourseEnrollments.findAll({ where: { userId: userId } });
-
-		const courseAssignment = await CourseAssignments.findAll({
-			where: { clientId: clientId },
-			isActive: "Y",
-			// include: [
-			// 	{
-			// 		modal: Course,
-			// 		where: { isActive: "Y" }
-			// 	}
-			// ]
-			attributes: ["id"]
-		});
-		let ids = [];
-		courseAssignment.forEach((e) => {
-			ids.push(e.id);
-		});
-		console.log(ids);
-		const courseEnrollmentCount = await CourseEnrollments.count({
-			where: {
-				courseAssignmentId: ids,
-
-				isActive: "Y"
-			}
-		});
-		console.log(courseEnrollmentCount);
-		const courseEnrollment = await CourseEnrollments.findAll({
-			where: { courseAssignmentId: ids, isActive: "Y" },
-			include: [
-				{
-					model: CourseAssignments,
-					where: { isActive: "Y" },
-					include: [
-						{
-							model: Course,
-							where: { isActive: "Y" },
-							attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] },
-							include: [
-								{
-									model: CourseProgress,
-									where: { isActive: "Y" },
-									attributes: ["id", "percentage"]
-								}
-							]
-						}
-					],
-					attributes: ["id"]
-				}
-			],
-			attributes: ["id"]
-		});
-		// const courseProgress = await CourseProgress.findAll({
-		// 	where: {
-		// 		userId: userId,
-		// 		clientId: clientId,
-		// 		isActive: "Y"
-		// 	}
-		// });
-
-		let dashboardData = {
-			userCourses: courseEnrollment,
-			courseEnrollmentCount: courseEnrollmentCount
-		};
-		res.send({ data: dashboardData });
 	} catch (err) {
 		emails.errorEmail(req, err);
 		res.status(500).send({

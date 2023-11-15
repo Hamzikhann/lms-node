@@ -9,6 +9,10 @@ module.exports = (sequelize, DataTypes) => {
 				allowNull: false,
 				defaultValue: "Y"
 			},
+			courseProgress: {
+				type: DataTypes.INTEGER,
+				defaultValue: 0
+			},
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,

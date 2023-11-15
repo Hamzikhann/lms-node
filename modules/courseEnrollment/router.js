@@ -29,12 +29,20 @@ router.post("/create", (req, res) => {
 	}
 });
 
+router.post("/detail", (req, res) => {
+	courseEnrollmentController.detail(req, res);
+});
+
 router.post("/delete", (req, res) => {
 	if (req.role == "Client") {
 		courseEnrollmentController.delete(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
+});
+
+router.post("/progress/reset", (req, res) => {
+	courseEnrollmentController.reset(req, res);
 });
 
 module.exports = router;

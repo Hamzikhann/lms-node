@@ -14,7 +14,7 @@ function fileUpload(dest) {
 		storage: fileStorage,
 		fileFilter: (req, files, cb) => {
 			console.log(files);
-			if (files.mimetype === "application/pdf") {
+			if (files.mimetype === "application/pdf" || files.mimetype == "image/png" || files.mimetype === "image/jpeg") {
 				cb(null, true);
 			} else {
 				cb(null, false);

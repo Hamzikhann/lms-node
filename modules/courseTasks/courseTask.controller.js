@@ -11,9 +11,8 @@ const CourseTasks = db.courseTasks;
 const CourseTaskContent = db.courseTaskContent;
 const CourseTaskTypes = db.courseTaskTypes;
 const CourseTaskProgress = db.courseTaskProgress;
-const CourseProgress = db.courseProgress;
 const CourseAssignments = db.courseAssignments;
-const Courses = db.courses;
+const CourseAchievements = db.courseAchievements;
 const CourseSyllabus = db.courseSyllabus;
 const CourseEnrollments = db.courseEnrollments;
 
@@ -144,6 +143,8 @@ exports.detail = async (req, res) => {
 			});
 		} else {
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
+			const userId = crypto.decrypt(req.userId);
+
 			const response = await CourseTasks.findOne({
 				where: { id: courseTaskId, isActive: "Y" },
 				include: [
@@ -154,6 +155,12 @@ exports.detail = async (req, res) => {
 					{
 						model: CourseTaskTypes,
 						attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+					},
+					{
+						model: CourseTaskProgress,
+						where: { courseTaskId, userId, isActive: "Y" },
+						required: false,
+						attributes: ["id", "percentage"]
 					}
 				]
 			});
@@ -308,161 +315,76 @@ exports.createProgress = async (req, res) => {
 				message: message
 			});
 		} else {
-			const taskProgressObj = {
-				currentTime: req.body.currentTime,
-				percentage: req.body.percentage,
-				courseTaskId: crypto.decrypt(req.body.courseTaskId),
-				courseEnrollmentId: crypto.decrypt(req.body.courseEnrollmentId),
-				courseId: crypto.decrypt(req.body.courseId),
-				clientId: crypto.decrypt(req.clientId),
-				userId: crypto.decrypt(req.userId)
-			};
-			let transaction = await sequelize.transaction();
+			const clientId = crypto.decrypt(req.clientId);
+			const courseId = crypto.decrypt(req.body.courseId);
+			const userId = crypto.decrypt(req.userId);
+			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
+			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 
-			CourseTaskProgress.findOne({
+			let taskProgressExists = await CourseTaskProgress.findOne({
 				where: {
-					courseTaskId: taskProgressObj.courseTaskId,
-					courseEnrollmentId: taskProgressObj.courseEnrollmentId,
-					userId: taskProgressObj.userId,
-					courseId: taskProgressObj.courseId
-				},
-				isActive: "Y"
-			})
-				.then(async (response) => {
-					// console.log(response);
-					if (response) {
-						CourseTaskProgress.update(
-							taskProgressObj,
-							{ where: { courseTaskId: taskProgressObj.courseTaskId }, isActive: "Y" },
-							{ transaction }
-						)
-							.then(async (response) => {
-								const taksProgress = await CourseTaskProgress.findAll({
-									where: {
-										courseEnrollmentId: taskProgressObj.courseEnrollmentId,
-										userId: taskProgressObj.userId,
-										courseId: taskProgressObj.courseId
-									},
-									attributes: ["percentage"]
-								});
+					isActive: "Y",
+					courseEnrollmentId,
+					courseTaskId,
+					userId,
+					courseId
+				}
+			});
 
-								var tasks = await CourseTasks.count({
-									where: { isActive: "Y" },
-									include: [
-										{
-											model: CourseModule,
-											where: { isActive: "Y" },
-											include: [
-												{
-													model: CourseSyllabus,
-													where: { isActive: "Y", courseId: taskProgressObj.courseId }
-												}
-											],
-											attributes: []
-										}
-									]
-								});
+			if (taskProgressExists) {
+				console.log("task progress exists");
+				const progressId = taskProgressExists.id;
+				await CourseTaskProgress.update(
+					{
+						currentTime: req.body.currentTime,
+						percentage: req.body.percentage
+					},
+					{ where: { id: progressId, isActive: "Y" } }
+				)
+					.then(async (response) => {
+						if (response) {
+							await courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId);
 
-								// check tasks count;
-
-								var syllabusId = await CourseEnrollments.findOne({
-									where: { id: crypto.decrypt(req.body.courseEnrollmentId) },
-									isActive: "Y",
-									include: [
-										{
-											model: CourseAssignments,
-											where: { isActive: "Y" },
-											attributes: ["id"],
-											include: [
-												{
-													model: Courses,
-													where: { isActive: "Y" },
-													include: [
-														{
-															model: CourseSyllabus,
-															where: { isActive: "Y" },
-															attributes: ["id"]
-														}
-													],
-													attributes: ["id"]
-												}
-											],
-											attributes: ["id"]
-										}
-									],
-									attributes: ["id"],
-									raw: true
-								});
-								const courseSyllabusId = syllabusId["courseAssignment.course.courseSyllabus.id"];
-
-								const allModules = await CourseModule.findAll({
-									where: { courseSyllabusId: courseSyllabusId },
-									isActive: "Y"
-								});
-								let moduleIds = [];
-								allModules.forEach((e) => {
-									moduleIds.push(e.id);
-								});
-
-								const allTasks = await CourseTasks.count({ where: { courseModuleId: moduleIds }, isActive: "Y" });
-								// console.log(allTasks, "all ");
-
-								let percentage = 0;
-								taksProgress.forEach((e) => {
-									percentage += JSON.parse(e.percentage);
-								});
-								// console.log(percentage, "per");
-								let courseProgress = (percentage / (JSON.parse(allTasks) * 100)) * 100;
-
-								// Find one course progress exists for client, user, enrollmentId, course
-								// if exists update course progress based on id update percentage
-								// if doesn't doesn't exists create new
-
-								const courseProgressObj = {
-									percentage: courseProgress,
-									userId: taskProgressObj.userId,
-									clientId: taskProgressObj.clientId,
-									courseEnrollmentId: taskProgressObj.courseEnrollmentId
-								};
-
-								const progressCourse = await CourseProgress.update(courseProgressObj, {
-									where: { courseId: taskProgressObj.courseId }
-								});
-
-								await transaction.commit();
-								res.status(200).send({ message: "Task Progress updated", data: response });
-							})
-							.catch(async (err) => {
-								await transaction.rollback();
-								emails.errorEmail(req, err);
-								res.status(500).send({
-									message: err.message || "Some error occurred."
-								});
-							});
-					} else {
-						CourseTaskProgress.create(taskProgressObj, { transaction })
-							.then(async (response) => {
-								// Course Progress Update
-
-								await transaction.commit();
-								encryptHelper(response);
-								res.status(200).send({ message: "Task Prohress is created for the user", data: response });
-							})
-							.catch(async (err) => {
-								await transaction.rollback();
-								emails.errorEmail(req, err);
-								res.status(500).send({
-									message: err.message || "Some error occurred."
-								});
-							});
-					}
-				})
-				.catch((err) => {
-					emails.errorEmail(req, err);
-					res.status(500).send({
-						message: err.message || "Some error occurred."
+							res.status(200).send({ message: "Task Progress has been updated for the assigned course" });
+						} else {
+							res.send(500).send({ message: "Unable to update task progress" });
+						}
+					})
+					.catch((err) => {
+						emails.errorEmail(req, err);
+						res.status(500).send({
+							message: err.message || "Some error occurred."
+						});
 					});
-				});
+				// console.log("Task progress exists updating: ", updatedProgressTask);
+			} else {
+				console.log("task progress doesn't exists");
+				await CourseTaskProgress.create({
+					currentTime: req.body.currentTime,
+					percentage: req.body.percentage ? req.body.percentage : "0",
+					courseTaskId,
+					courseEnrollmentId,
+					courseId,
+					clientId,
+					userId
+				})
+					.then(async (response) => {
+						if (response) {
+							console.log(response);
+							await courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId);
+
+							res.status(200).send({ message: "Task Progress has been created for the assigned course" });
+						} else {
+							res.send(500).send({ message: "Unable to update task progress" });
+						}
+					})
+					.catch((err) => {
+						emails.errorEmail(req, err);
+						res.status(500).send({
+							message: err.message || "Some error occurred."
+						});
+					});
+			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
@@ -472,8 +394,47 @@ exports.createProgress = async (req, res) => {
 	}
 };
 
-function courseProgressUpdate() {
-	// Find one course progress exists for client, user, enrollmentId, course
-	// if exists update course progress based on id update percentage
-	// if doesn't doesn't exists create new
+async function courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId) {
+	var allTasksCount = await CourseTasks.count({
+		where: { isActive: "Y" },
+		include: [
+			{
+				model: CourseModule,
+				where: { isActive: "Y" },
+				include: [
+					{
+						model: CourseSyllabus,
+						where: { isActive: "Y", courseId }
+					}
+				],
+				attributes: []
+			}
+		]
+	});
+	console.log("allTasksCount: ", allTasksCount);
+
+	var allTasksProgress = await CourseTaskProgress.findAll({
+		where: { courseEnrollmentId, userId, courseId, isActive: "Y" },
+		attributes: ["percentage"]
+	});
+	console.log("allTasksProgress: ", allTasksProgress);
+
+	let percentage = 0;
+	allTasksProgress.forEach((e) => {
+		percentage += JSON.parse(e.percentage);
+	});
+	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
+	console.log(courseProgress);
+
+	const courseProgressUpdated = await CourseEnrollments.update(
+		{ courseProgress: courseProgress },
+		{ where: { id: courseEnrollmentId, userId: userId, isActive: "Y" } }
+	);
+
+	if (courseProgress == 100) {
+		const achivements = await CourseAchievements.create({ courseEnrollmentId: courseEnrollmentId });
+	}
+
+	console.log("Course progresss exists so updating ", courseProgressUpdated);
+	return 1;
 }

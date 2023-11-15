@@ -20,7 +20,6 @@ const courseModule = db.courseModules;
 const courseTasks = db.courseTasks;
 const courseTaskTypes = db.courseTaskTypes;
 const User = db.users;
-const CourseProgress = db.courseProgress;
 
 exports.list = (req, res) => {
 	try {
@@ -109,6 +108,7 @@ exports.listForClient = (req, res) => {
 exports.listForUser = (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
+		console.log(clientId, crypto.decrypt(req.userId));
 
 		// Get all courses for the logged in user enrollment
 		// Get all courses for the logged in user department enrollment
@@ -136,7 +136,7 @@ exports.listForUser = (req, res) => {
 						{
 							model: CourseEnrollments,
 							where: { isActive: "Y", userId: crypto.decrypt(req.userId) },
-							attributes: []
+							attributes: ["id", "courseProgress"]
 						}
 					],
 					attributes: ["id"]
@@ -318,8 +318,6 @@ exports.create = async (req, res) => {
 						}
 						await courseInstructor.create(instructorObj, { transaction });
 
-						await CourseProgress.create({ courseId: courseId }, { transaction });
-
 						await transaction.commit();
 						encryptHelper(result);
 						res.status(200).send({
@@ -358,6 +356,8 @@ exports.detail = (req, res) => {
 				message: message
 			});
 		} else {
+			const userId = crypto.decrypt(req.userId);
+			const clientId = req.clientId ? crypto.decrypt(req.clientId) : null;
 			Courses.findOne({
 				where: { id: crypto.decrypt(req.body.courseId), isActive: "Y" },
 				include: [
@@ -395,6 +395,20 @@ exports.detail = (req, res) => {
 						model: courseSyllabus,
 						where: { isActive: "Y" },
 						attributes: ["id", "title"]
+					},
+					{
+						model: courseAssignments,
+						where: { clientId, isActive: "Y" },
+						required: false,
+						include: [
+							{
+								model: CourseEnrollments,
+								where: { userId, isActive: "Y" },
+								required: false,
+								attributes: ["id", "courseProgress"]
+							}
+						],
+						attributes: ["id"]
 					}
 				],
 				attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
