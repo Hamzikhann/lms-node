@@ -12,7 +12,7 @@ const CourseTasks = db.courseTasks;
 const CourseEnrollments = db.courseEnrollments;
 const CourseAssignments = db.courseAssignments;
 
-exports.findAllforAdministrator = async (req, res) => {
+exports.adminDashboard = async (req, res) => {
 	try {
 		const clients = await Clients.findAll({
 			include: [
