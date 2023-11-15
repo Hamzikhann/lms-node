@@ -10,6 +10,7 @@ const  Courses = db.courses
 const CourseTasks = db. courseTasks
 exports.findAllforAdministrator = async (req, res)=>{
     try{
+		const userId = crypto.decrypt(req.userId);
         const clients = await Clients.findAll({
             include: [
                 {
