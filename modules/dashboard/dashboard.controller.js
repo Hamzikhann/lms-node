@@ -137,7 +137,7 @@ exports.userDashboard = async (req, res) => {
 		});
 
 		const inQueueCourses = await CourseEnrollments.count({
-			where: { courseProgress: { [Op.eq]: 0 }, userId },
+			where: { courseProgress: { [Op.eq]: 0 }, userId, isActive: "Y" },
 			include: [
 				{
 					model: CourseAssignments,
