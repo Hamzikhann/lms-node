@@ -6,11 +6,11 @@ const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
 
 const TeamUsers = db.teamUsers;
+const CourseEnrollments = db.courseEnrollments;
 
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			// userId: Joi.string().required(),
 			userIds: Joi.any().required(),
 			teamId: Joi.string().required()
 		});
@@ -22,25 +22,6 @@ exports.create = async (req, res) => {
 				message: message
 			});
 		} else {
-			// const teamUserObj = {
-			// 	name: req.body.name,
-			// 	teamId: crypto.decrypt(req.body.teamId),
-			// 	userId: crypto.decrypt(req.body.userId),
-			// 	clientId: crypto.decrypt(req.body.clientId)
-			// };
-
-			// TeamUsers.create(teamUserObj)
-			// 	.then((response) => {
-			// 		encryptHelper(response);
-			// 		res.status(200).send({ message: "team user is created", data: response });
-			// 	})
-			// 	.catch((err) => {
-			// 		emails.errorEmail(req, err);
-			// 		res.status(500).send({
-			// 			message: err.message || "Some error occurred while creating the Quiz."
-			// 		});
-			// 	});
-
 			const userIds = req.body.userIds;
 
 			const existedUsesr = await TeamUsers.findAll({
@@ -61,19 +42,53 @@ exports.create = async (req, res) => {
 				};
 				teamUserObj.push(teamUser);
 			});
-			console.log(teamUserObj);
+			// console.log(teamUserObj);
 			let transaction = await sequelize.transaction();
 			TeamUsers.bulkCreate(teamUserObj, { transaction })
 				.then(async (response) => {
-					await transaction.commit();
+					const team = await CourseEnrollments.findAll({
+						where: { teamId: crypto.decrypt(req.body.teamId), isActive: "Y" },
+						attributes: ["courseAssignmentId"],
+						raw: true
+					});
+					const userExistedCourses = await CourseEnrollments.findAll({
+						where: { userId: crypto.decrypt(uniqueUsers[0]), isActive: "Y" },
+						attributes: ["courseAssignmentId"],
+						raw: true
+					});
+					const teamIds = team.map((item) => item.courseAssignmentId);
+					const userExistedCoursesIds = userExistedCourses.map((item) => item.courseAssignmentId);
 
+					var uniqueid = teamIds.filter((item) => !userExistedCoursesIds.includes(item));
+					if (uniqueid) {
+						const enrollmentObj = [];
+						uniqueid.forEach((e) => {
+							uniqueUsers.forEach((j) => {
+								let obj = {
+									userId: crypto.decrypt(j),
+									courseAssignmentId: e,
+									teamId: crypto.decrypt(req.body.teamId),
+									courseEnrollmentTypeId: 3
+								};
+								enrollmentObj.push(obj);
+							});
+						});
+						console.log(enrollmentObj);
+						const courseEnrollment = await CourseEnrollments.bulkCreate(enrollmentObj, { transaction });
+					}
+
+					await transaction.commit();
 					encryptHelper(response);
-					res.status(200).send({ message: "Team users are created", data: response });
+					res.status(200).send({
+						message: "Team users are created",
+						data: response
+					});
 				})
 				.catch(async (err) => {
 					if (transaction) await transaction.rollback();
 
 					emails.errorEmail(req, err);
+					console.log(err);
 					res.status(500).send({
 						message: err.message || "Some error occurred while creating the Quiz."
 					});
@@ -81,6 +96,7 @@ exports.create = async (req, res) => {
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
+		console.log(err);
 		res.status(500).send({
 			message: err.message || "Some error occurred while creating the Quiz."
 		});

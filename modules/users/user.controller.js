@@ -16,6 +16,9 @@ const UserProfile = db.userProfile;
 const Course = db.courses;
 const CourseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
+const TeamUsers = db.teamUsers;
+const Teams = db.teams;
+
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
@@ -68,11 +71,7 @@ exports.create = async (req, res) => {
 						UserProfile.create({ userId: user.id }, { transaction })
 							.then(async (profile) => {
 								if (user.roleId == 3 && user.clientId == crypto.decrypt(req.clientId)) {
-									// var clientCourse = await CourseAssignments.findAll({
-									// 	where: { clientId: crypto.decrypt(req.clientId), isActive: "Y" },
-									// 	attributes: ["id"]
-									// });
-									var course = await CourseEnrollments.findAll({
+									const allCourse = await CourseEnrollments.findAll({
 										where: { courseEnrollmentTypeId: 1, isActive: "Y" },
 										include: [
 											{
@@ -84,16 +83,58 @@ exports.create = async (req, res) => {
 										raw: true,
 										attributes: ["id"]
 									});
+
+									const depatrmentCourses = await CourseEnrollments.findAll({
+										where: { userDepartmentId: user.userDepartmentId, isActive: "Y" },
+										include: [
+											{
+												model: CourseAssignments,
+												where: { clientId: crypto.decrypt(req.clientId) },
+												attributes: ["id"]
+											}
+										],
+										raw: true,
+										attributes: ["id"]
+									});
+									const uniqueSet = new Set();
+									const uniqueAllCourses = allCourse.filter((course) => {
+										const courseId = course["courseAssignment.id"];
+										if (!uniqueSet.has(courseId)) {
+											uniqueSet.add(courseId);
+											return true;
+										}
+										return false;
+									});
+									const uniqueDepartment = depatrmentCourses.filter((course) => {
+										const courseId = course["courseAssignment.id"];
+										if (!uniqueSet.has(courseId)) {
+											uniqueSet.add(courseId);
+											return true;
+										}
+										return false;
+									});
+									const courseAssignmentIds = uniqueAllCourses.concat(uniqueDepartment);
+
+									var courseEnrollmentObj = [];
+									courseAssignmentIds.forEach((e) => {
+										let obj = {
+											userId: user.id,
+											courseEnrollmentTypeId: 4,
+											courseAssignmentId: e["courseAssignment.id"]
+										};
+										courseEnrollmentObj.push(obj);
+									});
+
+									const courseEnrollment = await CourseEnrollments.bulkCreate(courseEnrollmentObj, { transaction });
 								}
 
-								// await transaction.commit();
+								await transaction.commit();
 
-								// encryptHelper(user);
+								encryptHelper(user);
 
 								res.status(200).send({
 									message: "User created successfully.",
-									data: user,
-									course: course
+									data: user
 								});
 							})
 							.catch(async (err) => {
