@@ -27,7 +27,7 @@ exports.login = async (req, res) => {
 				include: [
 					{
 						model: UserProfile,
-						attributes: ["id"]
+						attributes: ["id", "imageUrl"]
 					},
 					{
 						model: Roles,
