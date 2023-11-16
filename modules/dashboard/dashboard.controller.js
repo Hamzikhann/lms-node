@@ -11,6 +11,8 @@ const Courses = db.courses;
 const CourseTasks = db.courseTasks;
 const CourseEnrollments = db.courseEnrollments;
 const CourseAssignments = db.courseAssignments;
+const CourseDepartments = db.courseDepartments
+const Sequelize = require('sequelize');
 
 exports.adminDashboard = async (req, res) => {
 	try {
@@ -168,6 +170,61 @@ exports.userDashboard = async (req, res) => {
 		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.clientDashboard = async (req, res) => {
+	try {
+		const clientId = crypto.decrypt(req.clientId);
+		const assignments = await CourseAssignments.findAll({
+            where: {
+                clientId: clientId,
+                isActive: "Y"
+            },
+            include: [
+                {
+                    model: Courses,
+                    where: {
+                        isActive: "Y",
+                        status: "P"
+                    },
+                    attributes: ["title", "code"],
+					include: [
+						{
+							model: CourseDepartments,
+							where: {
+								isActive: "Y",
+							},
+							attributes: ["title"],
+						}
+					],
+                },
+                {
+                    model: CourseEnrollments,
+                    attributes: [[Sequelize.fn("COUNT", Sequelize.col("courseEnrollments.id")), "enrollmentCount"]],
+                    where: {
+                        isActive: "Y"
+                    }
+                }
+            ],
+							attributes: ["id"],
+
+        })
+
+		encryptHelper(assignments)
+		res.send({
+			message: "Retrieved statistics for the client",
+			data: {
+				courses: {
+					assignedCourses: assignments,
+				}
+			}
+		});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred while retrieving assignment courses."
 		});
 	}
 };

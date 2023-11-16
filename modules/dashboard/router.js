@@ -9,6 +9,8 @@ router.post("/", (req, res) => {
 		dashboardController.adminDashboard(req, res);
 	} else if (req.role == "User") {
 		dashboardController.userDashboard(req, res);
+	} else if (req.role == "Client") {
+		dashboardController.clientDashboard(req, res);
 	}
 });
 
