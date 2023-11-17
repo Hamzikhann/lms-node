@@ -173,7 +173,7 @@ exports.delete = async (req, res) => {
 				where: { id: assessmentId }
 			});
 			if (updatedObj == 1) {
-				return res.send({ message: "Task assessment has been delete" });
+				return res.send({ message: "Task assessment has been deleted" });
 			} else {
 				return res.status(400).send({ message: "Unable to delete task assessment, maybe it was not found" });
 			}

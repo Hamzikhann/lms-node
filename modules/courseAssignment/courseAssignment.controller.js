@@ -71,11 +71,11 @@ exports.create = (req, res) => {
 				courseId: crypto.decrypt(req.body.courseId),
 				clientId: crypto.decrypt(req.body.clientId)
 			};
-
 			CourseAssignments.findOne({
 				where: {
 					courseId: crypto.decrypt(req.body.courseId),
-					clientId: crypto.decrypt(req.body.clientId)
+					clientId: crypto.decrypt(req.body.clientId),
+					isActive: 'Y'
 				}
 			})
 				.then((response) => {
