@@ -27,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
 		table.belongsTo(models.userDepartments);
 		table.belongsTo(models.users);
 		table.belongsTo(models.teams);
+		table.hasMany(models.courseAchievements);
 	};
 	return table;
 };

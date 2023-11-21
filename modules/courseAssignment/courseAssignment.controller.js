@@ -7,6 +7,8 @@ const Joi = require("@hapi/joi");
 const Clients = db.clients;
 const Courses = db.courses;
 const CourseAssignments = db.courseAssignments;
+const CourseEnrollments = db.courseEnrollments;
+const CourseAchivements = db.courseAchievements;
 
 exports.list = (req, res) => {
 	try {
@@ -75,7 +77,7 @@ exports.create = (req, res) => {
 				where: {
 					courseId: crypto.decrypt(req.body.courseId),
 					clientId: crypto.decrypt(req.body.clientId),
-					isActive: 'Y'
+					isActive: "Y"
 				}
 			})
 				.then((response) => {
@@ -130,6 +132,52 @@ exports.delete = async (req, res) => {
 			} else {
 				res.status(200).send({ message: "Unable to delete course assignment" });
 			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.report = (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseAssignmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseAssignmentId = crypto.decrypt(req.body.courseAssignmentId);
+			console.log(courseAssignmentId);
+
+			CourseEnrollments.findAll({
+				where: { courseAssignmentId: courseAssignmentId, isActive: "Y" },
+				include: [
+					{
+						model: CourseAchivements,
+						where: { isActive: "Y" },
+						attributes: ["id", "createdAt"],
+						required: false
+					}
+				],
+				attributes: ["id", "courseProgress"]
+			})
+				.then((response) => {
+					// encryptHelper(response);
+					res.send({ message: "All reports of the clients are retrived", data: response });
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
+				});
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);

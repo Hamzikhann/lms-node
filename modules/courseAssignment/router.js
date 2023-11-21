@@ -29,4 +29,12 @@ router.post("/delete", (req, res) => {
 	}
 });
 
+router.post("/report", (req, res) => {
+	if (req.role == "Client") {
+		CourseAssignmentController.report(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
 module.exports = router;
