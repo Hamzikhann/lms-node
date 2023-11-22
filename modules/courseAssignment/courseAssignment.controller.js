@@ -180,12 +180,10 @@ exports.report = (req, res) => {
 							},
 							{
 								model: UserDepartments,
-								where: { isActive: "Y" },
 								attributes: ["title"]
 							},
 							{
 								model: UserDesignations,
-								where: { isActive: "Y" },
 								attributes: ["title"]
 							}
 						],
