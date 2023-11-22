@@ -169,7 +169,7 @@ exports.report = (req, res) => {
 				attributes: ["id", "courseProgress"]
 			})
 				.then((response) => {
-					// encryptHelper(response);
+					encryptHelper(response);
 					res.send({ message: "All reports of the clients are retrived", data: response });
 				})
 				.catch((err) => {
