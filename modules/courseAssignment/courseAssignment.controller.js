@@ -9,6 +9,10 @@ const Courses = db.courses;
 const CourseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
 const CourseAchivements = db.courseAchievements;
+const Users = db.users;
+const UserProfile = db.userProfile;
+const UserDepartments = db.userDepartments;
+const UserDesignations = db.userDesignations;
 
 exports.list = (req, res) => {
 	try {
@@ -164,6 +168,26 @@ exports.report = (req, res) => {
 						where: { isActive: "Y" },
 						attributes: ["id", "createdAt"],
 						required: false
+					},
+					{
+						model: Users,
+						where: { isActive: "Y" },
+						include: [
+							{
+								model: Users,
+								as: "manager",
+								attributes: ["firstName", "lastName"]
+							},
+							{
+								model: UserDepartments,
+								attributes: ["title"]
+							},
+							{
+								model: UserDesignations,
+								attributes: ["title"]
+							}
+						],
+						attributes: ["firstName", "lastName", "email"]
 					}
 				],
 				attributes: ["id", "courseProgress"]
