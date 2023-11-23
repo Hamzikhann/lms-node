@@ -7,7 +7,15 @@ const fileUpload = require("../../utils/fileUpload");
 const { upload } = fileUpload("documents");
 
 router.post("/list/types", courseTaskController.listTypes);
-router.post("/detail", courseTaskController.detail);
+router.post("/detail", (req, res) => {
+	if (req.role == "User") {
+		courseTaskController.detailForUser(req, res);
+	} else if (req.role == "Administrator" || req.role == "Client") {
+		courseTaskController.detail(req, res0);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
 router.post("/enrollment", courseTaskController.getEnrollment);
 
 router.post("/create", upload.single("handout"), (req, res) => {

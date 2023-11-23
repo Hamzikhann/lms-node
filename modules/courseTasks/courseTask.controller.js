@@ -175,6 +175,85 @@ exports.detail = async (req, res) => {
 	}
 };
 
+exports.detailForUser = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseTaskId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
+			let previousTaskId = courseTaskId - 1;
+			const userId = crypto.decrypt(req.userId);
+			let previousTask = {};
+			if (previousTaskId > 0) {
+				previousTask = await CourseTaskProgress.findOne({
+					where: { courseTaskId: previousTaskId, isActive: "Y" },
+					attributes: ["id", "percentage"]
+				});
+
+				if (previousTask.percentage == "100") {
+					const response = await CourseTasks.findOne({
+						where: { id: courseTaskId, isActive: "Y" },
+						include: [
+							{
+								model: CourseTaskContent,
+								attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+							},
+							{
+								model: CourseTaskTypes,
+								attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+							},
+							{
+								model: CourseTaskProgress,
+								where: { courseTaskId, userId, isActive: "Y" },
+								required: false,
+								attributes: ["id", "percentage"]
+							}
+						]
+					});
+					encryptHelper(response);
+					res.status(200).send({ message: "The course task detail has been retrived", data: response });
+				} else {
+					res.status(200).send({ message: "Please Complete your previous task to access this task" });
+				}
+			} else {
+				const response = await CourseTasks.findOne({
+					where: { id: courseTaskId, isActive: "Y" },
+					include: [
+						{
+							model: CourseTaskContent,
+							attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+						},
+						{
+							model: CourseTaskTypes,
+							attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+						},
+						{
+							model: CourseTaskProgress,
+							where: { courseTaskId, userId, isActive: "Y" },
+							required: false,
+							attributes: ["id", "percentage"]
+						}
+					]
+				});
+				encryptHelper(response);
+				res.status(200).send({ message: "The course task detail has been retrived", data: response });
+			}
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 exports.getEnrollment = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
