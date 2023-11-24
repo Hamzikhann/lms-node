@@ -11,7 +11,7 @@ router.post("/detail", (req, res) => {
 	if (req.role == "User") {
 		courseTaskController.detailForUser(req, res);
 	} else if (req.role == "Administrator" || req.role == "Client") {
-		courseTaskController.detail(req, res0);
+		courseTaskController.detail(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });
 	}

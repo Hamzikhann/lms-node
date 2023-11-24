@@ -196,8 +196,7 @@ exports.detailForUser = async (req, res) => {
 					where: { courseTaskId: previousTaskId, isActive: "Y" },
 					attributes: ["id", "percentage"]
 				});
-
-				if (previousTask.percentage == "100") {
+				if (previousTask && previousTask.percentage == "100") {
 					const response = await CourseTasks.findOne({
 						where: { id: courseTaskId, isActive: "Y" },
 						include: [
