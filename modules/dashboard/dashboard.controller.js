@@ -11,8 +11,8 @@ const Courses = db.courses;
 const CourseTasks = db.courseTasks;
 const CourseEnrollments = db.courseEnrollments;
 const CourseAssignments = db.courseAssignments;
-const CourseDepartments = db.courseDepartments
-const Sequelize = require('sequelize');
+const CourseDepartments = db.courseDepartments;
+const Sequelize = require("sequelize");
 
 exports.adminDashboard = async (req, res) => {
 	try {
@@ -87,17 +87,16 @@ exports.userDashboard = async (req, res) => {
 		const enrolledCourses = await CourseEnrollments.count({
 			where: {
 				userId: userId,
-				isActive: "Y"
+				where: { isActive: "Y" }
 			},
 			include: [
 				{
 					model: CourseAssignments,
-					isActive: "Y",
+					where: { isActive: "Y" },
 					include: [
 						{
 							model: Courses,
-							isActive: "Y",
-							status: "P"
+							where: { isActive: "Y", status: "P" }
 						}
 					]
 				}
@@ -105,16 +104,15 @@ exports.userDashboard = async (req, res) => {
 		});
 
 		const inProgressCourses = await CourseEnrollments.count({
-			where: { courseProgress: { [Op.lt]: 100, [Op.gt]: 0 }, userId },
+			where: { courseProgress: { [Op.lt]: 100, [Op.gt]: 0 }, userId, isActive: "Y" },
 			include: [
 				{
 					model: CourseAssignments,
-					isActive: "Y",
+					where: { isActive: "Y" },
 					include: [
 						{
 							model: Courses,
-							isActive: "Y",
-							status: "P"
+							where: { isActive: "Y", status: "P" }
 						}
 					]
 				}
@@ -122,16 +120,15 @@ exports.userDashboard = async (req, res) => {
 		});
 
 		const completedCourses = await CourseEnrollments.count({
-			where: { courseProgress: { [Op.eq]: 100 }, userId },
+			where: { courseProgress: { [Op.eq]: 100 }, userId, isActive: "Y" },
 			include: [
 				{
 					model: CourseAssignments,
-					isActive: "Y",
+					where: { isActive: "Y" },
 					include: [
 						{
 							model: Courses,
-							isActive: "Y",
-							status: "P"
+							where: { isActive: "Y", status: "P" }
 						}
 					]
 				}
@@ -143,12 +140,11 @@ exports.userDashboard = async (req, res) => {
 			include: [
 				{
 					model: CourseAssignments,
-					isActive: "Y",
+					where: { isActive: "Y" },
 					include: [
 						{
 							model: Courses,
-							isActive: "Y",
-							status: "P"
+							where: { isActive: "Y", status: "P" }
 						}
 					]
 				}
@@ -178,46 +174,45 @@ exports.clientDashboard = async (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
 		const assignments = await CourseAssignments.findAll({
-            where: {
-                clientId: clientId,
-                isActive: "Y"
-            },
-            include: [
-                {
-                    model: Courses,
-                    where: {
-                        isActive: "Y",
-                        status: "P"
-                    },
-                    attributes: ["title", "code"],
+			where: {
+				clientId: clientId,
+				isActive: "Y"
+			},
+			include: [
+				{
+					model: Courses,
+					where: {
+						isActive: "Y",
+						status: "P"
+					},
+					attributes: ["title", "code"],
 					include: [
 						{
 							model: CourseDepartments,
 							where: {
-								isActive: "Y",
+								isActive: "Y"
 							},
-							attributes: ["title"],
+							attributes: ["title"]
 						}
-					],
-                },
-                {
-                    model: CourseEnrollments,
-                    attributes: [[Sequelize.fn("COUNT", Sequelize.col("courseEnrollments.id")), "enrollmentCount"]],
-                    where: {
-                        isActive: "Y"
-                    }
-                }
-            ],
-							attributes: ["id"],
+					]
+				},
+				{
+					model: CourseEnrollments,
+					attributes: [[Sequelize.fn("COUNT", Sequelize.col("courseEnrollments.id")), "enrollmentCount"]],
+					where: {
+						isActive: "Y"
+					}
+				}
+			],
+			attributes: ["id"]
+		});
 
-        })
-
-		encryptHelper(assignments)
+		encryptHelper(assignments);
 		res.send({
 			message: "Retrieved statistics for the client",
 			data: {
 				courses: {
-					assignedCourses: assignments,
+					assignedCourses: assignments
 				}
 			}
 		});

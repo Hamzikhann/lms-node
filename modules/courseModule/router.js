@@ -5,7 +5,15 @@ const router = express.Router();
 
 const courseModuleController = require("./courseModule.controller");
 
-router.post("/list", courseModuleController.list);
+router.post("/list", (req, res) => {
+	if (req.role == "Administrator" || req.role == "Client") {
+		courseModuleController.list(req, res);
+	} else if (req.role == "User") {
+		courseModuleController.listForUser(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
 
 router.post("/create", (req, res) => {
 	if (req.role == "Administrator") {

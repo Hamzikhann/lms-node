@@ -72,6 +72,69 @@ exports.list = (req, res) => {
 	}
 };
 
+exports.listForUser = (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseSyllabusId: Joi.string().required(),
+			courseEnrollmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseSyllabusId = crypto.decrypt(req.body.courseSyllabusId);
+			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
+			CourseModule.findAll({
+				where: { courseSyllabusId, isActive: "Y" },
+				include: [
+					{
+						model: CourseTasks,
+						where: { isActive: "Y" },
+						include: [
+							{
+								model: CourseTaskContent,
+								attributes: ["description", "videoLink", "handoutLink"]
+							},
+							{
+								model: CourseTaskTypes,
+								attributes: ["title"]
+							},
+							{
+								model: CourseTaskProgress,
+								where: { userId: crypto.decrypt(req.userId), courseEnrollmentId: courseEnrollmentId, isActive: "Y" },
+								required: false,
+								attributes: ["id", "currentTime", "percentage"]
+							}
+						],
+						required: false,
+						attributes: ["id", "title", "estimatedTime", "courseTaskTypeId", "courseModuleId"]
+					}
+				]
+			})
+				.then((response) => {
+					encryptHelper(response);
+					res.status(200).send({ message: "Course modules and their tasks have been retrived", data: response });
+				})
+				.catch((err) => {
+					console.log(err);
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: "Some error occurred.",
+						err
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
 exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
