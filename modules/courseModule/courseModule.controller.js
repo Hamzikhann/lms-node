@@ -32,18 +32,8 @@ exports.list = (req, res) => {
 						where: { isActive: "Y" },
 						include: [
 							{
-								model: CourseTaskContent,
-								attributes: ["description", "videoLink", "handoutLink"]
-							},
-							{
 								model: CourseTaskTypes,
 								attributes: ["title"]
-							},
-							{
-								model: CourseTaskProgress,
-								where: { userId: crypto.decrypt(req.userId) },
-								required: false,
-								attributes: ["id", "currentTime", "percentage"]
 							}
 						],
 						required: false,
@@ -95,10 +85,6 @@ exports.listForUser = (req, res) => {
 						model: CourseTasks,
 						where: { isActive: "Y" },
 						include: [
-							{
-								model: CourseTaskContent,
-								attributes: ["description", "videoLink", "handoutLink"]
-							},
 							{
 								model: CourseTaskTypes,
 								attributes: ["title"]
