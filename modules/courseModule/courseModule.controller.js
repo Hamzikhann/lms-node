@@ -40,10 +40,6 @@ exports.list = (req, res) => {
 						where: { isActive: "Y" },
 						include: [
 							{
-								model: CourseTaskContent,
-								attributes: ["description", "videoLink", "handoutLink"]
-							},
-							{
 								model: CourseTaskTypes,
 								attributes: ["title"]
 							},
