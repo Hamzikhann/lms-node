@@ -188,14 +188,46 @@ exports.detailForUser = async (req, res) => {
 			});
 		} else {
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
-			let previousTaskId = courseTaskId - 1;
 			const userId = crypto.decrypt(req.userId);
-			let previousTask = {};
-			if (previousTaskId > 0) {
-				previousTask = await CourseTaskProgress.findOne({
+
+			if (courseTaskId == 1) {
+				const response = await CourseTasks.findOne({
+					where: { id: courseTaskId, isActive: "Y" },
+					include: [
+						{
+							model: CourseTaskContent,
+							attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+						},
+						{
+							model: CourseTaskTypes,
+							attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+						},
+						{
+							model: CourseTaskProgress,
+							where: { courseTaskId, userId, isActive: "Y" },
+							required: false,
+							attributes: ["id", "percentage"]
+						}
+					]
+				});
+				encryptHelper(response);
+				res.status(200).send({ message: "The course task detail has been retrived", data: response });
+			} else {
+				let previousTaskId = 0;
+
+				const courseTask = await CourseTasks.findAll({ where: { isActive: "Y" }, attributes: ["id"] });
+				courseTask.forEach((e, index) => {
+					if (e.id == courseTaskId) {
+						let previousIndex = index - 1;
+						let previousTask = courseTask[previousIndex];
+						previousTaskId = previousTask.id;
+					}
+				});
+				const previousTask = await CourseTaskProgress.findOne({
 					where: { courseTaskId: previousTaskId, isActive: "Y" },
 					attributes: ["id", "percentage"]
 				});
+
 				if (previousTask && previousTask.percentage == "100") {
 					const response = await CourseTasks.findOne({
 						where: { id: courseTaskId, isActive: "Y" },
@@ -221,28 +253,6 @@ exports.detailForUser = async (req, res) => {
 				} else {
 					res.status(200).send({ message: "Please Complete your previous task to access this task" });
 				}
-			} else {
-				const response = await CourseTasks.findOne({
-					where: { id: courseTaskId, isActive: "Y" },
-					include: [
-						{
-							model: CourseTaskContent,
-							attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
-						},
-						{
-							model: CourseTaskTypes,
-							attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
-						},
-						{
-							model: CourseTaskProgress,
-							where: { courseTaskId, userId, isActive: "Y" },
-							required: false,
-							attributes: ["id", "percentage"]
-						}
-					]
-				});
-				encryptHelper(response);
-				res.status(200).send({ message: "The course task detail has been retrived", data: response });
 			}
 		}
 	} catch (err) {
