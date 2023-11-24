@@ -87,7 +87,7 @@ exports.userDashboard = async (req, res) => {
 		const enrolledCourses = await CourseEnrollments.count({
 			where: {
 				userId: userId,
-				where: { isActive: "Y" }
+				isActive: "Y"
 			},
 			include: [
 				{
