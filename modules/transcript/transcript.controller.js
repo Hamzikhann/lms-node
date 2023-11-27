@@ -28,7 +28,7 @@ exports.update = (req, res) => {
 			const transcriptId = req.body.transcriptId ? crypto.decrypt(req.body.transcriptId) : null;
 
 			Transcript.findOne({ where: { id: transcriptId, isActive: "Y" } })
-				.then((response) => {
+				.then(async (response) => {
 					if (response) {
 						Transcript.update(
 							{ content: transcriptObj.content },
@@ -44,17 +44,24 @@ exports.update = (req, res) => {
 								});
 							});
 					} else {
-						Transcript.create(transcriptObj)
-							.then((response) => {
-								encryptHelper(response);
-								res.status(200).send({ message: "Transcript of Course are created", data: response });
-							})
-							.catch((err) => {
-								emails.errorEmail(req, err);
-								res.status(500).send({
-									message: "Some error occurred."
+						const transcriptExists = await Transcript.findOne({
+							where: { courseTaskId: transcriptObj.courseTaskId, isActive: "Y" }
+						});
+						if (transcriptExists) {
+							res.send({ message: "Please provide the Transcript ID" });
+						} else {
+							Transcript.create(transcriptObj)
+								.then((response) => {
+									encryptHelper(response);
+									res.status(200).send({ message: "Transcript of Course are created", data: response });
+								})
+								.catch((err) => {
+									emails.errorEmail(req, err);
+									res.status(500).send({
+										message: "Some error occurred."
+									});
 								});
-							});
+						}
 					}
 				})
 				.catch((err) => {

@@ -25,6 +25,7 @@ const teamUserRouteHandler = require("../modules/teamUsers/router");
 const dashboardRouteHandler = require("../modules/dashboard/router");
 const courseAchievementsRouteHandler = require("../modules/courseAchievements/router");
 const transcriptRouteHandler = require("../modules/transcript/router");
+// const classesRouteHandler = require("../modules/classes/router");
 
 class Routes {
 	constructor(app) {
@@ -55,6 +56,7 @@ class Routes {
 		this.app.use("/api/team/users", jwt.protect, teamUserRouteHandler);
 		this.app.use("/api/dashboard", jwt.protect, dashboardRouteHandler);
 		this.app.use("/api/course/task/transcript", jwt.protect, transcriptRouteHandler);
+		// this.app.use("/api/classes", jwt.protect, classesRouteHandler);
 	}
 	routesConfig() {
 		this.appRoutes();
