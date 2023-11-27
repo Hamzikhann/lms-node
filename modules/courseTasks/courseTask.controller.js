@@ -15,6 +15,7 @@ const CourseAssignments = db.courseAssignments;
 const CourseAchievements = db.courseAchievements;
 const CourseSyllabus = db.courseSyllabus;
 const CourseEnrollments = db.courseEnrollments;
+const Transcript = db.transcript;
 
 exports.create = async (req, res) => {
 	try {
@@ -55,7 +56,7 @@ exports.create = async (req, res) => {
 						let transaction = await sequelize.transaction();
 
 						CourseTasks.create(taskObj, { transaction })
-							.then((task) => {
+							.then(async (task) => {
 								let handoutPdf = req.file ? "uploads/documents/" + req.file.filename : null;
 								const contentObj = {
 									description: req.body.contentDescription,
@@ -63,6 +64,8 @@ exports.create = async (req, res) => {
 									handoutLink: handoutPdf,
 									courseTaskId: task.id
 								};
+								const transcript = await Transcript.create({ courseTaskId: task.id }, { transaction });
+
 								CourseTaskContent.create(contentObj, { transaction })
 									.then(async (content) => {
 										await transaction.commit();
