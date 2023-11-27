@@ -207,7 +207,7 @@ exports.detailForUser = async (req, res) => {
 								include: [
 									{
 										model: Courses,
-										where: { courseId, isActive: "Y" },
+										where: { id: courseId, isActive: "Y" },
 										attributes: []
 									}
 								],
