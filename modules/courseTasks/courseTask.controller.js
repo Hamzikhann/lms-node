@@ -179,7 +179,8 @@ exports.detailForUser = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			courseId: Joi.string().required(),
-			courseTaskId: Joi.string().required()
+			courseTaskId: Joi.string().required(),
+			courseEnrollmentId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -191,6 +192,7 @@ exports.detailForUser = async (req, res) => {
 			const courseId = crypto.decrypt(req.body.courseId);
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
 			const userId = crypto.decrypt(req.userId);
+			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 
 			const courseTask = await CourseTasks.findAll({
 				where: { isActive: "Y" },
@@ -259,7 +261,7 @@ exports.detailForUser = async (req, res) => {
 						},
 						{
 							model: CourseTaskProgress,
-							where: { courseTaskId, userId, isActive: "Y" },
+							where: { courseTaskId, userId, isActive: "Y", courseEnrollmentId: courseEnrollmentId },
 							required: false,
 							attributes: ["id", "percentage"]
 						}
