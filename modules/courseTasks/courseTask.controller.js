@@ -4,8 +4,8 @@ const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
-const courseEnrollments = require("../../models/courseEnrollments");
 
+const Courses = db.courses;
 const CourseModule = db.courseModules;
 const CourseTasks = db.courseTasks;
 const CourseTaskContent = db.courseTaskContent;
@@ -178,6 +178,7 @@ exports.detail = async (req, res) => {
 exports.detailForUser = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
+			courseId: Joi.string().required(),
 			courseTaskId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
@@ -187,59 +188,64 @@ exports.detailForUser = async (req, res) => {
 				message: message
 			});
 		} else {
+			const courseId = crypto.decrypt(req.body.courseId);
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
 			const userId = crypto.decrypt(req.userId);
 
-			let previousTaskId = 0;
-
-			const courseTask = await CourseTasks.findAll({ where: { isActive: "Y" }, attributes: ["id"] });
-			courseTask.forEach((e, index) => {
-				// console.log(e, "index==", index);
-				if (e.id == courseTaskId) {
-					let previousIndex = index - 1;
-					console.log(previousIndex);
-
-					if (previousIndex < 0) {
-						previousTaskId = 0;
-					} else {
-						let previousTask = courseTask[previousIndex];
-						previousTaskId = previousTask.id;
+			const courseTask = await CourseTasks.findAll({
+				where: { isActive: "Y" },
+				include: [
+					{
+						model: CourseModule,
+						where: { isActive: "Y" },
+						include: [
+							{
+								model: CourseSyllabus,
+								where: { isActive: "Y" },
+								include: [
+									{
+										model: Courses,
+										where: { courseId, isActive: "Y" },
+										attributes: []
+									}
+								],
+								attributes: []
+							}
+						],
+						attributes: []
 					}
+				],
+				attributes: ["id"],
+				orderby: [["id", "ASC"]]
+			});
+
+			let previousTaskId = null;
+			courseTask.forEach((e, index) => {
+				if (e.id == courseTaskId) {
+					previousTaskId = typeof courseTask[index - 1] !== "undefined" ? courseTask[index - 1]["id"] : null;
 				}
 			});
 
-			if (previousTaskId > 0) {
+			var statusCode = 200;
+			var message = "";
+
+			if (previousTaskId) {
 				const previousTask = await CourseTaskProgress.findOne({
 					where: { courseTaskId: previousTaskId, isActive: "Y" },
 					attributes: ["id", "percentage"]
 				});
 
 				if (previousTask && previousTask.percentage == "100") {
-					const response = await CourseTasks.findOne({
-						where: { id: courseTaskId, isActive: "Y" },
-						include: [
-							{
-								model: CourseTaskContent,
-								attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
-							},
-							{
-								model: CourseTaskTypes,
-								attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
-							},
-							{
-								model: CourseTaskProgress,
-								where: { courseTaskId, userId, isActive: "Y" },
-								required: false,
-								attributes: ["id", "percentage"]
-							}
-						]
-					});
-					encryptHelper(response);
-					res.status(200).send({ message: "The course task detail has been retrived", data: response });
+					message = "The course task detail has been retrived";
 				} else {
-					res.status(200).send({ message: "Please Complete your previous task to access this task" });
+					message = "Please complete your previous task";
+					statusCode = 400;
 				}
 			} else {
+				message = "The course task detail has been retrived";
+			}
+
+			if (statusCode == 200) {
 				const response = await CourseTasks.findOne({
 					where: { id: courseTaskId, isActive: "Y" },
 					include: [
@@ -260,7 +266,9 @@ exports.detailForUser = async (req, res) => {
 					]
 				});
 				encryptHelper(response);
-				res.status(200).send({ message: "The course task detail has been retrived", data: response });
+				res.status(200).send({ message, data: response });
+			} else {
+				res.status(400).send({ message, data: null });
 			}
 		}
 	} catch (err) {
