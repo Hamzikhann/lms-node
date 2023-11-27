@@ -27,6 +27,8 @@ exports.update = (req, res) => {
 			};
 			const transcriptId = req.body.transcriptId ? crypto.decrypt(req.body.transcriptId) : null;
 
+			console.log(transcriptId);
+
 			Transcript.findOne({ where: { id: transcriptId, isActive: "Y" } })
 				.then(async (response) => {
 					if (response) {
