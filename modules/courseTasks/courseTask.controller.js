@@ -224,9 +224,13 @@ exports.detailForUser = async (req, res) => {
 			let previousTaskId = null;
 			courseTask.forEach((e, index) => {
 				if (e.id == courseTaskId) {
+					console.log(e.id, courseTaskId);
+					console.log(e.id == courseTaskId);
+					console.log(courseTask[index - 1]);
 					previousTaskId = typeof courseTask[index - 1] !== "undefined" ? courseTask[index - 1]["id"] : null;
 				}
 			});
+			console.log(previousTaskId);
 
 			var statusCode = 200;
 			var message = "";
