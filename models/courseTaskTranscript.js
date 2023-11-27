@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
 		{ timestamps: true }
 	);
 	table.associate = function (models) {
-		table.hasOne(models.courseTasks);
+		table.belongsTo(models.courseTasks);
 	};
 	return table;
 };
