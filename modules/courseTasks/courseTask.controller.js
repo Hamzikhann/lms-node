@@ -237,9 +237,10 @@ exports.detailForUser = async (req, res) => {
 
 			if (previousTaskId) {
 				const previousTask = await CourseTaskProgress.findOne({
-					where: { courseTaskId: previousTaskId, isActive: "Y" },
+					where: { courseTaskId: previousTaskId, courseEnrollmentId, isActive: "Y" },
 					attributes: ["id", "percentage"]
 				});
+				console.log(previousTask);
 
 				if (previousTask && previousTask.percentage == "100") {
 					message = "The course task detail has been retrived";
