@@ -224,13 +224,9 @@ exports.detailForUser = async (req, res) => {
 			let previousTaskId = null;
 			courseTask.forEach((e, index) => {
 				if (e.id == courseTaskId) {
-					console.log(e.id, courseTaskId);
-					console.log(e.id == courseTaskId);
-					console.log(courseTask[index - 1]);
 					previousTaskId = typeof courseTask[index - 1] !== "undefined" ? courseTask[index - 1]["id"] : null;
 				}
 			});
-			console.log(previousTaskId);
 
 			var statusCode = 200;
 			var message = "";
@@ -240,7 +236,6 @@ exports.detailForUser = async (req, res) => {
 					where: { courseTaskId: previousTaskId, courseEnrollmentId, isActive: "Y" },
 					attributes: ["id", "percentage"]
 				});
-				console.log(previousTask);
 
 				if (previousTask && previousTask.percentage == "100") {
 					message = "The course task detail has been retrived";
@@ -443,7 +438,6 @@ exports.createProgress = async (req, res) => {
 			});
 
 			if (taskProgressExists) {
-				console.log("task progress exists");
 				const progressId = taskProgressExists.id;
 				await CourseTaskProgress.update(
 					{
@@ -481,7 +475,6 @@ exports.createProgress = async (req, res) => {
 				})
 					.then(async (response) => {
 						if (response) {
-							console.log(response);
 							await courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId);
 
 							res.status(200).send({ message: "Task Progress has been created for the assigned course" });
@@ -522,20 +515,17 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 			}
 		]
 	});
-	console.log("allTasksCount: ", allTasksCount);
 
 	var allTasksProgress = await CourseTaskProgress.findAll({
 		where: { courseEnrollmentId, userId, courseId, isActive: "Y" },
 		attributes: ["percentage"]
 	});
-	console.log("allTasksProgress: ", allTasksProgress);
 
 	let percentage = 0;
 	allTasksProgress.forEach((e) => {
 		percentage += JSON.parse(e.percentage);
 	});
 	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
-	console.log(courseProgress);
 
 	const courseProgressUpdated = await CourseEnrollments.update(
 		{ courseProgress: courseProgress },
