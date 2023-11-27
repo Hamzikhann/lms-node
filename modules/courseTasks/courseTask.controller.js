@@ -179,7 +179,8 @@ exports.detailForUser = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			courseTaskId: Joi.string().required(),
-			courseEnrollmentId: Joi.string().required()
+			courseEnrollmentId: Joi.string().required(),
+			courseId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
