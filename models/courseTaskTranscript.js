@@ -2,9 +2,9 @@
 
 module.exports = (sequelize, DataTypes) => {
 	const table = sequelize.define(
-		"courseObjectives",
+		"transcript",
 		{
-			description: DataTypes.TEXT,
+			content: DataTypes.TEXT,
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
 		{ timestamps: true }
 	);
 	table.associate = function (models) {
-		table.belongsTo(models.courses);
+		table.hasOne(models.courseTasks);
 	};
 	return table;
 };
