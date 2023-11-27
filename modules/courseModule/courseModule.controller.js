@@ -79,8 +79,8 @@ exports.list = (req, res) => {
 exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			description: Joi.string().required().allow(""),
+			title: Joi.string().max(255).required(),
+			description: Joi.string().max(255).required().allow(""),
 			courseSyllabusId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
@@ -119,8 +119,8 @@ exports.create = (req, res) => {
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			description: Joi.string().required(),
+			title: Joi.string().max(255).required(),
+			description: Joi.string().max(255).required(),
 			moduleId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);

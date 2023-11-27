@@ -47,7 +47,7 @@ exports.update = (req, res) => {
 		const joiSchema = Joi.object({
 			instructorId: Joi.string().required(),
 			name: Joi.string().required(),
-			about: Joi.string().required(),
+			about: Joi.string().max(255).required(),
 			image: Joi.any().optional()
 		});
 		const { error, value } = joiSchema.validate(req.body);

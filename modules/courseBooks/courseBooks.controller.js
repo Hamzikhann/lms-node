@@ -9,11 +9,11 @@ const CourseBooks = db.courseBooks;
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			edition: Joi.string().required(),
-			author: Joi.string().required(),
-			publisher: Joi.string().required(),
-			bookUrl: Joi.string().required(),
+			title: Joi.string().max(255).required(),
+			edition: Joi.string().max(255).required(),
+			author: Joi.string().max(255).required(),
+			publisher: Joi.string().max(255).required(),
+			bookUrl: Joi.string().max(255).required(),
 			courseId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
@@ -86,11 +86,11 @@ exports.list = (req, res) => {
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			edition: Joi.string().required(),
-			author: Joi.string().required(),
-			publisher: Joi.string().required(),
-			bookUrl: Joi.string().required(),
+			title: Joi.string().max(255).required(),
+			edition: Joi.string().max(255).required(),
+			author: Joi.string().max(255).required(),
+			publisher: Joi.string().max(255).required(),
+			bookUrl: Joi.string().max(255).required(),
 			bookId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);

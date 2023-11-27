@@ -9,8 +9,8 @@ const CourseFaqs = db.courseFaqs;
 exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			description: Joi.string().required(),
+			title: Joi.string().max(255).required(),
+			description: Joi.string().max(255).required(),
 			courseId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
@@ -83,8 +83,8 @@ exports.list = (req, res) => {
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			description: Joi.string().required(),
+			title: Joi.string().max(255).required(),
+			description: Joi.string().max(255).required(),
 			faqId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);

@@ -238,9 +238,9 @@ exports.listAssigned = (req, res) => {
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			about: Joi.string().required(),
-			code: Joi.string().required(),
+			title: Joi.string().max(255).required(),
+			about: Joi.string().max(255).required(),
+			code: Joi.string().max(255).required(),
 			level: Joi.string().required(),
 			language: Joi.string().required(),
 			status: Joi.string().optional(),
@@ -435,8 +435,8 @@ exports.detail = (req, res) => {
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			courseId: Joi.string().required(),
-			title: Joi.string().required(),
+			courseId: Joi.string().max(255).required(),
+			title: Joi.string().max(255).required(),
 			about: Joi.string().required(),
 			code: Joi.string().required(),
 			level: Joi.string().required(),

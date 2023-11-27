@@ -19,9 +19,9 @@ const CourseEnrollments = db.courseEnrollments;
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			estimatedTime: Joi.string().required(),
-			contentDescription: Joi.string().required(),
+			title: Joi.string().max(255).required(),
+			estimatedTime: Joi.string().max(255).required(),
+			contentDescription: Joi.string().max(255).required(),
 			contentVideoLink: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseModuleId: Joi.string().required()
@@ -322,9 +322,9 @@ exports.getEnrollment = async (req, res) => {
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
+			title: Joi.string().max(255).required(),
 			estimatedTime: Joi.string().required(),
-			contentDescription: Joi.string().required(),
+			contentDescription: Joi.string().max(255).required(),
 			contentVideoLink: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseTaskId: Joi.string().required()

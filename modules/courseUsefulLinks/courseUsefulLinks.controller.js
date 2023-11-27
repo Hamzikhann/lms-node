@@ -43,8 +43,8 @@ exports.list = (req, res) => {
 exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			description: Joi.string().required(),
+			title: Joi.string().max(255).required(),
+			description: Joi.string().max(255).required(),
 			linkUrl: Joi.string().required(),
 			courseId: Joi.string().required()
 		});
@@ -84,8 +84,8 @@ exports.create = (req, res) => {
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			description: Joi.string().required(),
+			title: Joi.string().max(255).required(),
+			description: Joi.string().srequired(),
 			linkUrl: Joi.string().required(),
 			linkId: Joi.string().required()
 		});
