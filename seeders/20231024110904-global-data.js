@@ -68,6 +68,20 @@ module.exports = {
 		);
 
 		await queryInterface.bulkInsert(
+			"courseDepartments",
+			[
+				{ title: "Art and Design", createdAt: date, updatedAt: date },
+				{ title: "Business Management", createdAt: date, updatedAt: date },
+				{ title: "Engineering", createdAt: date, updatedAt: date },
+				{ title: "Health Information Management", createdAt: date, updatedAt: date },
+				{ title: "Information Technology", createdAt: date, updatedAt: date },
+				{ title: "Journalism", createdAt: date, updatedAt: date },
+				{ title: "Sales and Marketing", createdAt: date, updatedAt: date }
+			],
+			{}
+		);
+
+		await queryInterface.bulkInsert(
 			"userDepartments",
 			[
 				{ title: "Accounting", createdAt: date, updatedAt: date },

@@ -44,6 +44,10 @@ exports.list = (req, res) => {
 								attributes: ["title"]
 							},
 							{
+								model: CourseTaskContent,
+								attributes: ["description", "videoLink", "handoutLink"]
+							},
+							{
 								model: CourseTaskProgress,
 								where: whereCourseTaskProgress,
 								required: false,
