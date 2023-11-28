@@ -239,7 +239,7 @@ exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().max(255).required(),
-			about: Joi.string().max(255).required(),
+			about: Joi.string().required(),
 			code: Joi.string().max(255).required(),
 			level: Joi.string().required(),
 			language: Joi.string().required(),

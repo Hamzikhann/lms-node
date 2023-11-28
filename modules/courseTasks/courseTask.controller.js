@@ -22,7 +22,7 @@ exports.create = async (req, res) => {
 		const joiSchema = Joi.object({
 			title: Joi.string().max(255).required(),
 			estimatedTime: Joi.string().max(255).required(),
-			contentDescription: Joi.string().max(255).optional().allow(""),
+			contentDescription: Joi.string().optional().allow(""),
 			contentVideoLink: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseModuleId: Joi.string().required()
@@ -327,7 +327,7 @@ exports.update = async (req, res) => {
 		const joiSchema = Joi.object({
 			title: Joi.string().max(255).required(),
 			estimatedTime: Joi.string().required(),
-			contentDescription: Joi.string().max(255).optional().allow(""),
+			contentDescription: Joi.string().optional().allow(""),
 			contentVideoLink: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseTaskId: Joi.string().required()

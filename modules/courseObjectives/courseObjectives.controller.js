@@ -42,7 +42,7 @@ exports.list = (req, res) => {
 exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			description: Joi.string().max(255).required(),
+			description: Joi.string().required(),
 			courseId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
@@ -78,7 +78,7 @@ exports.create = (req, res) => {
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			description: Joi.string().max(255).required(),
+			description: Joi.string().required(),
 			objectiveId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);

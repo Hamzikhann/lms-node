@@ -117,7 +117,7 @@ exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().max(255).required(),
-			description: Joi.string().max(255).optional().allow(""),
+			description: Joi.string().optional().allow(""),
 			estimatedTime: Joi.string().required(),
 			startTime: Joi.string().required(),
 			courseTaskAssessmentId: Joi.string().required()

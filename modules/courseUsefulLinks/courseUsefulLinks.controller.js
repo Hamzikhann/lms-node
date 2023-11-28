@@ -44,7 +44,7 @@ exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().max(255).required(),
-			description: Joi.string().max(255).required(),
+			description: Joi.string().required(),
 			linkUrl: Joi.string().required(),
 			courseId: Joi.string().required()
 		});
