@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
 			code: DataTypes.STRING,
 			level: DataTypes.STRING,
 			language: DataTypes.STRING,
+			approximateTime: DataTypes.STRING,
 			status: {
 				type: DataTypes.STRING,
 				allowNull: false,

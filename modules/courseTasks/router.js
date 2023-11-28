@@ -19,7 +19,6 @@ router.post("/detail", (req, res) => {
 router.post("/enrollment", courseTaskController.getEnrollment);
 
 router.post("/create", upload.single("handout"), (req, res) => {
-	console.log(req.role);
 	if (req.role == "Administrator") {
 		courseTaskController.create(req, res);
 	} else {
