@@ -15,13 +15,14 @@ const CourseAssignments = db.courseAssignments;
 const CourseAchievements = db.courseAchievements;
 const CourseSyllabus = db.courseSyllabus;
 const CourseEnrollments = db.courseEnrollments;
+const Transcript = db.transcript;
 
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			estimatedTime: Joi.string().required(),
-			contentDescription: Joi.string().required(),
+			title: Joi.string().max(255).required(),
+			estimatedTime: Joi.string().max(255).required(),
+			contentDescription: Joi.string().max(255).optional(),
 			contentVideoLink: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseModuleId: Joi.string().required()
@@ -55,7 +56,7 @@ exports.create = async (req, res) => {
 						let transaction = await sequelize.transaction();
 
 						CourseTasks.create(taskObj, { transaction })
-							.then((task) => {
+							.then(async (task) => {
 								let handoutPdf = req.file ? "uploads/documents/" + req.file.filename : null;
 								const contentObj = {
 									description: req.body.contentDescription,
@@ -63,6 +64,8 @@ exports.create = async (req, res) => {
 									handoutLink: handoutPdf,
 									courseTaskId: task.id
 								};
+								const transcript = await Transcript.create({ courseTaskId: task.id }, { transaction });
+
 								CourseTaskContent.create(contentObj, { transaction })
 									.then(async (content) => {
 										await transaction.commit();
@@ -180,7 +183,8 @@ exports.detailForUser = async (req, res) => {
 		const joiSchema = Joi.object({
 			courseId: Joi.string().required(),
 			courseTaskId: Joi.string().required(),
-			courseEnrollmentId: Joi.string().required()
+			courseEnrollmentId: Joi.string().required(),
+			courseId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -321,9 +325,9 @@ exports.getEnrollment = async (req, res) => {
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
+			title: Joi.string().max(255).required(),
 			estimatedTime: Joi.string().required(),
-			contentDescription: Joi.string().required(),
+			contentDescription: Joi.string().max(255).optional(),
 			contentVideoLink: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseTaskId: Joi.string().required()

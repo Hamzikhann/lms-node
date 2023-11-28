@@ -9,9 +9,9 @@ const CourseTaskAssessmentQuestions = db.courseTaskAssessmentQuestions;
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
+			title: Joi.string().max(255).required(),
 			options: Joi.any().optional(),
-			answer: Joi.string().required(),
+			answer: Joi.string().max(255).required(),
 			type: Joi.string().required(),
 			courseTaskAssessmentId: Joi.string().required()
 		});

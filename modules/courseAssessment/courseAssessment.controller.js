@@ -50,17 +50,17 @@ exports.list = async (req, res) => {
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
+			title: Joi.string().max(255).required(),
 			description: Joi.string().optional().allow(""),
 			estimatedTime: Joi.string().required(),
 			startTime: Joi.string().optional(),
 			courseTaskId: Joi.string().required(),
 			questions: Joi.array().items(
 				Joi.object().keys({
-					title: Joi.string().required(),
+					title: Joi.string().max(255).required(),
 					type: Joi.string().required(),
-					options: Joi.any().optional(),
-					answer: Joi.string().required()
+					options: Joi.alternatives().try(Joi.string().max(255).required(), Joi.any().required()),
+					answer: Joi.string().max(255).required()
 				})
 			)
 		});
@@ -116,8 +116,8 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			title: Joi.string().required(),
-			description: Joi.string().optional().allow(""),
+			title: Joi.string().max(255).required(),
+			description: Joi.string().max(255).optional().allow(""),
 			estimatedTime: Joi.string().required(),
 			startTime: Joi.string().required(),
 			courseTaskAssessmentId: Joi.string().required()

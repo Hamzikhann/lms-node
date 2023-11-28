@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
 		table.hasOne(models.courseTaskContent);
 		table.hasMany(models.courseTaskAssessments);
 		table.hasMany(models.courseTaskProgress);
+		table.hasOne(models.transcript);
 	};
 	return table;
 };
