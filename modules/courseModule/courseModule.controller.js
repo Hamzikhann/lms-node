@@ -26,7 +26,6 @@ exports.list = (req, res) => {
 		} else {
 			const courseSyllabusId = crypto.decrypt(req.body.courseSyllabusId);
 			const courseEnrollmentId = req.body.courseEnrollmentId ? crypto.decrypt(req.body.courseEnrollmentId) : null;
-
 			var whereCourseTaskProgress = { userId: crypto.decrypt(req.userId), isActive: "Y" };
 			if (req.role == "User") {
 				whereCourseTaskProgress.courseEnrollmentId = courseEnrollmentId;
