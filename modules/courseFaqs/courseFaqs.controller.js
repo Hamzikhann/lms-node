@@ -84,7 +84,7 @@ exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().max(255).required(),
-			description: Joi.string().max(255).required(),
+			description: Joi.string().required(),
 			faqId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
