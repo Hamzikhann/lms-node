@@ -241,7 +241,7 @@ exports.detailForUser = async (req, res) => {
 					attributes: ["id", "percentage"]
 				});
 
-				if (previousTask && previousTask.percentage == "100") {
+				if (previousTask && previousTask.percentage != "0") {
 					message = "The course task detail has been retrived";
 				} else {
 					message = "Please complete your previous task";
