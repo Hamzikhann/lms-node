@@ -559,7 +559,7 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	return 1;
 }
 
-exports.nextCourse = (req, res) => {
+exports.nextCourse = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			courseEnrollmentId: Joi.string().required()
@@ -574,25 +574,24 @@ exports.nextCourse = (req, res) => {
 			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 			const userId = crypto.decrypt(req.userId);
 
-			CourseTaskProgress.findAll({
+			const allTasks = await CourseTaskProgress.findAll({
 				where: {
 					courseEnrollmentId: courseEnrollmentId,
 					userId: userId,
-					isActive: "Y",
-					percentage: { [Op.between]: [1, 99] }
+					isActive: "Y"
 				},
-				attributes: ["id"]
-			})
-				.then((response) => {
-					encryptHelper(response);
-					res.send({ message: "The due tasks", data: response });
-				})
-				.catch((err) => {
-					emails.errorEmail(req, err);
-					res.status(500).send({
-						message: err.message || "Some error occurred."
-					});
-				});
+				attributes: ["id", "percentage"]
+			});
+
+			let taskTodo = allTasks.length ? allTasks[0] : null;
+			allTasks.forEach((task, key) => {
+				task.id = key;
+				if (task.percentage != "0") {
+					taskTodo = allTasks[key + 1] ? allTasks[key + 1] : null;
+				}
+			});
+			encryptHelper(taskTodo);
+			res.send({ message: "Resume task", data: taskTodo });
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
