@@ -160,6 +160,10 @@ exports.detail = async (req, res) => {
 						attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
 					},
 					{
+						model: Transcript,
+						attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+					},
+					{
 						model: CourseTaskProgress,
 						where: { courseTaskId, userId, isActive: "Y" },
 						required: false,
