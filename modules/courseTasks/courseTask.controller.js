@@ -534,6 +534,9 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
 	let achievementProgress = Math.floor((percentageAchievement / (allTasksCount * 100)) * 100);
 
+	console.log(courseProgress);
+	console.log(achievementProgress);
+
 	const courseProgressUpdated = await CourseEnrollments.update(
 		{ courseProgress: courseProgress },
 		{ where: { id: courseEnrollmentId, userId: userId, isActive: "Y" } }

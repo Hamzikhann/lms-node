@@ -31,7 +31,7 @@ exports.listByUser = (req, res) => {
 				}
 			],
 			order: [["id", "DESC"]],
-			attributes: ["id", "createdAt", "courseEnrollmentId"]
+			attributes: ["id", "createdAt", "courseEnrollmentId", "result"]
 		})
 			.then((response) => {
 				encryptHelper(response);
@@ -84,7 +84,7 @@ exports.listByCourse = (req, res) => {
 					}
 				],
 				order: [["id", "DESC"]],
-				attributes: ["id", "createdAt", "courseEnrollmentId"]
+				attributes: ["id", "createdAt", "courseEnrollmentId", "result"]
 			})
 				.then((response) => {
 					encryptHelper(response);
