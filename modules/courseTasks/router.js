@@ -49,4 +49,13 @@ router.post("/progress", (req, res) => {
 		res.status(403).send({ message: "Forbidden Access" });
 	}
 });
+
+router.post("/due", (req, res) => {
+	if (req.role == "User") {
+		courseTaskController.nextCourse(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
 module.exports = router;

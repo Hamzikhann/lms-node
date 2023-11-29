@@ -4,6 +4,7 @@ const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
+const Op = db.Sequelize.Op;
 
 const Courses = db.courses;
 const CourseModule = db.courseModules;
@@ -561,3 +562,45 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	console.log("Course progresss exists so updating ", courseProgressUpdated);
 	return 1;
 }
+
+exports.nextCourse = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseEnrollmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
+			const userId = crypto.decrypt(req.userId);
+
+			const allTasks = await CourseTaskProgress.findAll({
+				where: {
+					courseEnrollmentId: courseEnrollmentId,
+					userId: userId,
+					isActive: "Y"
+				},
+				attributes: ["id", "percentage"]
+			});
+
+			let taskTodo = allTasks.length ? allTasks[0] : null;
+			allTasks.forEach((task, key) => {
+				task.id = key;
+				if (task.percentage != "0") {
+					taskTodo = allTasks[key + 1] ? allTasks[key + 1] : null;
+				}
+			});
+			encryptHelper(taskTodo);
+			res.send({ message: "Resume task", data: taskTodo });
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
