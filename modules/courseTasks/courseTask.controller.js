@@ -503,6 +503,11 @@ exports.createProgress = async (req, res) => {
 };
 
 async function courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId) {
+	const existedProgress = await CourseEnrollments.findOne({
+		where: { id: courseEnrollmentId, userId: userId, isActive: "Y" },
+		attributes: ["courseProgress"]
+	});
+	// console.log(existedProgress.courseProgress);
 	var allTasksCount = await CourseTasks.count({
 		where: { isActive: "Y" },
 		include: [
@@ -534,15 +539,15 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
 	let achievementProgress = Math.floor((percentageAchievement / (allTasksCount * 100)) * 100);
 
-	console.log(courseProgress);
-	console.log(achievementProgress);
+	// console.log(courseProgress);
+	// console.log(achievementProgress);
 
 	const courseProgressUpdated = await CourseEnrollments.update(
 		{ courseProgress: courseProgress },
 		{ where: { id: courseEnrollmentId, userId: userId, isActive: "Y" } }
 	);
 
-	if (courseProgress == 100) {
+	if (courseProgress == 100 && existedProgress.courseProgress != 100) {
 		const achivements = await CourseAchievements.create({
 			courseEnrollmentId: courseEnrollmentId,
 			result: achievementProgress

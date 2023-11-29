@@ -43,6 +43,10 @@ router.post("/delete", (req, res) => {
 });
 
 router.post("/progress", (req, res) => {
-	courseTaskController.createProgress(req, res);
+	if (req.role == "User") {
+		courseTaskController.createProgress(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
 });
 module.exports = router;
