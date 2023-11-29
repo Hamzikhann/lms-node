@@ -526,10 +526,13 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	});
 
 	let percentage = 0;
+	let percentageAchievement = 0;
 	allTasksProgress.forEach((e) => {
-		percentage += JSON.parse(e.percentage);
+		percentage += e.percentage != "0" ? 100 : 0;
+		percentageAchievement += JSON.parse(e.percentage);
 	});
 	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
+	let achievementProgress = Math.floor((percentageAchievement / (allTasksCount * 100)) * 100);
 
 	const courseProgressUpdated = await CourseEnrollments.update(
 		{ courseProgress: courseProgress },
@@ -537,7 +540,10 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	);
 
 	if (courseProgress == 100) {
-		const achivements = await CourseAchievements.create({ courseEnrollmentId: courseEnrollmentId });
+		const achivements = await CourseAchievements.create({
+			courseEnrollmentId: courseEnrollmentId,
+			result: achievementProgress
+		});
 	}
 
 	console.log("Course progresss exists so updating ", courseProgressUpdated);
