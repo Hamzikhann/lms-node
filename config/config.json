@@ -1,7 +1,7 @@
 {
 	"development": {
 		"username": "root",
-		"password": "Ahmad12!@",
+		"password": "",
 		"database": "lmsdb",
 		"host": "localhost",
 		"dialect": "mysql",
