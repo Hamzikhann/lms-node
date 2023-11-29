@@ -166,7 +166,7 @@ exports.report = (req, res) => {
 					{
 						model: CourseAchivements,
 						where: { isActive: "Y" },
-						attributes: ["id", "createdAt"],
+						attributes: ["id", "createdAt", "result"],
 						required: false
 					},
 					{
