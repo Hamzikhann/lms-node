@@ -588,6 +588,13 @@ exports.nextCourse = async (req, res) => {
 					userId: userId,
 					isActive: "Y"
 				},
+				include: [
+					{
+						model: CourseTasks,
+						where: { isActive: "Y" },
+						attributes: ["id"]
+					}
+				],
 				attributes: ["id", "percentage"]
 			});
 
@@ -598,6 +605,7 @@ exports.nextCourse = async (req, res) => {
 					taskTodo = allTasks[key + 1] ? allTasks[key + 1] : null;
 				}
 			});
+
 			encryptHelper(taskTodo);
 			res.send({ message: "Resume task", data: taskTodo });
 		}
