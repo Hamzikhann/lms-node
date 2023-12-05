@@ -149,7 +149,7 @@ exports.delete = async (req, res) => {
 	}
 };
 
-exports.report = (req, res) => {
+exports.report = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			courseAssignmentId: Joi.string().required()
@@ -163,6 +163,20 @@ exports.report = (req, res) => {
 		} else {
 			const courseAssignmentId = crypto.decrypt(req.body.courseAssignmentId);
 			console.log(courseAssignmentId);
+
+			const courseDetail = await Courses.findOne({
+				where: { status: "P", isActive: "Y" },
+				include: [
+					{
+						model: CourseAssignments,
+						where: { id: courseAssignmentId, isActive: "Y" },
+						attributes: []
+					}
+				],
+				attributes: {
+					exclude: ["id", "createdAt", "updatedAt", "isActive", "classId", "courseDepartmentId", "status"]
+				}
+			});
 
 			CourseEnrollments.findAll({
 				where: { courseAssignmentId: courseAssignmentId, isActive: "Y" },
@@ -198,7 +212,12 @@ exports.report = (req, res) => {
 			})
 				.then((response) => {
 					encryptHelper(response);
-					res.send({ message: "All reports of the clients are retrived", data: response });
+					encryptHelper(courseDetail);
+					const obj = {
+						courseDetail: courseDetail,
+						courseEnrollments: response
+					};
+					res.send({ message: "All reports of the clients are retrived", data: obj });
 				})
 				.catch((err) => {
 					emails.errorEmail(req, err);
