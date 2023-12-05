@@ -160,16 +160,18 @@ exports.report = async (req, res) => {
 			const courseAssignmentId = crypto.decrypt(req.body.courseAssignmentId);
 			console.log(courseAssignmentId);
 
-			const courseDetail = await CourseAssignments.findOne({
-				where: { id: courseAssignmentId, isActive: "Y" },
+			const courseDetail = await Courses.findOne({
+				where: { status: "P", isActive: "Y" },
 				include: [
 					{
-						model: Courses,
-						where: { isActive: "Y" },
-						attributes: { exclude: ["id", "createdAt", "updatedAt", "isActive", "classId", "courseDepartmentId"] }
+						model: CourseAssignments,
+						where: { id: courseAssignmentId, isActive: "Y" },
+						attributes: []
 					}
 				],
-				attributes: []
+				attributes: {
+					exclude: ["id", "createdAt", "updatedAt", "isActive", "classId", "courseDepartmentId", "status"]
+				}
 			});
 
 			CourseEnrollments.findAll({
