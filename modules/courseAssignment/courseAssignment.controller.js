@@ -17,6 +17,7 @@ const UserDesignations = db.userDesignations;
 const CourseSyllabuses = db.courseSyllabus;
 const CourseModules = db.courseModules;
 const CourseTasks = db.courseTasks;
+const CourseTaskProgress = db.courseTaskProgress;
 
 exports.list = (req, res) => {
 	try {
@@ -341,14 +342,63 @@ exports.getCourseAssignmentsUsersTasks = async (req, res) => {
 		  message: "No course syllabus/task found for the given courseId."
 		});
 	  }
+
+	  const AssignmentsHelper = await CourseAssignments.findOne({
+		where: {
+		  courseId: courseId,
+		  clientId: clientId,
+		  isActive: "Y"
+		},
+		include: [
+		  {
+			model: CourseEnrollments,
+			where: {
+			  isActive: "Y"
+			},
+			attributes: [
+			  "id", // Included ID for reference
+			  "courseProgress",
+			]
+		  }
+		]
+	  });
+	  if (!AssignmentsHelper) {
+		return res.status(404).send({
+		  message: "No assignment found for the given courseId."
+		});
+	  }
+	  const totalEnrollments = AssignmentsHelper.CourseEnrollments || [];
+	  const completeProgress = totalEnrollments.filter(enrollment => enrollment.courseProgress === 100);
+	  const inCompleteProgress = totalEnrollments.filter(enrollment => enrollment.courseProgress > 0 && enrollment.courseProgress < 100);
+	  const zeroProgress = totalEnrollments.filter(enrollment => enrollment.courseProgress === 0);
+	  
+	  const courseTaskProgressReport = await CourseTaskProgress.findAll({
+		attributes: [
+		  [Sequelize.fn('DATE', Sequelize.col('updatedAt')), 'completionDate'],
+		  [Sequelize.fn('COUNT', Sequelize.col('id')), 'completedTaskCount']
+		],
+		where: {
+		  courseId: courseId,
+		  isActive: "Y",
+		  percentage: '100' // Assuming 100% completion indicates the task is completed
+		},
+		group: [Sequelize.fn('DATE', Sequelize.col('updatedAt'))]
+	  });
+	  
   
+	  encryptHelper(AssignmentsHelper);
 	  encryptHelper(assignment);
 	  encryptHelper(courseSyllabus);
 	  res.send({
 		message: "Retrieved statistics for the course.",
 		data: {
 			assignedCourses: assignment,
-			courseTasks: courseSyllabus
+			courseTasks: courseSyllabus,
+			totalEnrollments: totalEnrollments,
+			completeProgress: completeProgress,
+			inCompleteProgress: inCompleteProgress,
+			zeroProgress: zeroProgress,
+			courseTaskProgressDetails: courseTaskProgressReport,
 		}
 	  });
 	} catch (err) {
