@@ -380,7 +380,7 @@ exports.getCourseAssignmentsUsersTasks = async (req, res) => {
 		where: {
 		  courseId: courseId,
 		  isActive: "Y",
-		  percentage: '100' // Assuming 100% completion indicates the task is completed
+		  percentage: '100'
 		},
 		group: [Sequelize.fn('DATE', Sequelize.col('updatedAt'))]
 	  });
