@@ -380,7 +380,7 @@ exports.getCourseAssignmentsUsersTasks = async (req, res) => {
 		where: {
 		  courseId: courseId,
 		  isActive: "Y",
-		  percentage: '100'
+		  percentage: { [Sequelize.Op.ne]: '0' }
 		},
 		group: [Sequelize.fn('DATE', Sequelize.col('updatedAt'))]
 	  });
