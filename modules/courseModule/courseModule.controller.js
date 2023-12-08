@@ -54,7 +54,12 @@ exports.list = (req, res) => {
 							}
 						],
 						required: false,
-						attributes: ["id", "title", "estimatedTime", "courseTaskTypeId", "courseModuleId"]
+						attributes: ["id", "title", "estimatedTime", "courseTaskTypeId", "courseModuleId"],
+						order: [
+							[{ model: CourseTasks, include: [{ model: CourseModule }], as: 'CourseModule' }, 'id', 'ASC'],
+							['id', 'ASC'],
+						  ],
+					
 					}
 				]
 			})
