@@ -61,10 +61,13 @@ exports.list = (req, res) => {
 						  ],
 					
 					}
-				]
+				],
+				order: [
+					['id', 'ASC'], 
+				  ],
 			})
 				.then((response) => {
-					encryptHelper(response);
+					// encryptHelper(response);
 					res.status(200).send({ message: "Course modules and their tasks have been retrived", data: response });
 				})
 				.catch((err) => {
