@@ -37,4 +37,12 @@ router.post("/report", (req, res) => {
 	}
 });
 
+router.post("/dashboard", (req, res) => {
+	if (req.role == "Administrator" || "Client") {
+		CourseAssignmentController.getCourseAssignmentsUsersTasks(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
 module.exports = router;
