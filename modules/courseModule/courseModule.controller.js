@@ -54,17 +54,13 @@ exports.list = (req, res) => {
 							}
 						],
 						required: false,
-						attributes: ["id", "title", "estimatedTime", "courseTaskTypeId", "courseModuleId"],
-						order: [
-							[{ model: CourseTasks, include: [{ model: CourseModule }], as: 'CourseModule' }, 'id', 'ASC'],
-							['id', 'ASC'],
-						  ],
-					
+						attributes: ["id", "title", "estimatedTime", "courseTaskTypeId", "courseModuleId"]
 					}
 				],
 				order: [
-					['id', 'ASC'], 
-				  ],
+					["id", "ASC"],
+					[{ model: CourseTasks }, "id", "ASC"]
+				]
 			})
 				.then((response) => {
 					encryptHelper(response);
