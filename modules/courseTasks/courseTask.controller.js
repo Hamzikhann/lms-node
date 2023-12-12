@@ -605,9 +605,14 @@ exports.nextCourse = async (req, res) => {
 					taskTodo = allTasks[key + 1] ? allTasks[key + 1] : null;
 				}
 			});
-
-			encryptHelper(taskTodo);
-			res.send({ message: "Resume task", data: taskTodo });
+			// console.log(allTasks);
+			if (taskTodo) {
+				encryptHelper(taskTodo);
+				res.send({ message: "Resume task", data: taskTodo });
+			} else {
+				encryptHelper(allTasks[0]);
+				res.send({ message: "Resume task", data: allTasks[0] });
+			}
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
