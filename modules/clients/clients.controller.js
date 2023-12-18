@@ -45,6 +45,8 @@ exports.create = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -97,6 +99,8 @@ exports.update = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -136,6 +140,8 @@ exports.updateImage = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -168,6 +174,8 @@ exports.delete = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message

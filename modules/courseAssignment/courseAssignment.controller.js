@@ -3,7 +3,7 @@ const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
-const { Sequelize } = require('sequelize');
+const { Sequelize } = require("sequelize");
 
 const Clients = db.clients;
 const Courses = db.courses;
@@ -71,6 +71,8 @@ exports.create = (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -128,6 +130,8 @@ exports.delete = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -157,6 +161,8 @@ exports.report = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -235,7 +241,6 @@ exports.report = async (req, res) => {
 	}
 };
 
-
 // exports.getCourseAssignmentsUsersTasks = async (req, res) => {
 //     try {
 //         const courseId = req.body.courseId;
@@ -272,140 +277,140 @@ exports.report = async (req, res) => {
 //     }
 // };
 
-
 exports.getCourseAssignmentsUsersTasks = async (req, res) => {
 	try {
-	  const courseId = crypto.decrypt(req.body.courseId);
-	  const clientId = crypto.decrypt(req.clientId)
-  
-	  const assignment = await CourseAssignments.findOne({
-		where: {
-		  courseId: courseId,
-		  clientId: clientId,
-		  isActive: "Y"
-		},
-		include: [
-		  {
-			model: CourseEnrollments,
+		const courseId = crypto.decrypt(req.body.courseId);
+		const clientId = crypto.decrypt(req.clientId);
+
+		const assignment = await CourseAssignments.findOne({
 			where: {
-			  isActive: "Y"
-			},
-			attributes: [
-			  "courseProgress","updatedAt",
-			  [Sequelize.fn("COUNT", Sequelize.col("courseEnrollments.id")), "enrollmentCount"]
-			],
-			group: ["courseProgress", "courseEnrollments.updatedAt"],
-			order: [["courseEnrollments.updatedAt", "DESC"]]
-		  }
-		]
-	  });
-  
-	  if (!assignment) {
-		return res.status(404).send({
-		  message: "No assignment found for the given courseId."
-		});
-	  }
-	  
-	  const courseSyllabus = await CourseSyllabuses.findOne({
-		where: {
-		  courseId: courseId,
-		  isActive: "Y"
-		},
-		include: [
-		  {
-			model: CourseModules,
-			where: {
-			  isActive: "Y"
+				courseId: courseId,
+				clientId: clientId,
+				isActive: "Y"
 			},
 			include: [
-			  {
-				model: CourseTasks,
-				where: {
-				  isActive: "Y"
-				},
-				attributes: [
-				  "title",
-				  "description",
-				  "estimatedTime",
-				//   [Sequelize.fn("COUNT", Sequelize.col("courseTasks.id")), "taskCount"]
-				],
-				group: ["title", "description", "estimatedTime", "courseTasks.updatedAt"],
-				order: [["courseTasks.updatedAt", "DESC"]]
-			  }
+				{
+					model: CourseEnrollments,
+					where: {
+						isActive: "Y"
+					},
+					attributes: [
+						"courseProgress",
+						"updatedAt",
+						[Sequelize.fn("COUNT", Sequelize.col("courseEnrollments.id")), "enrollmentCount"]
+					],
+					group: ["courseProgress", "courseEnrollments.updatedAt"],
+					order: [["courseEnrollments.updatedAt", "DESC"]]
+				}
 			]
-		  }
-		]
-	  });
-	
-	  if (!courseSyllabus) {
-		return res.status(404).send({
-		  message: "No course syllabus/task found for the given courseId."
 		});
-	  }
 
-	  const AssignmentsHelper = await CourseAssignments.findOne({
-		where: {
-		  courseId: courseId,
-		  clientId: clientId,
-		  isActive: "Y"
-		},
-		include: [
-		  {
-			model: CourseEnrollments,
-			where: {
-			  isActive: "Y"
-			},
-			attributes: [
-			  "id", // Included ID for reference
-			  "courseProgress",
-			]
-		  }
-		]
-	  });
-	  if (!AssignmentsHelper) {
-		return res.status(404).send({
-		  message: "No assignment found for the given courseId."
-		});
-	  }
-	  const totalEnrollments = AssignmentsHelper.CourseEnrollments || [];
-	  const completeProgress = totalEnrollments.filter(enrollment => enrollment.courseProgress === 100);
-	  const inCompleteProgress = totalEnrollments.filter(enrollment => enrollment.courseProgress > 0 && enrollment.courseProgress < 100);
-	  const zeroProgress = totalEnrollments.filter(enrollment => enrollment.courseProgress === 0);
-	  
-	  const courseTaskProgressReport = await CourseTaskProgress.findAll({
-		attributes: [
-		  [Sequelize.fn('DATE', Sequelize.col('updatedAt')), 'completionDate'],
-		  [Sequelize.fn('COUNT', Sequelize.col('id')), 'completedTaskCount']
-		],
-		where: {
-		  courseId: courseId,
-		  isActive: "Y",
-		  percentage: { [Sequelize.Op.ne]: '0' }
-		},
-		group: [Sequelize.fn('DATE', Sequelize.col('updatedAt'))]
-	  });
-	  
-  
-	  encryptHelper(AssignmentsHelper);
-	  encryptHelper(assignment);
-	  encryptHelper(courseSyllabus);
-	  res.send({
-		message: "Retrieved statistics for the course.",
-		data: {
-			assignedCourses: assignment,
-			courseTasks: courseSyllabus,
-			totalEnrollments: totalEnrollments,
-			completeProgress: completeProgress,
-			inCompleteProgress: inCompleteProgress,
-			zeroProgress: zeroProgress,
-			courseTaskProgressDetails: courseTaskProgressReport,
+		if (!assignment) {
+			return res.status(404).send({
+				message: "No assignment found for the given courseId."
+			});
 		}
-	  });
+
+		const courseSyllabus = await CourseSyllabuses.findOne({
+			where: {
+				courseId: courseId,
+				isActive: "Y"
+			},
+			include: [
+				{
+					model: CourseModules,
+					where: {
+						isActive: "Y"
+					},
+					include: [
+						{
+							model: CourseTasks,
+							where: {
+								isActive: "Y"
+							},
+							attributes: [
+								"title",
+								"description",
+								"estimatedTime"
+								//   [Sequelize.fn("COUNT", Sequelize.col("courseTasks.id")), "taskCount"]
+							],
+							group: ["title", "description", "estimatedTime", "courseTasks.updatedAt"],
+							order: [["courseTasks.updatedAt", "DESC"]]
+						}
+					]
+				}
+			]
+		});
+
+		if (!courseSyllabus) {
+			return res.status(404).send({
+				message: "No course syllabus/task found for the given courseId."
+			});
+		}
+
+		const AssignmentsHelper = await CourseAssignments.findOne({
+			where: {
+				courseId: courseId,
+				clientId: clientId,
+				isActive: "Y"
+			},
+			include: [
+				{
+					model: CourseEnrollments,
+					where: {
+						isActive: "Y"
+					},
+					attributes: [
+						"id", // Included ID for reference
+						"courseProgress"
+					]
+				}
+			]
+		});
+		if (!AssignmentsHelper) {
+			return res.status(404).send({
+				message: "No assignment found for the given courseId."
+			});
+		}
+		const totalEnrollments = AssignmentsHelper.CourseEnrollments || [];
+		const completeProgress = totalEnrollments.filter((enrollment) => enrollment.courseProgress === 100);
+		const inCompleteProgress = totalEnrollments.filter(
+			(enrollment) => enrollment.courseProgress > 0 && enrollment.courseProgress < 100
+		);
+		const zeroProgress = totalEnrollments.filter((enrollment) => enrollment.courseProgress === 0);
+
+		const courseTaskProgressReport = await CourseTaskProgress.findAll({
+			attributes: [
+				[Sequelize.fn("DATE", Sequelize.col("updatedAt")), "completionDate"],
+				[Sequelize.fn("COUNT", Sequelize.col("id")), "completedTaskCount"]
+			],
+			where: {
+				courseId: courseId,
+				isActive: "Y",
+				percentage: { [Sequelize.Op.ne]: "0" }
+			},
+			group: [Sequelize.fn("DATE", Sequelize.col("updatedAt"))]
+		});
+
+		encryptHelper(AssignmentsHelper);
+		encryptHelper(assignment);
+		encryptHelper(courseSyllabus);
+		res.send({
+			message: "Retrieved statistics for the course.",
+			data: {
+				assignedCourses: assignment,
+				courseTasks: courseSyllabus,
+				totalEnrollments: totalEnrollments,
+				completeProgress: completeProgress,
+				inCompleteProgress: inCompleteProgress,
+				zeroProgress: zeroProgress,
+				courseTaskProgressDetails: courseTaskProgressReport
+			}
+		});
 	} catch (err) {
-	  emails.errorEmail(req, err);
-	  res.status(500).send({
-		message: err.message || "Some error occurred while retrieving assigned courses details."
-	  });
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred while retrieving assigned courses details."
+		});
 	}
-  };
-  
+};

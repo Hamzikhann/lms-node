@@ -1,6 +1,7 @@
 const db = require("../../models");
 const encryptHelper = require("../../utils/encryptHelper");
 const Joi = require("@hapi/joi");
+const emails = require("../../utils/emails");
 
 const CourseDepartment = db.courseDepartments;
 
@@ -36,6 +37,8 @@ exports.create = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -78,6 +81,8 @@ exports.upate = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -111,6 +116,8 @@ exports.delete = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message

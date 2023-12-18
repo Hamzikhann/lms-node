@@ -31,6 +31,8 @@ exports.create = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -141,6 +143,8 @@ exports.detail = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -193,6 +197,8 @@ exports.detailForUser = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -301,6 +307,8 @@ exports.getEnrollment = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -343,6 +351,8 @@ exports.update = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -389,6 +399,8 @@ exports.delete = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -429,6 +441,8 @@ exports.createProgress = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -548,9 +562,6 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
 	let achievementProgress = Math.floor((percentageAchievement / (allTasksCount * 100)) * 100);
 
-	// console.log(courseProgress);
-	// console.log(achievementProgress);
-
 	const courseProgressUpdated = await CourseEnrollments.update(
 		{ courseProgress: courseProgress },
 		{ where: { id: courseEnrollmentId, userId: userId, isActive: "Y" } }
@@ -563,7 +574,7 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 		});
 	}
 
-	console.log("Course progresss exists so updating ", courseProgressUpdated);
+	// console.log("Course progresss exists so updating ", courseProgressUpdated);
 	return 1;
 }
 
@@ -574,6 +585,8 @@ exports.nextCourse = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -605,7 +618,7 @@ exports.nextCourse = async (req, res) => {
 					taskTodo = allTasks[key + 1] ? allTasks[key + 1] : null;
 				}
 			});
-			// console.log(allTasks);
+
 			if (taskTodo) {
 				encryptHelper(taskTodo);
 				res.send({ message: "Resume task", data: taskTodo });

@@ -99,6 +99,8 @@ exports.create = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -152,9 +154,6 @@ exports.create = async (req, res) => {
 				var allUsersIds = allUsers.map((obj) => obj.id);
 				console.log(allUsersIds);
 				console.log(alreadyEnrolledUsersIds);
-				// var uniqueUsers = allUsersIds
-				// 	.filter((item) => !alreadyEnrolledUsersIds.includes(item))
-				// 	.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
 
 				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
 				uniqueUsers.forEach((user) => {
@@ -176,9 +175,7 @@ exports.create = async (req, res) => {
 				var allUsersIds = allUsers.map((obj) => obj.id);
 				console.log(allUsersIds);
 				console.log(alreadyEnrolledUsers);
-				// var uniqueUsers = allUsersIds
-				// 	.filter((item) => !alreadyEnrolledUsersIds.includes(item))
-				// 	.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
+
 				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
 
 				uniqueUsers.forEach((user) => {
@@ -206,13 +203,7 @@ exports.create = async (req, res) => {
 				});
 				var allUsersIds = allUsers.map((obj) => obj.userId);
 
-				// var uniqueUsers = allUsersIds
-				// 	.filter((item) => !alreadyEnrolledUsersIds.includes(item))
-				// 	.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
 				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
-				// console.log(allUsersIds);
-				// console.log(alreadyEnrolledUsersIds);
-				// console.log(uniqueUsers);
 
 				uniqueUsers.forEach((user) => {
 					enrollmentArr.push({
@@ -256,6 +247,8 @@ exports.delete = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -293,6 +286,8 @@ exports.detail = (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -331,6 +326,8 @@ exports.reset = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message

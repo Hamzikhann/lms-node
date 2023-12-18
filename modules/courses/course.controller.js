@@ -108,11 +108,7 @@ exports.listForClient = (req, res) => {
 exports.listForUser = (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
-		console.log(clientId, crypto.decrypt(req.userId));
-
-		// Get all courses for the logged in user enrollment
-		// Get all courses for the logged in user department enrollment
-		// Get all courses for the logged in user client
+		// console.log(clientId, crypto.decrypt(req.userId));
 
 		Courses.findAll({
 			where: { isActive: "Y", status: "P" },
@@ -252,10 +248,10 @@ exports.create = async (req, res) => {
 			image: Joi.any().optional(),
 			approximateTime: Joi.string().required()
 		});
-		console.log("body");
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
-			console.log("Error");
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -337,7 +333,6 @@ exports.create = async (req, res) => {
 			}
 		}
 	} catch (err) {
-		console.log("error", err);
 		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred.",
@@ -353,6 +348,8 @@ exports.detail = (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -449,6 +446,8 @@ exports.update = async (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -500,6 +499,8 @@ exports.delete = (req, res) => {
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
+			emails.errorEmail(req, error);
+
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
