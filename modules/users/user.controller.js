@@ -582,3 +582,52 @@ exports.delete = (req, res) => {
 		});
 	}
 };
+
+exports.reset = (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			userId: Joi.string().required(),
+			newPassword: Joi.string().min(8).max(16).required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+
+		if (error) {
+			emails.errorEmail(req, error);
+
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const userId = crypto.decrypt(req.body.userId);
+			const clientId = crypto.decrypt(req.clientId);
+			const newPassword = req.body.newPassword;
+			Users.findOne({ where: { id: userId, isActive: "Y", clientId: clientId } })
+				.then((response) => {
+					if (response) {
+						Users.update({ password: newPassword }, { where: { id: userId, isActive: "Y", clientId: clientId } })
+							.then((response) => {
+								res.send({ message: "Credentiales are updated" });
+							})
+							.catch((err) => {
+								emails.errorEmail(req, err);
+								res.status(500).send({
+									message: err.message || "Some error occurred."
+								});
+							});
+					}
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
