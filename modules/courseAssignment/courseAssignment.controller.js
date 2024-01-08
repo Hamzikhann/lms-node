@@ -64,8 +64,8 @@ exports.list = (req, res) => {
 exports.create = (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			// dateFrom: Joi.string().optional(),
-			// dateTo: Joi.string().optional(),
+			dateFrom: Joi.string().optional(),
+			dateTo: Joi.string().optional(),
 			courseId: Joi.string().required(),
 			clientId: Joi.string().required()
 		});
@@ -79,8 +79,8 @@ exports.create = (req, res) => {
 			});
 		} else {
 			const assignmentObj = {
-				// dateFrom: req.body.dateFrom,
-				// dataTo: req.body.dateTo,
+				dateFrom: req.body.dateFrom,
+				dataTo: req.body.dateTo,
 				courseId: crypto.decrypt(req.body.courseId),
 				clientId: crypto.decrypt(req.body.clientId)
 			};
