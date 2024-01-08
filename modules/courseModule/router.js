@@ -33,4 +33,7 @@ router.post("/delete", (req, res) => {
 	}
 });
 
+router.post("/check", (req, res) => {
+	courseModuleController.checkCourseCompletion(req, res);
+});
 module.exports = router;

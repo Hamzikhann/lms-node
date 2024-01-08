@@ -10,8 +10,8 @@ module.exports = (sequelize, DataTypes) => {
 			level: DataTypes.STRING,
 			language: DataTypes.STRING,
 			approximateTime: DataTypes.STRING,
-			completionDateOne: DataTypes.STRING,
-			completionDateTwo: DataTypes.STRING,
+			completionDateOne: DataTypes.DATEONLY,
+			completionDateTwo: DataTypes.DATEONLY,
 			passingThreshold: DataTypes.STRING,
 			status: {
 				type: DataTypes.STRING,
