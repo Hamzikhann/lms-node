@@ -247,9 +247,9 @@ exports.create = async (req, res) => {
 			instructorAbout: Joi.string().required(),
 			image: Joi.any().optional(),
 			approximateTime: Joi.string().required(),
-			completionDateOne: Joi.string().required(),
-			completionDateTwo: Joi.string().required(),
-			passingThreshold: Joi.string().required()
+			completionDateOne: Joi.string().optional(),
+			completionDateTwo: Joi.string().optional(),
+			passingThreshold: Joi.string().optional()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -270,9 +270,9 @@ exports.create = async (req, res) => {
 				classId: crypto.decrypt(req.body.classId),
 				courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId),
 				approximateTime: req.body.approximateTime,
-				completionDateOne: req.body.completionDateOne,
-				completionDateTwo: req.body.completionDateTwo,
-				passingThreshold: req.body.passingThreshold
+				completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
+				completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
+				passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
 			};
 
 			const alreadyExist = await Courses.findOne({
@@ -449,9 +449,9 @@ exports.update = async (req, res) => {
 			status: Joi.string().required(),
 			courseDepartmentId: Joi.string().required(),
 			approximateTime: Joi.string().required(),
-			completionDateOne: Joi.string().required(),
-			completionDateTwo: Joi.string().required(),
-			passingThreshold: Joi.string().required()
+			completionDateOne: Joi.string().optional(),
+			completionDateTwo: Joi.string().optional(),
+			passingThreshold: Joi.string().optional()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -473,9 +473,9 @@ exports.update = async (req, res) => {
 				status: req.body.status,
 				courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId),
 				approximateTime: req.body.approximateTime,
-				completionDateOne: req.body.completionDateOne,
-				completionDateTwo: req.body.completionDateTwo,
-				passingThreshold: req.body.passingThreshold
+				completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
+				completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
+				passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
 			};
 			Courses.update(courseObject, { where: { id: courseId, isActive: "Y" } })
 				.then((num) => {

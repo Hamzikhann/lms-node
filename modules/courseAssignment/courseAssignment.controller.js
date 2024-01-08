@@ -123,6 +123,53 @@ exports.create = (req, res) => {
 	}
 };
 
+exports.update = (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			dateFrom: Joi.string().optional(),
+			dateTo: Joi.string().optional(),
+			courseAssignmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			emails.errorEmail(req, error);
+
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseAssignmentId = crypto.decrypt(req.body.courseAssignmentId);
+			const assignmentObj = {
+				dateFrom: req.body.dateFrom,
+				dataTo: req.body.dateTo
+			};
+			CourseAssignments.update(assignmentObj, {
+				where: {
+					id: courseAssignmentId,
+					isActive: "Y"
+				}
+			})
+				.then((response) => {
+					if (response) {
+						res.send({ message: "This course assignment is updated" });
+					}
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 exports.delete = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({

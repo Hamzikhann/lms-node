@@ -21,6 +21,14 @@ router.post("/create", (req, res) => {
 	}
 });
 
+router.post("/update", (req, res) => {
+	if (req.role == "Administrator") {
+		CourseAssignmentController.update(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
 router.post("/delete", (req, res) => {
 	if (req.role == "Administrator") {
 		CourseAssignmentController.delete(req, res);
