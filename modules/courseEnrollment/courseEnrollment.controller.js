@@ -17,7 +17,7 @@ const UserDepartments = db.userDepartments;
 const Teams = db.teams;
 const TeamUsers = db.teamUsers;
 const CourseTaskProgress = db.courseTaskProgress;
-const UserEnrollment = db.userEnrollments;
+const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 
 exports.list = async (req, res) => {
 	try {
@@ -120,7 +120,7 @@ exports.create = async (req, res) => {
 			const teamId = req.body.teamId ? crypto.decrypt(req.body.teamId) : null;
 			const clientId = crypto.decrypt(req.clientId);
 
-			var alreadyEnrolledUsers = await UserEnrollment.findAll({
+			var alreadyEnrolledUsers = await CourseEnrollmentUsers.findAll({
 				where: { isActive: "Y" },
 				include: [
 					{
@@ -250,7 +250,7 @@ exports.create = async (req, res) => {
 									courseEnrollmentId: response.id
 								});
 							});
-							let enrollment = await UserEnrollment.bulkCreate(enrolledUser, { transaction });
+							let enrollment = await CourseEnrollmentUsers.bulkCreate(enrolledUser, { transaction });
 							encryptHelper(response);
 							encryptHelper(enrollment);
 							await transaction.commit();

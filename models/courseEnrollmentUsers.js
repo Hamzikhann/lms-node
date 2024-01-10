@@ -2,7 +2,7 @@
 
 module.exports = (sequelize, DataTypes) => {
 	const table = sequelize.define(
-		"userEnrollments",
+		"courseEnrollmentUsers",
 		{
 			isActive: {
 				type: DataTypes.STRING,
