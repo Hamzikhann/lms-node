@@ -54,9 +54,9 @@ class Server {
 		if (server.listening) {
 			console.log(`LMS server is listening on this ${port}`);
 		}
-		cron.schedule("*/1 * * * *", () => {
-			cornJob.checkCourseCompletion();
-		});
+		// cron.schedule("*/1 * * * *", () => {
+		// 	cornJob.checkCourseCompletion();
+		// });
 	}
 }
 

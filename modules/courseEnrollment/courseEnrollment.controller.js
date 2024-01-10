@@ -4,6 +4,7 @@ const emails = require("../../utils/emails");
 const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
 const { Op } = require("sequelize");
+const { sequelize } = require("../../models");
 
 const Users = db.users;
 const Clients = db.clients;
@@ -16,6 +17,7 @@ const UserDepartments = db.userDepartments;
 const Teams = db.teams;
 const TeamUsers = db.teamUsers;
 const CourseTaskProgress = db.courseTaskProgress;
+const UserEnrollment = db.userEnrollments;
 
 exports.list = async (req, res) => {
 	try {
@@ -90,6 +92,9 @@ exports.listTypes = async (req, res) => {
 exports.create = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
+			completionDateOne: Joi.string().optional(),
+			completionDateTwo: Joi.string().optional(),
+			passingThreshold: Joi.string().optional(),
 			required: Joi.string().required(),
 			assignmentId: Joi.string().required(),
 			courseEnrollmentTypeId: Joi.string().required(),
@@ -115,15 +120,21 @@ exports.create = async (req, res) => {
 			const teamId = req.body.teamId ? crypto.decrypt(req.body.teamId) : null;
 			const clientId = crypto.decrypt(req.clientId);
 
-			var alreadyEnrolledUsers = await CourseEnrollments.findAll({
-				where: { courseAssignmentId, isActive: "Y" },
+			var alreadyEnrolledUsers = await UserEnrollment.findAll({
+				where: { isActive: "Y" },
+				include: [
+					{
+						model: CourseEnrollments,
+						where: { courseAssignmentId: courseAssignmentId }
+					}
+				],
 				// , courseEnrollmentTypeId: courseEnrollmentTypeId
 				attributes: ["userId"],
 				raw: true
 			});
 			var alreadyEnrolledUsersIds = alreadyEnrolledUsers.map((obj) => obj.userId);
 
-			var enrollmentArr = [];
+			var enrollmentObj;
 
 			if (courseEnrollmentTypeId == 1) {
 				var allUsers = await Users.findAll({
@@ -137,14 +148,19 @@ exports.create = async (req, res) => {
 					.filter((item) => !alreadyEnrolledUsersIds.includes(item))
 					.concat(alreadyEnrolledUsersIds.filter((item) => !allUsersIds.includes(item)));
 
-				uniqueUsers.forEach((user) => {
-					enrollmentArr.push({
-						userId: user,
-						required: req.body.required,
-						courseAssignmentId,
-						courseEnrollmentTypeId
-					});
-				});
+				// uniqueUsers.forEach((user) => {
+				// userId: user,
+				enrollmentObj = {
+					required: req.body.required,
+					courseAssignmentId,
+					courseEnrollmentTypeId,
+					completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
+					completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
+					passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
+				};
+				// });
+				console.log(allUsersIds);
+				console.log(uniqueUsers);
 			} else if (courseEnrollmentTypeId == 2) {
 				var allUsers = await Users.findAll({
 					where: { clientId: clientId, isActive: "Y", roleId: 3, userDepartmentId },
@@ -152,19 +168,21 @@ exports.create = async (req, res) => {
 					raw: true
 				});
 				var allUsersIds = allUsers.map((obj) => obj.id);
-				console.log(allUsersIds);
-				console.log(alreadyEnrolledUsersIds);
+				// console.log(allUsersIds);
+				// console.log(alreadyEnrolledUsersIds);
 
 				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
-				uniqueUsers.forEach((user) => {
-					enrollmentArr.push({
-						userId: user,
-						required: req.body.required,
-						courseAssignmentId,
-						courseEnrollmentTypeId,
-						userDepartmentId
-					});
-				});
+				// uniqueUsers.forEach((user) => {
+				enrollmentObj = {
+					required: req.body.required,
+					courseAssignmentId,
+					courseEnrollmentTypeId,
+					userDepartmentId,
+					completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
+					completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
+					passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
+				};
+				// });
 				console.log(uniqueUsers);
 			} else if (courseEnrollmentTypeId == 3) {
 				var allUsers = await Users.findAll({
@@ -178,15 +196,17 @@ exports.create = async (req, res) => {
 
 				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
 
-				uniqueUsers.forEach((user) => {
-					enrollmentArr.push({
-						userId: user,
-						required: req.body.required,
-						courseAssignmentId,
-						courseEnrollmentTypeId,
-						userDepartmentId
-					});
-				});
+				// uniqueUsers.forEach((user) => {
+				enrollmentObj = {
+					required: req.body.required,
+					courseAssignmentId,
+					courseEnrollmentTypeId,
+					userDepartmentId,
+					completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
+					completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
+					passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
+				};
+				// });
 				console.log(uniqueUsers);
 			} else if (courseEnrollmentTypeId == 4) {
 				var allUsers = await TeamUsers.findAll({
@@ -205,30 +225,54 @@ exports.create = async (req, res) => {
 
 				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
 
-				uniqueUsers.forEach((user) => {
-					enrollmentArr.push({
-						userId: user,
-						required: req.body.required,
-						courseAssignmentId,
-						courseEnrollmentTypeId,
-						teamId
-					});
-				});
+				// uniqueUsers.forEach((user) => {
+				enrollmentObj = {
+					required: req.body.required,
+					courseAssignmentId,
+					courseEnrollmentTypeId,
+					teamId,
+					completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
+					completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
+					passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
+				};
+				// });
 			}
 
-			if (enrollmentArr.length > 0) {
-				CourseEnrollments.bulkCreate(enrollmentArr)
-					.then((response) => {
-						encryptHelper(response);
-						res.send({ message: "All users have been enrolled to this course", data: response });
+			let transaction = await sequelize.transaction();
+			if (uniqueUsers.length > 0) {
+				CourseEnrollments.create(enrollmentObj, { transaction })
+					.then(async (response) => {
+						let enrolledUser = [];
+						if (response) {
+							uniqueUsers.forEach((e) => {
+								enrolledUser.push({
+									userId: e,
+									courseEnrollmentId: response.id
+								});
+							});
+							let enrollment = await UserEnrollment.bulkCreate(enrolledUser, { transaction });
+							encryptHelper(response);
+							encryptHelper(enrollment);
+							await transaction.commit();
+
+							res.send({
+								message: "All users have been enrolled to this course",
+								data: response,
+								enrollment: enrollment
+							});
+						}
 					})
-					.catch((err) => {
+					.catch(async (err) => {
+						if (transaction) await transaction.rollback();
+
 						emails.errorEmail(req, err);
 						res.status(500).send({
 							message: err.message || "Some error occurred."
 						});
 					});
 			} else {
+				if (transaction) await transaction.rollback();
+
 				res.send({ message: "Users already enrolled to this course", data: [] });
 			}
 		}

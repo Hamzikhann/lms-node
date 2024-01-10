@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
 		table.belongsTo(models.users, { foreignKey: "managerId", as: "manager" });
 		table.hasMany(models.users, { foreignKey: "managerId", as: "employees" });
 		table.hasOne(models.userProfile);
-		table.hasMany(models.courseEnrollments);
+		table.hasMany(models.userEnrollments);
 	};
 	return table;
 };

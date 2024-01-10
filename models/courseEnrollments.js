@@ -13,6 +13,9 @@ module.exports = (sequelize, DataTypes) => {
 				type: DataTypes.INTEGER,
 				defaultValue: 0
 			},
+			completionDateOne: DataTypes.DATEONLY,
+			completionDateTwo: DataTypes.DATEONLY,
+			passingThreshold: DataTypes.STRING,
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,
@@ -25,7 +28,6 @@ module.exports = (sequelize, DataTypes) => {
 		table.belongsTo(models.courseEnrollmentTypes);
 		table.belongsTo(models.courseAssignments);
 		table.belongsTo(models.userDepartments);
-		table.belongsTo(models.users);
 		table.belongsTo(models.teams);
 		table.hasMany(models.courseAchievements);
 	};
