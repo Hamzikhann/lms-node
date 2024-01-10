@@ -13,6 +13,14 @@ router.post("/list", (req, res) => {
 	}
 });
 
+router.post("/update", (req, res) => {
+	if (req.role == "Client") {
+		courseEnrollmentController.update(req, res);
+	} else {
+		res.status(403).send({ message: "Forbidden Access" });
+	}
+});
+
 router.post("/list/types", (req, res) => {
 	if (req.role == "Client") {
 		courseEnrollmentController.listTypes(req, res);

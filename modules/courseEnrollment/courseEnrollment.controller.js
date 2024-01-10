@@ -292,6 +292,51 @@ exports.create = async (req, res) => {
 	}
 };
 
+exports.update = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			completionDateOne: Joi.string().optional(),
+			completionDateTwo: Joi.string().optional(),
+			required: Joi.string().required(),
+			courseEnrollmentId: Joi.string().optional().allow(null).allow("")
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			emails.errorEmail(req, error);
+
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
+			const enrollmentObj = {
+				completionDateOne: req.body.completionDateOne,
+				completionDateTwo: req.body.completionDateTwo,
+				required: req.body.required
+			};
+
+			CourseEnrollments.update(enrollmentObj, { where: { id: courseEnrollmentId } })
+				.then((response) => {
+					if (response) {
+						res.send({ message: "Course Enrollment Updated..." });
+					}
+				})
+				.catch((err) => {
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
+				});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 exports.delete = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
