@@ -18,6 +18,7 @@ const CourseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
 const TeamUsers = db.teamUsers;
 const Teams = db.teams;
+const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 
 exports.create = async (req, res) => {
 	try {
@@ -116,18 +117,32 @@ exports.create = async (req, res) => {
 										return false;
 									});
 									const courseAssignmentIds = uniqueAllCourses.concat(uniqueDepartment);
-
+									console.log(courseAssignmentIds);
 									var courseEnrollmentObj = [];
+									// userId: user.id,
+
 									courseAssignmentIds.forEach((e) => {
 										let obj = {
-											userId: user.id,
 											courseEnrollmentTypeId: 4,
 											courseAssignmentId: e["courseAssignment.id"]
 										};
 										courseEnrollmentObj.push(obj);
 									});
 
-									const courseEnrollment = await CourseEnrollments.bulkCreate(courseEnrollmentObj, { transaction });
+									var courseEnrollment = await CourseEnrollments.bulkCreate(courseEnrollmentObj, { transaction });
+
+									let enrollmentUserObj = [];
+									courseEnrollment.forEach((e) => {
+										let obj = {
+											userId: user.id,
+											courseEnrollmentId: e.id
+										};
+										enrollmentUserObj.push(obj);
+									});
+									console.log(enrollmentUserObj);
+									const courseEnrollmentUsers = await CourseEnrollmentUsers.bulkCreate(enrollmentUserObj, {
+										transaction
+									});
 								}
 
 								await transaction.commit();
@@ -136,7 +151,8 @@ exports.create = async (req, res) => {
 
 								res.status(200).send({
 									message: "User created successfully.",
-									data: user
+									data: user,
+									enrollment: courseEnrollment
 								});
 							})
 							.catch(async (err) => {

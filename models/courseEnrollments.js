@@ -15,7 +15,6 @@ module.exports = (sequelize, DataTypes) => {
 			},
 			completionDateOne: DataTypes.DATEONLY,
 			completionDateTwo: DataTypes.DATEONLY,
-			passingThreshold: DataTypes.STRING,
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,
@@ -30,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
 		table.belongsTo(models.userDepartments);
 		table.belongsTo(models.teams);
 		table.hasMany(models.courseAchievements);
+		table.hasMany(models.courseEnrollmentUsers);
 	};
 	return table;
 };

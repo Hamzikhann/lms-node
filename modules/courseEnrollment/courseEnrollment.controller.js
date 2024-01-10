@@ -18,6 +18,7 @@ const Teams = db.teams;
 const TeamUsers = db.teamUsers;
 const CourseTaskProgress = db.courseTaskProgress;
 const CourseEnrollmentUsers = db.courseEnrollmentUsers;
+const CourseEnrollmentUser = db.courseEnrollmentUsers;
 
 exports.list = async (req, res) => {
 	try {
@@ -50,8 +51,15 @@ exports.list = async (req, res) => {
 					attributes: ["title"]
 				},
 				{
-					model: Users,
-					attributes: ["firstName", "lastName"]
+					model: CourseEnrollmentUsers,
+					attributes: ["id"],
+					include: [
+						{
+							model: Users,
+							where: { isActive: "Y" },
+							attributes: ["firstName", "lastName"]
+						}
+					]
 				}
 			],
 			attributes: { exclude: ["isActive", "updatedAt"] }

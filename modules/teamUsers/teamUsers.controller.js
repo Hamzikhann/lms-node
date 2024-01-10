@@ -7,6 +7,7 @@ const { sequelize } = require("../../models");
 
 const TeamUsers = db.teamUsers;
 const CourseEnrollments = db.courseEnrollments;
+const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 
 exports.create = async (req, res) => {
 	try {
@@ -30,10 +31,13 @@ exports.create = async (req, res) => {
 				where: { teamId: crypto.decrypt(req.body.teamId), isActive: "Y" },
 				attributes: ["userId"]
 			});
+			console.log(existedUsesr, "existedUsesr");
 			encryptHelper(existedUsesr);
 			var existedUsesrIds = existedUsesr.map((obj) => obj.userId);
+			console.log(existedUsesrIds, "existedUsesrIds");
 
 			var uniqueUsers = userIds.filter((item) => !existedUsesrIds.includes(item));
+			console.log(uniqueUsers, "uniqueUsers");
 
 			let teamUserObj = [];
 			uniqueUsers.forEach((id) => {
@@ -48,43 +52,64 @@ exports.create = async (req, res) => {
 			let transaction = await sequelize.transaction();
 			TeamUsers.bulkCreate(teamUserObj, { transaction })
 				.then(async (response) => {
-					const team = await CourseEnrollments.findAll({
-						where: { teamId: crypto.decrypt(req.body.teamId), isActive: "Y" },
-						attributes: ["courseAssignmentId"],
-						raw: true
-					});
-					const userExistedCourses = await CourseEnrollments.findAll({
-						where: { userId: crypto.decrypt(uniqueUsers[0]), isActive: "Y" },
-						attributes: ["courseAssignmentId"],
-						raw: true
-					});
-					const teamIds = team.map((item) => item.courseAssignmentId);
-					const userExistedCoursesIds = userExistedCourses.map((item) => item.courseAssignmentId);
+					if (uniqueUsers.length > 0) {
+						const team = await CourseEnrollments.findAll({
+							where: { teamId: crypto.decrypt(req.body.teamId), isActive: "Y" },
 
-					var uniqueid = teamIds.filter((item) => !userExistedCoursesIds.includes(item));
-					if (uniqueid) {
-						const enrollmentObj = [];
-						uniqueid.forEach((e) => {
-							uniqueUsers.forEach((j) => {
+							attributes: ["courseAssignmentId"],
+							raw: true
+						});
+						const userExistedCourses = await CourseEnrollments.findAll({
+							where: { isActive: "Y" },
+							attributes: ["courseAssignmentId"],
+							include: [
+								{
+									model: CourseEnrollmentUsers,
+									where: { userId: crypto.decrypt(uniqueUsers[0]), isActive: "Y" }
+								}
+							],
+							raw: true
+						});
+						const teamIds = team.map((item) => item.courseAssignmentId);
+						const userExistedCoursesIds = userExistedCourses.map((item) => item.courseAssignmentId);
+
+						var uniqueid = teamIds.filter((item) => !userExistedCoursesIds.includes(item));
+						if (uniqueid) {
+							const enrollmentObj = [];
+							// userId: crypto.decrypt(j),
+							const enrollmentUserObj = [];
+							uniqueid.forEach((e) => {
+								// uniqueUsers.forEach((j) => {
 								let obj = {
-									userId: crypto.decrypt(j),
 									courseAssignmentId: e,
 									teamId: crypto.decrypt(req.body.teamId),
 									courseEnrollmentTypeId: 3
 								};
 								enrollmentObj.push(obj);
+								// });
 							});
-						});
-						console.log(enrollmentObj);
-						const courseEnrollment = await CourseEnrollments.bulkCreate(enrollmentObj, { transaction });
-					}
+							console.log(enrollmentObj);
+							const courseEnrollment = await CourseEnrollments.bulkCreate(enrollmentObj, { transaction });
+							courseEnrollment.forEach((e) => {
+								uniqueUsers.forEach((j) => {
+									let obj = {
+										userId: crypto.decrypt(j),
+										courseEnrollmentId: e.id
+									};
+									enrollmentUserObj.push(obj);
+								});
+							});
 
-					await transaction.commit();
-					encryptHelper(response);
-					res.status(200).send({
-						message: "Team users are created",
-						data: response
-					});
+							const courseEnrollmentUsers = await CourseEnrollmentUsers.bulkCreate(enrollmentUserObj, { transaction });
+						}
+					} else {
+						await transaction.commit();
+						encryptHelper(response);
+						res.status(200).send({
+							message: "Team users are created",
+							data: response
+						});
+					}
 				})
 				.catch(async (err) => {
 					if (transaction) await transaction.rollback();

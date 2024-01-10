@@ -246,7 +246,8 @@ exports.create = async (req, res) => {
 			instructorName: Joi.string().required(),
 			instructorAbout: Joi.string().required(),
 			image: Joi.any().optional(),
-			approximateTime: Joi.string().required()
+			approximateTime: Joi.string().required(),
+			passingThreshold: Joi.string().optional()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -266,7 +267,8 @@ exports.create = async (req, res) => {
 				status: req.body.status,
 				classId: crypto.decrypt(req.body.classId),
 				courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId),
-				approximateTime: req.body.approximateTime
+				approximateTime: req.body.approximateTime,
+				passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
 			};
 
 			const alreadyExist = await Courses.findOne({
@@ -442,7 +444,8 @@ exports.update = async (req, res) => {
 			language: Joi.string().required(),
 			status: Joi.string().required(),
 			courseDepartmentId: Joi.string().required(),
-			approximateTime: Joi.string().required()
+			approximateTime: Joi.string().required(),
+			passingThreshold: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -463,7 +466,8 @@ exports.update = async (req, res) => {
 				language: req.body.language,
 				status: req.body.status,
 				courseDepartmentId: crypto.decrypt(req.body.courseDepartmentId),
-				approximateTime: req.body.approximateTime
+				approximateTime: req.body.approximateTime,
+				passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
 			};
 			Courses.update(courseObject, { where: { id: courseId, isActive: "Y" } })
 				.then((num) => {
