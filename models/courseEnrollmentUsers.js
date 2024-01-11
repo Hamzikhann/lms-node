@@ -4,6 +4,7 @@ module.exports = (sequelize, DataTypes) => {
 	const table = sequelize.define(
 		"courseEnrollmentUsers",
 		{
+			progress: DataTypes.STRING,
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,
