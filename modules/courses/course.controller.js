@@ -11,6 +11,7 @@ const courseBooks = db.courseBooks;
 const courseDepartment = db.courseDepartments;
 const courseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
+const CourseEnrollmentUsers = db.courseEnrollments;
 const courseFaqs = db.courseFaqs;
 const courseInstructor = db.courseInstructors;
 const courseObjectives = db.courseObjectives;
@@ -404,9 +405,17 @@ exports.detail = (req, res) => {
 						include: [
 							{
 								model: CourseEnrollments,
-								where: { userId, isActive: "Y" },
+								where: { isActive: "Y" },
+								include: [
+									{
+										model: CourseEnrollmentUsers,
+										where: { userId, isActive: "Y" },
+										required: false,
+										attributes: ["id", "progress"]
+									}
+								],
 								required: false,
-								attributes: ["id", "courseProgress"]
+								attributes: ["id"]
 							}
 						],
 						attributes: ["id"]
