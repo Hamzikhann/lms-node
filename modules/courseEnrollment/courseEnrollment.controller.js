@@ -18,7 +18,6 @@ const Teams = db.teams;
 const TeamUsers = db.teamUsers;
 const CourseTaskProgress = db.courseTaskProgress;
 const CourseEnrollmentUsers = db.courseEnrollmentUsers;
-const CourseEnrollmentUser = db.courseEnrollmentUsers;
 
 exports.list = async (req, res) => {
 	try {
@@ -393,10 +392,10 @@ exports.detail = (req, res) => {
 			const userId = crypto.decrypt(req.userId);
 			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 
-			CourseEnrollments.findOne({
-				where: { userId, id: courseEnrollmentId },
+			CourseEnrollmentUsers.findOne({
+				where: { userId, courseEnrollmentId },
 				isActive: "Y",
-				attributes: ["courseProgress"]
+				attributes: ["progress"]
 			})
 				.then((response) => {
 					res.send({ data: response });
@@ -433,7 +432,7 @@ exports.reset = async (req, res) => {
 			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 			const userId = crypto.decrypt(req.userId);
 
-			CourseEnrollments.update({ courseProgress: 0 }, { where: { id: courseEnrollmentId, userId, isActive: "Y" } })
+			CourseEnrollmentUsers.update({ progress: 0 }, { where: { courseEnrollmentId, userId, isActive: "Y" } })
 				.then(async (response) => {
 					if (response) {
 						const restTaskProgress = await CourseTaskProgress.update(
