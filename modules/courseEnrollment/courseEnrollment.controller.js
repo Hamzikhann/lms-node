@@ -22,6 +22,7 @@ const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 exports.list = async (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
+		console.log(clientId);
 		const enrollments = await CourseEnrollments.findAll({
 			where: { isActive: "Y" },
 			include: [
