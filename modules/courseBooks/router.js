@@ -2,6 +2,9 @@
 
 const express = require("express");
 const router = express.Router();
+const fileUpload = require("../../utils/fileUpload");
+
+const { upload } = fileUpload("documents");
 
 const courseBooksController = require("./courseBooks.controller");
 
