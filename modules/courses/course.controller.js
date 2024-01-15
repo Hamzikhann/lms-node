@@ -11,6 +11,7 @@ const courseBooks = db.courseBooks;
 const courseDepartment = db.courseDepartments;
 const courseAssignments = db.courseAssignments;
 const CourseEnrollments = db.courseEnrollments;
+const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 const courseFaqs = db.courseFaqs;
 const courseInstructor = db.courseInstructors;
 const courseObjectives = db.courseObjectives;
@@ -20,7 +21,6 @@ const courseModule = db.courseModules;
 const courseTasks = db.courseTasks;
 const courseTaskTypes = db.courseTaskTypes;
 const User = db.users;
-const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 
 exports.list = (req, res) => {
 	try {
@@ -412,13 +412,16 @@ exports.detail = (req, res) => {
 							{
 								model: CourseEnrollments,
 								where: { isActive: "Y" },
-								attributes: ["id"],
 								include: [
 									{
 										model: CourseEnrollmentUsers,
-										where: { userId: crypto.decrypt(req.userId), isActive: "Y" }
+										where: { userId, isActive: "Y" },
+										required: false,
+										attributes: ["id", "progress"]
 									}
-								]
+								],
+								required: false,
+								attributes: ["id"]
 							}
 						],
 						attributes: ["id"]

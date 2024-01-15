@@ -13,7 +13,6 @@ exports.create = async (req, res) => {
 			edition: Joi.string().max(255).required(),
 			author: Joi.string().max(255).required(),
 			publisher: Joi.string().max(255).required(),
-			bookUrl: Joi.string().max(255).required(),
 			courseId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
@@ -25,12 +24,13 @@ exports.create = async (req, res) => {
 				message: message
 			});
 		} else {
+			let bookPdf = req.file ? "uploads/documents/" + req.file.filename : null;
 			let bookObj = {
 				title: req.body.title,
 				author: req.body.author,
 				edition: req.body.edition,
 				publisher: req.body.publisher,
-				bookUrl: req.body.bookUrl,
+				bookUrl: bookPdf,
 				courseId: crypto.decrypt(req.body.courseId)
 			};
 			let coursebook = await CourseBooks.create(bookObj);
@@ -94,7 +94,7 @@ exports.update = async (req, res) => {
 			edition: Joi.string().max(255).required(),
 			author: Joi.string().max(255).required(),
 			publisher: Joi.string().max(255).required(),
-			bookUrl: Joi.string().max(255).required(),
+			// bookUrl: Joi.string().max(255).required(),
 			bookId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
@@ -111,8 +111,8 @@ exports.update = async (req, res) => {
 				title: req.body.title,
 				author: req.body.author,
 				edition: req.body.edition,
-				publisher: req.body.publisher,
-				bookUrl: req.body.bookUrl
+				publisher: req.body.publisher
+				// bookUrl: req.body.bookUrl
 			};
 
 			let updateBook = await CourseBooks.update(bookObj, { where: { id: bookId } });

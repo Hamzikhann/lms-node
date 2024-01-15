@@ -22,6 +22,7 @@ const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 exports.list = async (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
+		console.log(clientId);
 		const enrollments = await CourseEnrollments.findAll({
 			where: { isActive: "Y" },
 			include: [
@@ -392,17 +393,10 @@ exports.detail = (req, res) => {
 			const userId = crypto.decrypt(req.userId);
 			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 
-			CourseEnrollments.findOne({
-				where: { userId, id: courseEnrollmentId },
+			CourseEnrollmentUsers.findOne({
+				where: { userId, courseEnrollmentId },
 				isActive: "Y",
-				include: [
-					{
-						model: CourseEnrollmentUsers,
-						attributes: ["progress"],
-						where: { userId: userId }
-					}
-				],
-				attributes: ["id"]
+				attributes: ["progress"]
 			})
 				.then((response) => {
 					res.send({ data: response });
@@ -439,10 +433,7 @@ exports.reset = async (req, res) => {
 			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 			const userId = crypto.decrypt(req.userId);
 
-			CourseEnrollmentUsers.update(
-				{ progress: 0 },
-				{ where: { courseEnrollmentId: courseEnrollmentId, userId, isActive: "Y" } }
-			)
+			CourseEnrollmentUsers.update({ progress: "0" }, { where: { courseEnrollmentId, userId, isActive: "Y" } })
 				.then(async (response) => {
 					if (response) {
 						const restTaskProgress = await CourseTaskProgress.update(

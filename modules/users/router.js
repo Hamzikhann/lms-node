@@ -59,7 +59,7 @@ router.post("/delete", (req, res) => {
 	}
 });
 
-router.post("/rest/credentiales", (req, res) => {
+router.post("/reset/credentials", (req, res) => {
 	if (req.role == "Client") {
 		usersController.reset(req, res);
 	} else {

@@ -2,12 +2,15 @@
 
 const express = require("express");
 const router = express.Router();
+const fileUpload = require("../../utils/fileUpload");
+
+const { upload } = fileUpload("documents");
 
 const courseBooksController = require("./courseBooks.controller");
 
 router.post("/list", courseBooksController.list);
 
-router.post("/create", (req, res) => {
+router.post("/create", upload.single("ebook"), (req, res) => {
 	if (req.role == "Administrator") {
 		courseBooksController.create(req, res);
 	} else {

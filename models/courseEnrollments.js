@@ -9,7 +9,6 @@ module.exports = (sequelize, DataTypes) => {
 				allowNull: false,
 				defaultValue: "Y"
 			},
-
 			completionDateOne: DataTypes.DATEONLY,
 			completionDateTwo: DataTypes.DATEONLY,
 			isActive: {
