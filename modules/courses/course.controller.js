@@ -556,28 +556,43 @@ exports.delete = (req, res) => {
 
 exports.reset = async (req, res) => {
 	try {
-		const clientId = crypto.decrypt(req.clientId);
+		const joiSchema = Joi.object({
+			courseEnrollmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			emails.errorEmail(req, error);
 
-		const courseAssignment = await courseAssignments.findAll({
-			where: { clientId: clientId },
-			include: [
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const clientId = crypto.decrypt(req.clientId);
+			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
+			// console.log(clientId, courseEnrollmentId);
+
+			const updateProgress = await CourseEnrollmentUsers.update(
+				{ progress: "0" },
 				{
-					model: CourseEnrollments,
-					where: { isActive: "Y" },
+					where: { isActive: "Y", courseEnrollmentId: courseEnrollmentId },
 					include: [
 						{
-							modelx: CourseEnrollmentUsers,
+							model: CourseEnrollments,
 							where: { isActive: "Y" },
-							attributes: ["progress"]
+							include: [
+								{
+									model: courseAssignments,
+									where: { isActive: "Y", clientId: clientId }
+								}
+							]
 						}
-					],
-					attributes: ["id"]
+					]
 				}
-			],
-			attributes: ["id"]
-		});
+			);
 
-		res.send({ data: courseAssignment });
+			res.send({ message: "The Courses are reseted", data: updateProgress });
+		}
 	} catch (err) {
 		emails.errorEmail(req, err);
 		res.status(500).send({
