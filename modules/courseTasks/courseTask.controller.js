@@ -45,8 +45,7 @@ exports.create = async (req, res) => {
 					title: req.body.title.trim(),
 					estimatedTime: req.body.estimatedTime,
 					courseModuleId: crypto.decrypt(req.body.courseModuleId),
-					courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId),
-					reference: req.body.reference ? req.body.reference : null
+					courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId)
 				}
 			})
 				.then(async (response) => {
