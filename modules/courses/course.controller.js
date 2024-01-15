@@ -20,6 +20,7 @@ const courseModule = db.courseModules;
 const courseTasks = db.courseTasks;
 const courseTaskTypes = db.courseTaskTypes;
 const User = db.users;
+const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 
 exports.list = (req, res) => {
 	try {
@@ -131,8 +132,14 @@ exports.listForUser = (req, res) => {
 					include: [
 						{
 							model: CourseEnrollments,
-							where: { isActive: "Y", userId: crypto.decrypt(req.userId) },
-							attributes: ["id", "courseProgress"]
+							where: { isActive: "Y" },
+							attributes: ["id"],
+							include: [
+								{
+									model: CourseEnrollmentUsers,
+									where: { userId: crypto.decrypt(req.userId), isActive: "Y" }
+								}
+							]
 						}
 					],
 					attributes: ["id"]
@@ -404,9 +411,14 @@ exports.detail = (req, res) => {
 						include: [
 							{
 								model: CourseEnrollments,
-								where: { userId, isActive: "Y" },
-								required: false,
-								attributes: ["id", "courseProgress"]
+								where: { isActive: "Y" },
+								attributes: ["id"],
+								include: [
+									{
+										model: CourseEnrollmentUsers,
+										where: { userId: crypto.decrypt(req.userId), isActive: "Y" }
+									}
+								]
 							}
 						],
 						attributes: ["id"]

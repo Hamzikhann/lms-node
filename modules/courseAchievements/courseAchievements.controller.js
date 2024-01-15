@@ -8,6 +8,7 @@ const { sequelize } = require("../../models");
 const CourseAchievements = db.courseAchievements;
 const CourseEnrollments = db.courseEnrollments;
 const CourseAssignments = db.courseAssignments;
+const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 
 exports.listByUser = (req, res) => {
 	try {
@@ -19,12 +20,16 @@ exports.listByUser = (req, res) => {
 			include: [
 				{
 					model: CourseEnrollments,
-					where: { userId, isActive: "Y" },
+					where: { isActive: "Y" },
 					include: [
 						{
 							model: CourseAssignments,
 							where: { clientId, isActive: "Y" },
 							attributes: []
+						},
+						{
+							model: CourseEnrollmentUsers,
+							where: { userId, isActive: "Y" }
 						}
 					],
 					attributes: []
@@ -74,12 +79,16 @@ exports.listByCourse = (req, res) => {
 				include: [
 					{
 						model: CourseEnrollments,
-						where: { userId, isActive: "Y" },
+						where: { isActive: "Y" },
 						include: [
 							{
 								model: CourseAssignments,
 								where: { courseId, clientId, isActive: "Y" },
 								attributes: []
+							},
+							{
+								model: CourseEnrollmentUsers,
+								where: { userId, isActive: "Y" }
 							}
 						],
 						attributes: []

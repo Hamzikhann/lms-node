@@ -18,6 +18,7 @@ const CourseSyllabuses = db.courseSyllabus;
 const CourseModules = db.courseModules;
 const CourseTasks = db.courseTasks;
 const CourseTaskProgress = db.courseTaskProgress;
+const CourseEnrollmentUser = db.courseEnrollmentUsers;
 
 exports.list = (req, res) => {
 	try {
@@ -242,27 +243,34 @@ exports.report = async (req, res) => {
 						required: false
 					},
 					{
-						model: Users,
+						model: CourseEnrollmentUser,
 						where: { isActive: "Y" },
 						include: [
 							{
 								model: Users,
-								as: "manager",
-								attributes: ["firstName", "lastName"]
-							},
-							{
-								model: UserDepartments,
-								attributes: ["title"]
-							},
-							{
-								model: UserDesignations,
-								attributes: ["title"]
+								where: { isActive: "Y" },
+								include: [
+									{
+										model: Users,
+										as: "manager",
+										attributes: ["firstName", "lastName"]
+									},
+									{
+										model: UserDepartments,
+										attributes: ["title"]
+									},
+									{
+										model: UserDesignations,
+										attributes: ["title"]
+									}
+								],
+								attributes: ["firstName", "lastName", "email"]
 							}
 						],
-						attributes: ["firstName", "lastName", "email"]
+						attributes: ["progress"]
 					}
 				],
-				attributes: ["id", "courseProgress"]
+				attributes: ["id"]
 			})
 				.then((response) => {
 					encryptHelper(response);
@@ -341,12 +349,15 @@ exports.getCourseAssignmentsUsersTasks = async (req, res) => {
 					where: {
 						isActive: "Y"
 					},
-					attributes: [
-						"courseProgress",
-						"updatedAt",
-						[Sequelize.fn("COUNT", Sequelize.col("courseEnrollments.id")), "enrollmentCount"]
+					include: [
+						{
+							model: CourseEnrollmentUser,
+							where: { isActive: "Y" },
+							attributes: ["progress"]
+						}
 					],
-					group: ["courseProgress", "courseEnrollments.updatedAt"],
+					attributes: ["updatedAt", [Sequelize.fn("COUNT", Sequelize.col("courseEnrollments.id")), "enrollmentCount"]],
+					group: ["progress", "courseEnrollments.updatedAt"],
 					order: [["courseEnrollments.updatedAt", "DESC"]]
 				}
 			]
@@ -407,9 +418,15 @@ exports.getCourseAssignmentsUsersTasks = async (req, res) => {
 					where: {
 						isActive: "Y"
 					},
+					include: [
+						{
+							model: CourseEnrollmentUser,
+							where: { isActive: "Y" },
+							attributes: ["progress"]
+						}
+					],
 					attributes: [
-						"id", // Included ID for reference
-						"courseProgress"
+						"id" // Included ID for reference
 					]
 				}
 			]
@@ -419,12 +436,12 @@ exports.getCourseAssignmentsUsersTasks = async (req, res) => {
 				message: "No assignment found for the given courseId."
 			});
 		}
-		const totalEnrollments = AssignmentsHelper.CourseEnrollments || [];
-		const completeProgress = totalEnrollments.filter((enrollment) => enrollment.courseProgress === 100);
+		const totalEnrollments = AssignmentsHelper.CourseEnrollments.CourseEnrollmentUser || [];
+		const completeProgress = totalEnrollments.filter((enrollment) => enrollment.progress === 100);
 		const inCompleteProgress = totalEnrollments.filter(
-			(enrollment) => enrollment.courseProgress > 0 && enrollment.courseProgress < 100
+			(enrollment) => enrollment.progress > 0 && enrollment.progress < 100
 		);
-		const zeroProgress = totalEnrollments.filter((enrollment) => enrollment.courseProgress === 0);
+		const zeroProgress = totalEnrollments.filter((enrollment) => enrollment.progress === 0);
 
 		const courseTaskProgressReport = await CourseTaskProgress.findAll({
 			attributes: [

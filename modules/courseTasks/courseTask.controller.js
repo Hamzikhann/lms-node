@@ -16,6 +16,7 @@ const CourseAssignments = db.courseAssignments;
 const CourseAchievements = db.courseAchievements;
 const CourseSyllabus = db.courseSyllabus;
 const CourseEnrollments = db.courseEnrollments;
+const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 const Transcript = db.transcript;
 
 exports.create = async (req, res) => {
@@ -318,12 +319,16 @@ exports.getEnrollment = async (req, res) => {
 			const userId = crypto.decrypt(req.userId);
 
 			const response = await CourseEnrollments.findOne({
-				where: { isActive: "Y", userId },
+				where: { isActive: "Y" },
 				include: [
 					{
 						model: CourseAssignments,
 						where: { courseId, isActive: "Y" },
 						attributes: []
+					},
+					{
+						model: CourseEnrollmentUsers,
+						where: { userId: userId, isActive: "Y" }
 					}
 				],
 				attributes: ["id"]
@@ -527,8 +532,15 @@ exports.createProgress = async (req, res) => {
 
 async function courseProgressUpdate(clientId, userId, courseId, courseEnrollmentId) {
 	const existedProgress = await CourseEnrollments.findOne({
-		where: { id: courseEnrollmentId, userId: userId, isActive: "Y" },
-		attributes: ["courseProgress"]
+		where: { id: courseEnrollmentId, isActive: "Y" },
+		include: [
+			{
+				model: CourseEnrollmentUsers,
+				where: { isActive: "Y", userId: userId },
+				attributes: ["progress"]
+			}
+		],
+		attributes: ["id"]
 	});
 	// console.log(existedProgress.courseProgress);
 	var allTasksCount = await CourseTasks.count({
@@ -562,12 +574,12 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 	let courseProgress = Math.floor((percentage / (allTasksCount * 100)) * 100);
 	let achievementProgress = Math.floor((percentageAchievement / (allTasksCount * 100)) * 100);
 
-	const courseProgressUpdated = await CourseEnrollments.update(
-		{ courseProgress: courseProgress },
-		{ where: { id: courseEnrollmentId, userId: userId, isActive: "Y" } }
+	const courseProgressUpdated = await CourseEnrollmentUsers.update(
+		{ progress: courseProgress },
+		{ where: { courseEnrollmentId: courseEnrollmentId, userId: userId, isActive: "Y" } }
 	);
 
-	if (courseProgress == 100 && existedProgress.courseProgress != 100) {
+	if (courseProgress == 100 && existedProgress.courseEnrollmentUsers.progress != 100) {
 		const achivements = await CourseAchievements.create({
 			courseEnrollmentId: courseEnrollmentId,
 			result: achievementProgress

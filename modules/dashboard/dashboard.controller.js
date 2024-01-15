@@ -13,6 +13,7 @@ const CourseEnrollments = db.courseEnrollments;
 const CourseAssignments = db.courseAssignments;
 const CourseDepartments = db.courseDepartments;
 const Sequelize = require("sequelize");
+const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 
 exports.adminDashboard = async (req, res) => {
 	try {
@@ -86,7 +87,6 @@ exports.userDashboard = async (req, res) => {
 
 		const enrolledCourses = await CourseEnrollments.count({
 			where: {
-				userId: userId,
 				isActive: "Y"
 			},
 			include: [
@@ -99,12 +99,16 @@ exports.userDashboard = async (req, res) => {
 							where: { isActive: "Y", status: "P" }
 						}
 					]
+				},
+				{
+					model: CourseEnrollmentUsers,
+					where: { userId: userId, isActive: "Y" }
 				}
 			]
 		});
 
 		const inProgressCourses = await CourseEnrollments.count({
-			where: { courseProgress: { [Op.lt]: 100, [Op.gt]: 0 }, userId, isActive: "Y" },
+			where: { isActive: "Y" },
 			include: [
 				{
 					model: CourseAssignments,
@@ -115,12 +119,16 @@ exports.userDashboard = async (req, res) => {
 							where: { isActive: "Y", status: "P" }
 						}
 					]
+				},
+				{
+					model: CourseEnrollmentUsers,
+					where: { userId: userId, progress: { [Op.lt]: 100, [Op.gt]: 0 }, isActive: "Y" }
 				}
 			]
 		});
 
 		const completedCourses = await CourseEnrollments.count({
-			where: { courseProgress: { [Op.eq]: 100 }, userId, isActive: "Y" },
+			where: { isActive: "Y" },
 			include: [
 				{
 					model: CourseAssignments,
@@ -131,12 +139,16 @@ exports.userDashboard = async (req, res) => {
 							where: { isActive: "Y", status: "P" }
 						}
 					]
+				},
+				{
+					model: CourseEnrollmentUsers,
+					where: { progress: { [Op.eq]: 100 }, userId, isActive: "Y" }
 				}
 			]
 		});
 
 		const inQueueCourses = await CourseEnrollments.count({
-			where: { courseProgress: { [Op.eq]: 0 }, userId, isActive: "Y" },
+			where: { isActive: "Y" },
 			include: [
 				{
 					model: CourseAssignments,
@@ -147,6 +159,10 @@ exports.userDashboard = async (req, res) => {
 							where: { isActive: "Y", status: "P" }
 						}
 					]
+				},
+				{
+					model: CourseEnrollmentUsers,
+					where: { progress: { [Op.eq]: 0 }, userId, isActive: "Y" }
 				}
 			]
 		});

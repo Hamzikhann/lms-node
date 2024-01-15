@@ -4,6 +4,10 @@ module.exports = (sequelize, DataTypes) => {
 	const table = sequelize.define(
 		"courseEnrollmentUsers",
 		{
+			progress: {
+				type: DataTypes.STRING,
+				defaultValue: "0"
+			},
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,
