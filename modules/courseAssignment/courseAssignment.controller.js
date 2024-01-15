@@ -233,44 +233,44 @@ exports.report = async (req, res) => {
 				}
 			});
 
-			CourseEnrollments.findAll({
-				where: { courseAssignmentId: courseAssignmentId, isActive: "Y" },
+			CourseEnrollmentUser.findAll({
+				where: { isActive: "Y" },
 				include: [
 					{
-						model: CourseAchivements,
-						where: { isActive: "Y" },
-						attributes: ["id", "createdAt", "result"],
-						required: false
-					},
-					{
-						model: CourseEnrollmentUser,
+						model: Users,
 						where: { isActive: "Y" },
 						include: [
 							{
 								model: Users,
-								where: { isActive: "Y" },
-								include: [
-									{
-										model: Users,
-										as: "manager",
-										attributes: ["firstName", "lastName"]
-									},
-									{
-										model: UserDepartments,
-										attributes: ["title"]
-									},
-									{
-										model: UserDesignations,
-										attributes: ["title"]
-									}
-								],
-								attributes: ["firstName", "lastName", "email"]
+								as: "manager",
+								attributes: ["firstName", "lastName"]
+							},
+							{
+								model: UserDepartments,
+								attributes: ["title"]
+							},
+							{
+								model: UserDesignations,
+								attributes: ["title"]
 							}
 						],
-						attributes: ["progress"]
+						attributes: ["firstName", "lastName", "email"]
+					},
+					{
+						model: CourseEnrollments,
+						where: { courseAssignmentId: courseAssignmentId, isActive: "Y" },
+						include: [
+							{
+								model: CourseAchivements,
+								where: { isActive: "Y" },
+								attributes: ["id", "createdAt", "result"],
+								required: false
+							}
+						],
+						attributes: ["id"]
 					}
 				],
-				attributes: ["id"]
+				attributes: ["progress"]
 			})
 				.then((response) => {
 					encryptHelper(response);
