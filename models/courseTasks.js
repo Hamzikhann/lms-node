@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
 			title: DataTypes.STRING,
 			description: DataTypes.TEXT,
 			estimatedTime: DataTypes.STRING,
-			refrence: DataTypes.STRING,
+			reference: DataTypes.STRING,
 			isActive: {
 				type: DataTypes.STRING,
 				allowNull: false,

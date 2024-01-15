@@ -26,6 +26,7 @@ exports.create = async (req, res) => {
 			estimatedTime: Joi.string().max(255).required(),
 			contentDescription: Joi.string().optional().allow(""),
 			contentVideoLink: Joi.string().optional().allow(""),
+			reference: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseModuleId: Joi.string().required()
 		});
@@ -44,7 +45,8 @@ exports.create = async (req, res) => {
 					title: req.body.title.trim(),
 					estimatedTime: req.body.estimatedTime,
 					courseModuleId: crypto.decrypt(req.body.courseModuleId),
-					courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId)
+					courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId),
+					reference: req.body.reference ? req.body.reference : null
 				}
 			})
 				.then(async (response) => {
@@ -55,7 +57,8 @@ exports.create = async (req, res) => {
 							title: req.body.title,
 							estimatedTime: req.body.estimatedTime,
 							courseModuleId: crypto.decrypt(req.body.courseModuleId),
-							courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId)
+							courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId),
+							reference: req.body.reference ? req.body.reference : null
 						};
 						let transaction = await sequelize.transaction();
 
@@ -351,6 +354,7 @@ exports.update = async (req, res) => {
 			estimatedTime: Joi.string().required(),
 			contentDescription: Joi.string().optional().allow(""),
 			contentVideoLink: Joi.string().optional().allow(""),
+			reference: Joi.string().optional().allow(""),
 			courseTaskTypeId: Joi.string().required(),
 			courseTaskId: Joi.string().required()
 		});
@@ -367,6 +371,7 @@ exports.update = async (req, res) => {
 			const taskObj = {
 				title: req.body.title,
 				estimatedTime: req.body.estimatedTime,
+				reference: req.body.reference ? req.body.reference : null,
 				courseTaskTypeId: crypto.decrypt(req.body.courseTaskTypeId)
 			};
 
