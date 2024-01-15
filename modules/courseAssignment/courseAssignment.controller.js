@@ -36,7 +36,7 @@ exports.list = (req, res) => {
 							attributes: ["title", "code", "level"]
 						}
 					],
-					attributes: ["id", "courseId", "clientId", "dateFrom", "dateTo"]
+					attributes: ["id", "courseId", "clientId"]
 				}
 			],
 			attributes: ["id", "name", "logoURL"]
@@ -81,7 +81,7 @@ exports.create = (req, res) => {
 		} else {
 			const assignmentObj = {
 				dateFrom: req.body.dateFrom,
-				dateTo: req.body.dateTo,
+				dataTo: req.body.dateTo,
 				courseId: crypto.decrypt(req.body.courseId),
 				clientId: crypto.decrypt(req.body.clientId)
 			};
@@ -143,7 +143,7 @@ exports.update = (req, res) => {
 			const courseAssignmentId = crypto.decrypt(req.body.courseAssignmentId);
 			const assignmentObj = {
 				dateFrom: req.body.dateFrom,
-				dateTo: req.body.dateTo
+				dataTo: req.body.dateTo
 			};
 			CourseAssignments.update(assignmentObj, {
 				where: {

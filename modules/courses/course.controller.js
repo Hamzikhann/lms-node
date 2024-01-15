@@ -553,3 +553,35 @@ exports.delete = (req, res) => {
 		});
 	}
 };
+
+exports.reset = async (req, res) => {
+	try {
+		const clientId = crypto.decrypt(req.clientId);
+
+		const courseAssignment = await courseAssignments.findAll({
+			where: { clientId: clientId },
+			include: [
+				{
+					model: CourseEnrollments,
+					where: { isActive: "Y" },
+					include: [
+						{
+							modelx: CourseEnrollmentUsers,
+							where: { isActive: "Y" },
+							attributes: ["progress"]
+						}
+					],
+					attributes: ["id"]
+				}
+			],
+			attributes: ["id"]
+		});
+
+		res.send({ data: courseAssignment });
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
