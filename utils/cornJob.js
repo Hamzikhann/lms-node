@@ -105,7 +105,8 @@ const checkCourseCompletion = async (req, res) => {
 							model: Course,
 							where: {
 								isActive: "Y"
-							}
+							},
+							attributes: ["id", "title"]
 						}
 					]
 				},
