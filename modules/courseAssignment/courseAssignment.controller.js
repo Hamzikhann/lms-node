@@ -252,22 +252,22 @@ exports.report = async (req, res) => {
 							{
 								model: UserDesignations,
 								attributes: ["title"]
-							},
-							{
-								model: CourseEnrollments,
-								where: { courseAssignmentId: courseAssignmentId, isActive: "Y" },
-								include: [
-									{
-										model: CourseAchivements,
-										where: { isActive: "Y" },
-										attributes: ["id", "createdAt", "result"],
-										required: false
-									}
-								],
-								attributes: ["id"]
 							}
 						],
 						attributes: ["firstName", "lastName", "email"]
+					},
+					{
+						model: CourseEnrollments,
+						where: { courseAssignmentId: courseAssignmentId, isActive: "Y" },
+						include: [
+							{
+								model: CourseAchivements,
+								where: { isActive: "Y" },
+								attributes: ["id", "createdAt", "result"],
+								required: false
+							}
+						],
+						attributes: ["id"]
 					}
 				],
 				attributes: ["progress"]
