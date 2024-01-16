@@ -553,3 +553,50 @@ exports.delete = (req, res) => {
 		});
 	}
 };
+
+exports.reset = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			courseEnrollmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			emails.errorEmail(req, error);
+
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const clientId = crypto.decrypt(req.clientId);
+			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
+			// console.log(clientId, courseEnrollmentId);
+
+			const updateProgress = await CourseEnrollmentUsers.update(
+				{ progress: "0" },
+				{
+					where: { isActive: "Y", courseEnrollmentId: courseEnrollmentId },
+					include: [
+						{
+							model: CourseEnrollments,
+							where: { isActive: "Y" },
+							include: [
+								{
+									model: courseAssignments,
+									where: { isActive: "Y", clientId: clientId }
+								}
+							]
+						}
+					]
+				}
+			);
+
+			res.send({ message: "The Courses are reseted", data: updateProgress });
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};

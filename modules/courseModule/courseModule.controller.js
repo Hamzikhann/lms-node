@@ -16,6 +16,7 @@ const CourseAssignment = db.courseAssignments;
 const CourseAchivements = db.courseAchievements;
 const User = db.users;
 const Client = db.clients;
+const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 
 exports.list = (req, res) => {
 	try {
@@ -207,111 +208,138 @@ exports.delete = async (req, res) => {
 	}
 };
 
-// exports.checkCourseCompletion = async (req, res) => {
-// 	try {
-// 		const date = new Date();
-// 		const dateString = date.toISOString().split("T")[0]; // Get YYYY-MM-DD format
-// 		const achivedIds = [];
+exports.checkCourseCompletion = async (req, res) => {
+	try {
+		const date = new Date();
+		const dateString = date.toISOString().split("T")[0]; // Get YYYY-MM-DD format
+		const achivedIds = [];
+		console.log(dateString);
+		const courseAchievements = await CourseAchivements.findAll({
+			where: { isActive: "Y" },
+			attributes: ["id", "courseEnrollmentId"]
+		});
 
-// 		const courseAchievements = await CourseAchivements.findAll({
-// 			where: { isActive: "Y" },
-// 			attributes: ["id", "courseEnrollmentId"]
-// 		});
+		courseAchievements.forEach((e) => {
+			achivedIds.push(e.courseEnrollmentId);
+		});
+		console.log(achivedIds);
 
-// 		courseAchievements.forEach((e) => {
-// 			achivedIds.push(e.courseEnrollmentId);
-// 		});
+		const dateOne = await CourseEnrollment.findAll({
+			where: {
+				isActive: "Y",
+				id: {
+					[Op.not]: achivedIds
+				},
+				[Op.and]: [
+					{ completionDateOne: { [Op.lte]: dateString } }, // Records between complitionDateOne and complitionDateTwo
+					{ completionDateTwo: { [Op.gte]: dateString } }
+				]
+			},
+			include: [
+				{
+					model: CourseAssignment,
+					where: {
+						isActive: "Y",
+						[Op.and]: [
+							{ dateFrom: { [Op.lte]: dateString } }, // Records between complitionDateOne and complitionDateTwo
+							{ dateTo: { [Op.gte]: dateString } }
+						]
+					},
 
-// 		const dateOne = await CourseEnrollment.findAll({
-// 			where: { isActive: "Y", id: { [Op.not]: achivedIds } },
-// 			include: [
-// 				{
-// 					model: CourseAssignment,
-// 					where: {
-// 						isActive: "Y",
-// 						[Op.and]: [
-// 							{ dateFrom: { [Op.lte]: dateString } }, // Records between complitionDateOne and complitionDateTwo
-// 							{ dateTo: { [Op.gte]: dateString } }
-// 						]
-// 					},
+					include: [
+						{
+							model: Course,
+							where: {
+								isActive: "Y"
+							},
+							attributes: ["id", "title"]
+						}
+					],
+					attributes: ["id", "dateFrom", "dateTo", "clientId", "courseId"]
+				},
+				{
+					model: CourseEnrollmentUsers,
+					where: {
+						isActive: "Y"
+					},
+					include: [
+						{
+							model: User,
+							where: { isActive: "Y" },
+							include: [
+								{
+									model: User,
+									as: "manager",
+									attributes: ["id", "firstName", "lastName"]
+								}
+							],
+							attributes: ["id", "email", "clientId", "managerId"]
+						}
+					]
+				}
+			],
+			attributes: ["id", "courseAssignmentId", "completionDateOne", "completionDateTwo"]
+		});
 
-// 					include: [
-// 						{
-// 							model: Course,
-// 							where: {
-// 								isActive: "Y",
+		const dateTwo = await CourseEnrollment.findAll({
+			where: { isActive: "Y", id: { [Op.not]: achivedIds }, completionDateTwo: { [Op.lt]: dateString } },
+			include: [
+				{
+					model: CourseAssignment,
+					where: {
+						isActive: "Y",
+						[Op.and]: [
+							{ dateFrom: { [Op.lte]: dateString } }, // Records between complitionDateOne and complitionDateTwo
+							{ dateTo: { [Op.gte]: dateString } }
+						]
+					},
+					include: [
+						{
+							model: Course,
+							where: {
+								isActive: "Y"
+							},
+							attributes: ["id", "title"]
+						}
+					],
+					attributes: ["id", "dateFrom", "dateTo", "clientId", "courseId"]
+				},
+				{
+					model: CourseEnrollmentUsers,
+					where: {
+						isActive: "Y"
+					},
+					include: [
+						{
+							model: User,
+							where: { isActive: "Y" },
+							include: [
+								{
+									model: User,
+									as: "manager",
+									include: [
+										{
+											model: User,
+											as: "manager",
+											attributes: ["id", "firstName", "lastName", "email"]
+										}
+									],
+									attributes: ["id", "firstName", "lastName", "email"]
+								}
+							],
+							attributes: ["id", "email", "clientId", "managerId"]
+						}
+					]
+				}
+			],
+			attributes: ["id", "courseAssignmentId", "completionDateOne", "completionDateTwo"]
+		});
 
-// 								[Op.and]: [
-// 									{ completionDateOne: { [Op.lte]: dateString } }, // Records between complitionDateOne and complitionDateTwo
-// 									{ completionDateTwo: { [Op.gte]: dateString } }
-// 								]
-// 							}
-// 						}
-// 					]
-// 				},
-// 				{
-// 					model: User,
-// 					where: { isActive: "Y" },
-// 					attributes: ["id", "email", "clientId", "managerId"]
-// 				}
-// 			],
-// 			attributes: ["id", "userId", "courseAssignmentId"]
-// 		});
-
-// 		const dateTwo = await CourseEnrollment.findAll({
-// 			where: { isActive: "Y", id: { [Op.not]: achivedIds } },
-// 			include: [
-// 				{
-// 					model: CourseAssignment,
-// 					where: {
-// 						isActive: "Y",
-// 						[Op.and]: [
-// 							{ dateFrom: { [Op.lte]: dateString } }, // Records between complitionDateOne and complitionDateTwo
-// 							{ dateTo: { [Op.gte]: dateString } }
-// 						]
-// 					},
-// 					include: [
-// 						{
-// 							model: Course,
-// 							where: {
-// 								isActive: "Y",
-// 								completionDateTwo: { [Op.lt]: dateString }
-// 							}
-// 						}
-// 					]
-// 				},
-// 				{
-// 					model: User,
-// 					where: { isActive: "Y" },
-// 					attributes: ["id", "email", "clientId", "managerId"]
-// 				}
-// 			],
-// 			attributes: ["id", "userId", "courseAssignmentId"]
-// 		});
-
-// 		const managerIdsOne = dateOne.map((enrollment) => enrollment.user.managerId || []);
-// 		const managerIdsTwo = dateTwo.map((enrollment) => enrollment.user.managerId || []);
-
-// 		const managersOne = await User.findAll({
-// 			where: { id: managerIdsOne }
-// 		});
-
-// 		const managers = await User.findAll({
-// 			where: { id: managerIdsTwo }
-// 		});
-// 		const managerIds = managers.map((user) => user.managerId || []);
-// 		const managersTwo = await User.findAll({
-// 			where: { id: managerIds }
-// 		});
-// 		// const managerEmailsOne = managersOne.map((manager) => {manager.email});
-
-// 		// console.log(managerEmails);
-
-// 		res.send({ dataOne: managersOne, dateTwo: managersTwo });
-// 	} catch (err) {
-// 		emails.errorEmail(req, err);
-// 		res.status(500).send({
-// 			message: err.message || "Some error occurred."
-// 		});
-// 	}
-// };
+		res.send({ dateOne: dateOne, dateTwo: dateTwo });
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
