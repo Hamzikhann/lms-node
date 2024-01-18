@@ -5,7 +5,9 @@ const emailSend = secrets.email.send;
 const emailAPIKey = secrets.email.auth.api_key;
 
 async function nodeMailer(mailOptions) {
+	// console.log(mailOptions);
 	if (emailSend == "active") {
+		console.log("hellow");
 		const transporter = await nodemailer.createTransport({
 			host: "smtp.sendgrid.net",
 			port: 465,
@@ -14,13 +16,11 @@ async function nodeMailer(mailOptions) {
 				pass: emailAPIKey
 			}
 		});
-
 		try {
 			await transporter.verify();
 		} catch (error) {
 			throw error;
 		}
-
 		const info = await transporter.sendMail(mailOptions);
 		console.log("Email sent to ", mailOptions.to, info);
 		return info;

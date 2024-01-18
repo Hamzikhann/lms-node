@@ -3,6 +3,8 @@ const secrets = require("../config/secrets");
 const nodeMailer = require("./nodeMailer");
 const jwt = require("./jwt");
 const crypto = require("../utils/crypto");
+const { JSDOM } = require("jsdom");
+const handlebars = require("handlebars");
 
 const baseURL = secrets.frontend_URL;
 
@@ -44,6 +46,45 @@ Email.errorEmail = async (req, error) => {
 			html: text
 		};
 		return nodeMailer(mailOptions);
+	} catch (error) {
+		console.log(error);
+		throw error;
+	}
+};
+
+Email.cornJob = async (dateOne, dateTwo) => {
+	try {
+		const emailTemplateSource = fs.readFileSync("./templates/cornJob.html", "utf8");
+		const emailTemplateSource2 = fs.readFileSync("./templates/cornJob2.html", "utf8");
+
+		const emailTemplate = handlebars.compile(emailTemplateSource);
+		const emailTemplate2 = handlebars.compile(emailTemplateSource2);
+
+		dateTwo.forEach(({ manager, courses }) => {
+			const subject = "Courses Information";
+			const html = emailTemplate2({ managers: [{ manager, courses }] });
+
+			var mailOptions = {
+				from: `LMS <${emailFrom}>`,
+				to: manager.email,
+				bcc: emailErrorTo,
+				subject: subject,
+				html: html
+			};
+			return nodeMailer(mailOptions);
+		});
+		dateOne.forEach((entry) => {
+			const htmlContent = emailTemplate(entry);
+
+			var mailOptions = {
+				from: `LMS <${emailFrom}>`,
+				to: entry.manager.email,
+				bcc: emailErrorTo,
+				subject: "Course Completion Reminder",
+				html: htmlContent
+			};
+			return nodeMailer(mailOptions);
+		});
 	} catch (error) {
 		console.log(error);
 		throw error;
