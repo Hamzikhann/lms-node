@@ -18,7 +18,7 @@ router.post("/create", upload.single("ebook"), (req, res) => {
 	}
 });
 
-router.post("/update", (req, res) => {
+router.post("/update", upload.single("ebook"), (req, res) => {
 	if (req.role == "Administrator") {
 		courseBooksController.update(req, res);
 	} else {

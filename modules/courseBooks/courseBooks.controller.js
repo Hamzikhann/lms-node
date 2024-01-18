@@ -107,6 +107,7 @@ exports.update = async (req, res) => {
 			});
 		} else {
 			const bookId = crypto.decrypt(req.body.bookId);
+			let bookPdf = req.file ? "uploads/documents/" + req.file.filename : null;
 			let bookObj = {
 				title: req.body.title,
 				author: req.body.author,
@@ -114,6 +115,9 @@ exports.update = async (req, res) => {
 				publisher: req.body.publisher
 				// bookUrl: req.body.bookUrl
 			};
+			if (bookPdf) {
+				bookObj.bookUrl = bookPdf;
+			}
 
 			let updateBook = await CourseBooks.update(bookObj, { where: { id: bookId } });
 			if (updateBook == 1) {
