@@ -246,5 +246,3 @@ function separateUsersByManager(courseData) {
 
 	return result;
 }
-
-module.exports = { checkCourseCompletion };

@@ -3,7 +3,6 @@ const secrets = require("../config/secrets");
 const nodeMailer = require("./nodeMailer");
 const jwt = require("./jwt");
 const crypto = require("../utils/crypto");
-const { JSDOM } = require("jsdom");
 const handlebars = require("handlebars");
 
 const baseURL = secrets.frontend_URL;
