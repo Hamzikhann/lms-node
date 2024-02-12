@@ -64,7 +64,7 @@ exports.list = (req, res) => {
 							}
 						],
 						required: false,
-						attributes: ["id", "title", "estimatedTime", "courseTaskTypeId", "courseModuleId"]
+						attributes: ["id", "title", "estimatedTime", "courseTaskTypeId", "courseModuleId", "reference"]
 					}
 				],
 				order: [
