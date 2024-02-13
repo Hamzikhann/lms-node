@@ -34,6 +34,7 @@ module.exports = (sequelize, DataTypes) => {
 		courses.hasMany(models.courseInstructors);
 		courses.hasMany(models.courseObjectives);
 		courses.hasMany(models.courseUsefulLinks);
+		courses.hasMany(models.courseTaskProgress);
 		courses.hasOne(models.courseSyllabus);
 	};
 	return courses;
