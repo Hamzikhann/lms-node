@@ -13,12 +13,12 @@ const CourseTasks = db.courseTasks;
 const CourseEnrollments = db.courseEnrollments;
 const CourseAssignments = db.courseAssignments;
 const CourseDepartments = db.courseDepartments;
-const CourseTaskAssessments = db.courseTaskAssessments
+const CourseTaskAssessments = db.courseTaskAssessments;
 const CourseEnrollmentUsers = db.courseEnrollmentUsers;
-const CourseTaskProgresses = db.courseTaskProgress
-const CourseModules = db.courseModules
-const CourseTaskTypes = db.courseTaskTypes
-const CourseSyllabus = db.courseSyllabus
+const CourseTaskProgresses = db.courseTaskProgress;
+const CourseModules = db.courseModules;
+const CourseTaskTypes = db.courseTaskTypes;
+const CourseSyllabus = db.courseSyllabus;
 
 exports.adminDashboard = async (req, res) => {
 	try {
@@ -147,79 +147,57 @@ exports.userDashboard = async (req, res) => {
 								{
 									model: CourseEnrollmentUsers,
 									where: { userId: userId, isActive: "Y" },
-									attributes: [],
+									attributes: []
 								}
 							],
-							attributes: ["courseProgress", "completionDateOne"],
-						},
+							attributes: ["courseProgress", "completionDateOne"]
+						}
 					],
-					attributes: ['createdAt'],
+					attributes: ["createdAt"]
 				}
-			],
+			]
 		});
 
 		const myCourses = await Courses.findAll({
-				model: Courses,
-				where: {isActive:"Y"},
-				include: [
-					{
-						model: CourseDepartments,
-						attributes:["title"]
-					},
-					{
-						model: CourseTaskProgresses,
-						where: {isActive:"Y", userId},
-						attributes: [],
-					},
-					{
-						model: CourseAssignments,
-						where: {isActive:"Y"},
-						include: [
-							{
-								model: CourseEnrollments,
-								where: {isActive:"Y"},
-								include: [
-									{
-										model: CourseEnrollmentUsers,
-										where: { userId, isActive: "Y" },
-										attributes: [],
-									}
-								],
-								attributes: [],
-							}
-						],
-						attributes: [],
-					}
-				],
-				attributes: [
-					"title", "code",
-					[Sequelize.fn('COUNT', Sequelize.col('courseTaskId')), 'tasksTotal'],
-					[Sequelize.fn('COUNT', Sequelize.literal('CASE WHEN percentage = 100 THEN 1 ELSE NULL END')), 'tasksCompleted'],		
-				],
+			model: Courses,
+			where: { isActive: "Y" },
+			include: [
+				{
+					model: CourseDepartments,
+					attributes: ["title"]
+				},
+				{
+					model: CourseTaskProgresses,
+					where: { isActive: "Y", userId },
+					attributes: []
+				},
+				{
+					model: CourseAssignments,
+					where: { isActive: "Y" },
+					include: [
+						{
+							model: CourseEnrollments,
+							where: { isActive: "Y" },
+							include: [
+								{
+									model: CourseEnrollmentUsers,
+									where: { userId, isActive: "Y" },
+									attributes: []
+								}
+							],
+							attributes: []
+						}
+					],
+					attributes: []
+				}
+			],
+			attributes: [
+				"title",
+				"code",
+				[Sequelize.fn("COUNT", Sequelize.col("courseTaskId")), "tasksTotal"],
+				[Sequelize.fn("COUNT", Sequelize.literal("CASE WHEN percentage = 100 THEN 1 ELSE NULL END")), "tasksCompleted"]
+			]
 		});
-		
-		// const MyCourses = await CourseTaskProgresses.findAll({
-		// 	where: {isActive:"Y", userId},
-		// 	attributes: ["id",
-		// 		[Sequelize.fn('COUNT', Sequelize.col('courseTaskId')), 'totalTasks'],
-		// 		[Sequelize.fn('COUNT', Sequelize.literal('CASE WHEN percentage = 100 THEN 1 ELSE NULL END')), 'completedTasks'],		
-		// 	],
-		// 	include:[
-		// 		{
-		// 			model: Courses,
-		// 			where:{isActive:"Y"},
-		// 			attributes: ["title", "code"],
-		// 			include: [
-		// 				{
-		// 					model: CourseDepartments,
-		// 					where: {isActive:"Y"},
-		// 					attributes:["title"]
-		// 				}
-		// 			]
-		// 		}
-		// 	],
-		// 	// group: ['CourseTaskProgresses.id']
-		// })
 
 		const completedCourses = await CourseEnrollments.count({
 			where: { isActive: "Y" },
@@ -261,63 +239,126 @@ exports.userDashboard = async (req, res) => {
 			]
 		});
 
-		const tasksCompleted = await CourseTaskProgresses.count({
-			where: {
-				isActive: "Y",
-				userId,
-				percentage: {
-					[Op.eq]: 100
-				  }
-			}
-		})
+		const tasksCompleted = await CourseTasks.count({
+			where: { isActive: "Y" },
+			include: [
+				{
+					model: CourseModules,
+					where: { isActive: "Y" },
+					include: [
+						{
+							model: CourseSyllabus,
+							where: { isActive: "Y" },
+							include: [
+								{
+									model: Courses,
+									where: { isActive: "Y" },
+									include: [
+										{
+											model: CourseAssignments,
+											where: { isActive: "Y" },
+											include: [
+												{
+													model: CourseEnrollments,
+													where: { isActive: "Y" },
+													include: [
+														{
+															model: CourseEnrollmentUsers,
+															where: { userId, isActive: "Y" }
+														}
+													]
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					model: CourseTaskProgresses,
+					where: {
+						isActive: "Y",
+						userId,
+						percentage: {
+							[Op.eq]: 100
+						}
+					}
+				}
+			]
+		});
 
-		const tasksTotal = await CourseTaskProgresses.count({
-			where: {
-				isActive: "Y",
-				userId,
-			}
-		})
-		const tasksPercentage = (tasksCompleted/tasksTotal)*100;
+		const tasksTotal = await CourseTasks.count({
+			where: { isActive: "Y" },
+			include: [
+				{
+					model: CourseModules,
+					where: { isActive: "Y" },
+					include: [
+						{
+							model: CourseSyllabus,
+							where: { isActive: "Y" },
+							include: [
+								{
+									model: Courses,
+									where: { isActive: "Y" },
+									include: [
+										{
+											model: CourseAssignments,
+											where: { isActive: "Y" },
+											include: [
+												{
+													model: CourseEnrollments,
+													where: { isActive: "Y" },
+													include: [
+														{
+															model: CourseEnrollmentUsers,
+															where: { userId, isActive: "Y" }
+														}
+													]
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		});
 
-		const taskAssessmentsCompleted = await CourseTaskProgresses.count({
+		const tasksPercentage = (tasksCompleted / tasksTotal) * 100;
+
+		const taskAssessments = await CourseTaskProgresses.findAll({
 			where: {
 				isActive: "Y",
-				userId,
+				userId
 			},
 			include: [
 				{
 					model: CourseTasks,
 					where: { isActive: "Y" },
+					attributes: [],
 					include: [
 						{
 							model: CourseTaskTypes,
-							where: {isActive: "Y", title: "Assessment"},
+							attributes: [],
+							where: { isActive: "Y", title: "Assessment" }
 						}
 					]
 				}
-			]
-		})
+			],
+			attributes: ["percentage"]
+		});
 
-		const taskAssessmentsTotal = await CourseTaskProgresses.count({
-			where: {
-				isActive: "Y",
-				userId,
-			},
-			include: [
-				{
-					model: CourseTasks,
-					// where: { isActive: "Y" },
-					include: [
-						{
-							model: CourseTaskTypes,
-							where: {isActive: "Y", title: "Assessment"},
-						}
-					]
-				}
-			]
-		})
+		var taskAssessmentsPercentages = 0;
+		taskAssessments.forEach((element) => {
+			taskAssessmentsPercentages += Number(element.percentage);
+		});
 
-		const assessmentsPercentage = (taskAssessmentsCompleted/taskAssessmentsTotal)*100;
+		const taskAssessmentsPercentage = (taskAssessmentsPercentages / taskAssessments.length) * 100;
 
 		const tasksInQueue = await CourseTaskProgresses.findAll({
 			where: {
@@ -325,7 +366,7 @@ exports.userDashboard = async (req, res) => {
 				userId,
 				percentage: {
 					[Op.ne]: 100
-				  }
+				}
 			},
 			attributes: [],
 			include: [
@@ -350,35 +391,38 @@ exports.userDashboard = async (req, res) => {
 											attributes: ["title"]
 										}
 									]
-								},
+								}
 							]
-						},
+						}
 					]
 				}
 			]
-		})
+		});
 
+		const data = {
+			stats: {
+				enrolled: enrolledCourses,
+				inProgress: inProgressCourses,
+				completed: completedCourses,
+				inQueue: inQueueCourses,
+				percentages: {
+					task: tasksPercentage,
+					assessments: taskAssessmentsPercentage
+				}
+			},
+			courses: {
+				enrolled: myCourses,
+				completions: CoursesCompletions
+			},
+			tasks: {
+				inQueue: tasksInQueue
+			}
+		};
+
+		encryptHelper(data);
 		res.send({
 			message: "Retrieved statistics for the user",
-			data: {
-				stats: {
-					enrolled: enrolledCourses,
-					inProgress: inProgressCourses,
-					completed: completedCourses,
-					inQueue: inQueueCourses,
-				},
-				courses: {
-					enrolled: myCourses,
-					completions: CoursesCompletions
-				},
-				tasks: {
-					completed: tasksCompleted,
-					percentage: tasksPercentage,
-					assessmentsAttended: taskAssessmentsCompleted,
-					assessmentPercentage: assessmentsPercentage,
-					inQueue: tasksInQueue,
-				}
-			}
+			data
 		});
 	} catch (err) {
 		emails.errorEmail(req, err);
