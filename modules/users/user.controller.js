@@ -43,9 +43,9 @@ exports.create = async (req, res) => {
 				message: message
 			});
 		} else {
-			const user = await Users.findOne({ where: { email: req.body.email?.trim(), isActive: "Y" } });
+			const userExists = await Users.findOne({ where: { email: req.body.email?.trim(), isActive: "Y" } });
 
-			if (user) {
+			if (userExists) {
 				res.status(401).send({
 					mesage: "Email already registered."
 				});
@@ -68,11 +68,17 @@ exports.create = async (req, res) => {
 					userObj.roleId = 3;
 				}
 
+				console.log("asdas");
+				console.log(userObj);
+				console.log(req.clientId);
+
 				let transaction = await sequelize.transaction();
 				Users.create(userObj, { transaction })
 					.then(async (user) => {
+						// console.log(userExists, user);
 						UserProfile.create({ userId: user.id }, { transaction })
 							.then(async (profile) => {
+								// console.log(profile);
 								if (user.roleId == 3 && user.clientId == crypto.decrypt(req.clientId)) {
 									const allCourse = await CourseEnrollments.findAll({
 										where: { courseEnrollmentTypeId: 1, isActive: "Y" },
