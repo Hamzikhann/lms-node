@@ -15,7 +15,7 @@ const CourseAssignments = db.courseAssignments;
 const CourseDepartments = db.courseDepartments;
 const CourseTaskAssessments = db.courseTaskAssessments;
 const CourseEnrollmentUsers = db.courseEnrollmentUsers;
-const CourseTaskProgresses = db.courseTaskProgress;
+const CourseTaskProgress = db.courseTaskProgress;
 const CourseModules = db.courseModules;
 const CourseTaskTypes = db.courseTaskTypes;
 const CourseSyllabus = db.courseSyllabus;
@@ -150,7 +150,8 @@ exports.userDashboard = async (req, res) => {
 									attributes: []
 								}
 							],
-							attributes: ["courseProgress", "completionDateOne"]
+							// attributes: ["courseProgress", "completionDateOne"]
+							attributes: ["completionDateOne"]
 						}
 					],
 					attributes: ["createdAt"]
@@ -167,7 +168,7 @@ exports.userDashboard = async (req, res) => {
 					attributes: ["title"]
 				},
 				{
-					model: CourseTaskProgresses,
+					model: CourseTaskProgress,
 					where: { isActive: "Y", userId },
 					attributes: []
 				},
@@ -277,7 +278,7 @@ exports.userDashboard = async (req, res) => {
 					]
 				},
 				{
-					model: CourseTaskProgresses,
+					model: CourseTaskProgress,
 					where: {
 						isActive: "Y",
 						userId,
@@ -331,7 +332,7 @@ exports.userDashboard = async (req, res) => {
 
 		const tasksPercentage = (tasksCompleted / tasksTotal) * 100;
 
-		const taskAssessments = await CourseTaskProgresses.findAll({
+		const taskAssessments = await CourseTaskProgress.findAll({
 			where: {
 				isActive: "Y",
 				userId
@@ -360,34 +361,110 @@ exports.userDashboard = async (req, res) => {
 
 		const taskAssessmentsPercentage = (taskAssessmentsPercentages / taskAssessments.length) * 100;
 
-		const tasksInQueue = await CourseTaskProgresses.findAll({
+		// const tasksInQueue = await CourseEnrollments.findAll({
+		// 	where: { isActive: "Y" },
+		// 	attributes:[],
+		// 	include:[
+		// 		{
+		// 			model: CourseEnrollmentUsers,
+		// 			where: { isActive: "Y", userId },
+		// 			attributes:[],
+		// 		},
+		// 		{
+		// 			model: CourseAssignments,
+		// 			where: { isActive: "Y" },
+		// 			attributes:[],
+		// 			include:[
+		// 				{
+		// 					model: Courses,
+		// 					where: { isActive: "Y" },
+		// 					attributes:["title"],
+		// 					include:[
+		// 						{
+		// 							model: CourseSyllabus,
+		// 							where: { isActive: "Y" },
+		// 							attributes:["title"],
+		// 							include:[
+		// 								{
+		// 									model: CourseModules,
+		// 									where: { isActive: "Y" },
+		// 									attributes:["title"],
+		// 									include:[
+		// 										{
+		// 											model: CourseTasks,
+		// 											where: { isActive: "Y" },
+		// 											attributes: ["title", "estimatedTime"],
+		// 											include:[
+		// 												{
+		// 													model: CourseTaskProgress,
+		// 													where: { isActive: "Y" },
+		// 													attributes:[],
+		// 												},
+		// 												{
+		// 													model: CourseTaskTypes,
+		// 													where: {isActive:"Y"},
+		// 													attributes:["title"]
+		// 												}
+		// 											]
+		// 										}
+		// 									]
+		// 								}
+		// 							]
+		// 						}
+		// 					]
+		// 				}
+		// 			]
+		// 		}
+		// 	]
+		// })
+		// .then(result => {
+		// 	console.log(JSON.stringify(result, null, 2));
+		// })
+		// .catch(error => {
+		// 	console.error(error);
+		// });
+
+
+		const tasksInQueue = await CourseTaskProgress.findAll({
 			where: {
-				isActive: "Y",
-				userId,
-				percentage: {
-					[Op.ne]: 100
-				}
+				userId: userId,
+				isActive: "Y"
 			},
-			attributes: [],
+			attributes:[],
 			include: [
 				{
+					model: CourseEnrollments,
+					where: { isActive: "Y" },
+					include:[
+						{
+							model: CourseEnrollmentUsers,
+							where:{isActive:"Y", userId},
+						}
+					]
+				},
+				{
 					model: CourseTasks,
+					where: { isActive: "Y" },
 					attributes: ["title", "estimatedTime"],
 					include: [
 						{
 							model: CourseTaskTypes,
+							where: { isActive: "Y" },
 							attributes: ["title"]
 						},
 						{
 							model: CourseModules,
-							attributes: ["title"],
+							where: { isActive: "Y" },
+							attributes: [],
 							include: [
 								{
 									model: CourseSyllabus,
-									attributes: ["title"],
+									where: { isActive: "Y" },
+									attributes: [],
 									include: [
 										{
 											model: Courses,
+											where: { isActive: "Y" },
 											attributes: ["title"]
 										}
 									]
@@ -396,7 +473,20 @@ exports.userDashboard = async (req, res) => {
 						}
 					]
 				}
-			]
+			],
+		})
+		.then(result => {
+			console.log(JSON.stringify(result, null, 2));
+		})
+		.catch(error => {
+			console.error(error);
+		});
+
+		let taskTodo = tasksInQueue.length ? tasksInQueue[0] : null;
+		tasksInQueue.forEach((task, key) => {
+			if (task.percentage != "0") {
+				taskTodo = tasksInQueue[key + 1] ? tasksInQueue[key + 1] : null;
+			}
 		});
 
 		const data = {
@@ -411,15 +501,14 @@ exports.userDashboard = async (req, res) => {
 				}
 			},
 			courses: {
-				enrolled: myCourses,
-				completions: CoursesCompletions
+				enrolled: encryptHelper(myCourses),
+				completions: encryptHelper(CoursesCompletions)
 			},
 			tasks: {
-				inQueue: tasksInQueue
+				inQueue: encryptHelper(taskTodo)
 			}
 		};
 
-		encryptHelper(data);
 		res.send({
 			message: "Retrieved statistics for the user",
 			data
