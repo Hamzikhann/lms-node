@@ -361,133 +361,68 @@ exports.userDashboard = async (req, res) => {
 
 		const taskAssessmentsPercentage = (taskAssessmentsPercentages / taskAssessments.length) * 100;
 
-		// const tasksInQueue = await CourseEnrollments.findAll({
-		// 	where: { isActive: "Y" },
-		// 	attributes:[],
-		// 	include:[
-		// 		{
-		// 			model: CourseEnrollmentUsers,
-		// 			where: { isActive: "Y", userId },
-		// 			attributes:[],
-		// 		},
-		// 		{
-		// 			model: CourseAssignments,
-		// 			where: { isActive: "Y" },
-		// 			attributes:[],
-		// 			include:[
-		// 				{
-		// 					model: Courses,
-		// 					where: { isActive: "Y" },
-		// 					attributes:["title"],
-		// 					include:[
-		// 						{
-		// 							model: CourseSyllabus,
-		// 							where: { isActive: "Y" },
-		// 							attributes:["title"],
-		// 							include:[
-		// 								{
-		// 									model: CourseModules,
-		// 									where: { isActive: "Y" },
-		// 									attributes:["title"],
-		// 									include:[
-		// 										{
-		// 											model: CourseTasks,
-		// 											where: { isActive: "Y" },
-		// 											attributes: ["title", "estimatedTime"],
-		// 											include:[
-		// 												{
-		// 													model: CourseTaskProgress,
-		// 													where: { isActive: "Y" },
-		// 													attributes:[],
-		// 												},
-		// 												{
-		// 													model: CourseTaskTypes,
-		// 													where: {isActive:"Y"},
-		// 													attributes:["title"]
-		// 												}
-		// 											]
-		// 										}
-		// 									]
-		// 								}
-		// 							]
-		// 						}
-		// 					]
-		// 				}
-		// 			]
-		// 		}
-		// 	]
-		// })
-		// .then(result => {
-		// 	console.log(JSON.stringify(result, null, 2));
-		// })
-		// .catch(error => {
-		// 	console.error(error);
-		// });
 
-
-		const tasksInQueue = await CourseTaskProgress.findAll({
-			where: {
-				userId: userId,
-				isActive: "Y"
-			},
-			attributes:[],
+		const enrollments = await CourseEnrollments.findAll({
+			where: { isActive: "Y" },
+			attributes: ['id'],
 			include: [
 				{
-					model: CourseEnrollments,
-					where: { isActive: "Y" },
+					model: CourseTaskProgress,
+					where: {
+						userId: userId,
+						isActive: "Y"
+					},
+					attributes:["percentage", "id", "courseId"],
 					include:[
 						{
-							model: CourseEnrollmentUsers,
-							where:{isActive:"Y", userId},
-						}
-					]
-				},
-				{
-					model: CourseTasks,
-					where: { isActive: "Y" },
-					attributes: ["title", "estimatedTime"],
-					include: [
-						{
-							model: CourseTaskTypes,
+							model: CourseTasks,
 							where: { isActive: "Y" },
-							attributes: ["title"]
-						},
-						{
-							model: CourseModules,
-							where: { isActive: "Y" },
-							attributes: [],
+							attributes: ["title", "estimatedTime"],
 							include: [
 								{
-									model: CourseSyllabus,
+									model: CourseTaskTypes,
+									where: { isActive: "Y" },
+									attributes: ["title"]
+								},
+								{
+									model: CourseModules,
 									where: { isActive: "Y" },
 									attributes: [],
 									include: [
 										{
-											model: Courses,
+											model: CourseSyllabus,
 											where: { isActive: "Y" },
-											attributes: ["title"]
+											attributes: [],
+											include: [
+												{
+													model: Courses,
+													where: { isActive: "Y" },
+													attributes: ["title"]
+												}
+											]
 										}
 									]
 								}
 							]
 						}
 					]
-				}
+				},
 			],
 		})
-		.then(result => {
-			console.log(JSON.stringify(result, null, 2));
-		})
-		.catch(error => {
-			console.error(error);
-		});
 
-		let taskTodo = tasksInQueue.length ? tasksInQueue[0] : null;
-		tasksInQueue.forEach((task, key) => {
-			if (task.percentage != "0") {
-				taskTodo = tasksInQueue[key + 1] ? tasksInQueue[key + 1] : null;
-			}
+		const upcomingTasks = {};
+		enrollments.forEach(course => {
+			course.courseTaskProgresses.forEach(task => {
+				const courseId = task.courseId;
+				if (task.percentage != "0") {
+					return;
+				}
+				if (!upcomingTasks[courseId]) {
+					upcomingTasks[courseId] = task;
+				}
+			})
 		});
+		const upcomingTasksArray = Object.values(upcomingTasks);
 
 		const data = {
 			stats: {
@@ -504,9 +439,7 @@ exports.userDashboard = async (req, res) => {
 				enrolled: encryptHelper(myCourses),
 				completions: encryptHelper(CoursesCompletions)
 			},
-			tasks: {
-				inQueue: encryptHelper(taskTodo)
-			}
+			upcomingTasks: upcomingTasksArray
 		};
 
 		res.send({
