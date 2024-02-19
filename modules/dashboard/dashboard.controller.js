@@ -170,7 +170,7 @@ exports.userDashboard = async (req, res) => {
 				{
 					model: CourseTaskProgress,
 					where: { isActive: "Y", userId },
-					required: false,
+					required: true,
 					attributes: []
 				},
 				{
