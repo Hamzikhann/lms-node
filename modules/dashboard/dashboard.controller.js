@@ -159,45 +159,58 @@ exports.userDashboard = async (req, res) => {
 			]
 		});
 
-		const myCourses = await Courses.findAll({
-			model: Courses,
+		const myCourses = await CourseEnrollments.findAll({
 			where: { isActive: "Y" },
+			attributes: ["id"],
 			include: [
 				{
-					model: CourseDepartments,
-					attributes: ["title"]
-				},
-				{
 					model: CourseTaskProgress,
-					where: { isActive: "Y", userId },
+					where: {
+						userId: userId,
+						isActive: "Y"
+					},
 					required: true,
-					attributes: []
-				},
-				{
-					model: CourseAssignments,
-					where: { isActive: "Y" },
+					attributes: ["id"],
 					include: [
 						{
-							model: CourseEnrollments,
+							model: CourseTasks,
 							where: { isActive: "Y" },
+							attributes: ["id"],
 							include: [
 								{
-									model: CourseEnrollmentUsers,
-									where: { userId, isActive: "Y" },
-									attributes: []
+									model: CourseTaskTypes,
+									where: { isActive: "Y" },
+									attributes: ["id"]
+								},
+								{
+									model: CourseModules,
+									where: { isActive: "Y" },
+									attributes: ["id"],
+									include: [
+										{
+											model: CourseSyllabus,
+											where: { isActive: "Y" },
+											attributes: ["id"],
+											include: [
+												{
+													model: Courses,
+													where: { isActive: "Y" },
+													attributes: [
+														"id",
+														"title",
+														"code",
+														[Sequelize.fn("COUNT", Sequelize.col("courseTaskId")), "tasksTotal"],
+														[Sequelize.fn("COUNT", Sequelize.literal("CASE WHEN percentage = 100 THEN 1 ELSE NULL END")), "tasksCompleted"],
+													],
+												}
+											]
+										}
+									]
 								}
-							],
-							attributes: []
+							]
 						}
-					],
-					attributes: []
+					]
 				}
-			],
-			attributes: [
-				"title",
-				"code",
-                [Sequelize.fn("COUNT", Sequelize.col("courseTaskId")), "tasksTotal"],
-				[Sequelize.fn("COUNT", Sequelize.literal("CASE WHEN percentage = 100 THEN 1 ELSE NULL END")), "tasksCompleted"]
 			]
 		});
 
