@@ -147,7 +147,7 @@ exports.userDashboard = async (req, res) => {
 								{
 									model: CourseEnrollmentUsers,
 									where: { userId: userId, isActive: "Y" },
-									attributes: []
+									attributes: ["progress"]
 								}
 							],
 							// attributes: ["courseProgress", "completionDateOne"]
