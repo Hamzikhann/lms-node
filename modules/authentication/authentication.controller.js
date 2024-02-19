@@ -65,6 +65,7 @@ exports.login = async (req, res) => {
 		}
 	} catch (err) {
 		emails.errorEmail(req, err);
+		console.log(err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
 		});
