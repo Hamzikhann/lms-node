@@ -170,6 +170,7 @@ exports.userDashboard = async (req, res) => {
 				{
 					model: CourseTaskProgress,
 					where: { isActive: "Y", userId },
+					required: false,
 					attributes: []
 				},
 				{
@@ -195,7 +196,7 @@ exports.userDashboard = async (req, res) => {
 			attributes: [
 				"title",
 				"code",
-				[Sequelize.fn("COUNT", Sequelize.col("courseTaskId")), "tasksTotal"],
+				[(Sequelize.fn("COUNT", Sequelize.col("courseTaskId")), "tasksTotal")],
 				[Sequelize.fn("COUNT", Sequelize.literal("CASE WHEN percentage = 100 THEN 1 ELSE NULL END")), "tasksCompleted"]
 			]
 		});
@@ -361,10 +362,9 @@ exports.userDashboard = async (req, res) => {
 
 		const taskAssessmentsPercentage = (taskAssessmentsPercentages / taskAssessments.length) * 100;
 
-
 		const enrollments = await CourseEnrollments.findAll({
 			where: { isActive: "Y" },
-			attributes: ['id'],
+			attributes: ["id"],
 			include: [
 				{
 					model: CourseTaskProgress,
@@ -372,8 +372,8 @@ exports.userDashboard = async (req, res) => {
 						userId: userId,
 						isActive: "Y"
 					},
-					attributes:["percentage", "id", "courseId"],
-					include:[
+					attributes: ["percentage", "id", "courseId"],
+					include: [
 						{
 							model: CourseTasks,
 							where: { isActive: "Y" },
@@ -406,13 +406,13 @@ exports.userDashboard = async (req, res) => {
 							]
 						}
 					]
-				},
-			],
-		})
+				}
+			]
+		});
 
 		const upcomingTasks = {};
-		enrollments.forEach(course => {
-			course.courseTaskProgresses.forEach(task => {
+		enrollments.forEach((course) => {
+			course.courseTaskProgresses.forEach((task) => {
 				const courseId = task.courseId;
 				if (task.percentage != "0") {
 					return;
@@ -420,7 +420,7 @@ exports.userDashboard = async (req, res) => {
 				if (!upcomingTasks[courseId]) {
 					upcomingTasks[courseId] = task;
 				}
-			})
+			});
 		});
 		const upcomingTasksArray = Object.values(upcomingTasks);
 

@@ -62,7 +62,7 @@ module.exports = {
 				{ title: "All Users", createdAt: date, updatedAt: date },
 				{ title: "Department", createdAt: date, updatedAt: date },
 				{ title: "Individual", createdAt: date, updatedAt: date },
-				{ title: "Teams", createdAt: date, updatedAt: date }
+				{ title: "Team", createdAt: date, updatedAt: date }
 			],
 			{}
 		);
