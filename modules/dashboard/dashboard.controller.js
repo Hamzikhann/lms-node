@@ -170,7 +170,7 @@ exports.userDashboard = async (req, res) => {
 				{
 					model: CourseTaskProgress,
 					where: { isActive: "Y", userId },
-					required: false,
+					required: true,
 					attributes: []
 				},
 				{
@@ -196,7 +196,7 @@ exports.userDashboard = async (req, res) => {
 			attributes: [
 				"title",
 				"code",
-				[(Sequelize.fn("COUNT", Sequelize.col("courseTaskId")), "tasksTotal")],
+				// [(Sequelize.fn("COUNT", Sequelize.col("courseTaskId")), "tasksTotal")],
 				[Sequelize.fn("COUNT", Sequelize.literal("CASE WHEN percentage = 100 THEN 1 ELSE NULL END")), "tasksCompleted"]
 			]
 		});
