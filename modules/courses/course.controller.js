@@ -3,6 +3,7 @@ const db = require("../../models");
 const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const { sequelize } = require("../../models");
+const Sequelize = require("sequelize");
 
 const Classes = db.classes;
 const Courses = db.courses;
@@ -21,6 +22,7 @@ const courseModule = db.courseModules;
 const courseTasks = db.courseTasks;
 const courseTaskTypes = db.courseTaskTypes;
 const User = db.users;
+const CourseAchievements = db.courseAchievements;
 
 exports.list = (req, res) => {
 	try {
@@ -111,7 +113,7 @@ exports.listForUser = (req, res) => {
 		const clientId = crypto.decrypt(req.clientId);
 		// console.log(clientId, crypto.decrypt(req.userId));
 
-		Courses.findAll({
+		Courses.findAndCountAll({
 			where: { isActive: "Y", status: "P" },
 			include: [
 				{
@@ -138,6 +140,10 @@ exports.listForUser = (req, res) => {
 								{
 									model: CourseEnrollmentUsers,
 									where: { userId: crypto.decrypt(req.userId), isActive: "Y" }
+								},
+								{
+									model: CourseAchievements,
+									required: false
 								}
 							]
 						}
@@ -147,12 +153,29 @@ exports.listForUser = (req, res) => {
 			],
 			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
 		})
-			.then((data) => {
-				encryptHelper(data);
-				res.send(data);
+			.then(async (data) => {
+				encryptHelper(data.rows);
+
+				let totalCompletedCourse = await CourseEnrollments.count({
+					where: { isActive: "Y" },
+					attributes: ["id"],
+					include: [
+						{
+							model: CourseEnrollmentUsers,
+							where: { userId: crypto.decrypt(req.userId), isActive: "Y" }
+						},
+						{
+							model: CourseAchievements,
+							required: true
+						}
+					]
+				});
+
+				res.send({ data: data, totalCompletedCourse: totalCompletedCourse });
 			})
 			.catch((err) => {
 				emails.errorEmail(req, err);
+				console.log(err);
 				res.status(500).send({
 					message: err.message || "Some error occurred while retrieving Classes."
 				});
