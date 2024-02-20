@@ -21,6 +21,7 @@ const courseSyllabus = db.courseSyllabus;
 const courseModule = db.courseModules;
 const courseTasks = db.courseTasks;
 const courseTaskTypes = db.courseTaskTypes;
+const CourseTaskProgress = db.courseTaskProgress;
 const User = db.users;
 const CourseAchievements = db.courseAchievements;
 
@@ -33,19 +34,12 @@ exports.list = (req, res) => {
 					model: courseDepartment,
 					where: { isActive: "Y" },
 					required: false,
-					attributes: ["id", "title", "isActive"]
-				},
-				{
-					model: courseInstructor,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "name", "isActive"]
+					attributes: ["title"]
 				}
 			],
-			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
+			attributes: ["id", "code", "title"]
 		})
 			.then((data) => {
-				console.log(data);
 				encryptHelper(data);
 				res.send(data);
 			})
@@ -67,32 +61,45 @@ exports.listForClient = (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
 
-		Courses.findAll({
-			where: { isActive: "Y", status: "P" },
-			include: [
-				{
-					model: courseDepartment,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "title", "isActive"]
-				},
-				{
-					model: courseInstructor,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "name", "isActive"]
-				},
-				{
-					model: courseAssignments,
-					where: { clientId, isActive: "Y" },
-					attributes: ["id"]
-				}
-			],
-			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
-		})
+		courseAssignments
+			.findAll({
+				where: { clientId, isActive: "Y" },
+				include: [
+					{
+						model: Courses,
+						where: { isActive: "Y", status: "P" },
+						include: [
+							{
+								model: courseDepartment,
+								where: { isActive: "Y" },
+								required: false,
+								attributes: ["title"]
+							}
+						],
+						attributes: ["title", "code"]
+					}
+				],
+				attributes: ["courseId"]
+			})
 			.then((data) => {
 				encryptHelper(data);
-				res.send(data);
+
+				var updatedRes = [];
+				data.forEach((element) => {
+					const course = {
+						id: element.courseId,
+						code: element.course.code,
+						title: element.course.title,
+						courseDepartment: element.course.courseDepartment,
+						tasks: {
+							total: 0,
+							completed: 0
+						}
+					};
+					updatedRes.push(course);
+				});
+
+				res.send(updatedRes);
 			})
 			.catch((err) => {
 				emails.errorEmail(req, err);
@@ -111,67 +118,84 @@ exports.listForClient = (req, res) => {
 exports.listForUser = (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
-		// console.log(clientId, crypto.decrypt(req.userId));
+		const userId = crypto.decrypt(req.userId);
 
-		Courses.findAndCountAll({
-			where: { isActive: "Y", status: "P" },
+		CourseEnrollments.findAll({
+			where: { isActive: "Y" },
 			include: [
-				{
-					model: courseDepartment,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "title", "isActive"]
-				},
-				{
-					model: courseInstructor,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: ["id", "name", "isActive"]
-				},
 				{
 					model: courseAssignments,
 					where: { clientId, isActive: "Y" },
 					include: [
 						{
-							model: CourseEnrollments,
-							where: { isActive: "Y" },
-							attributes: ["id"],
+							model: Courses,
+							where: { isActive: "Y", status: "P" },
 							include: [
 								{
-									model: CourseEnrollmentUsers,
-									where: { userId: crypto.decrypt(req.userId), isActive: "Y" }
+									model: courseDepartment,
+									where: { isActive: "Y" },
+									required: false,
+									attributes: ["title"]
 								},
 								{
-									model: CourseAchievements,
-									required: false
+									model: courseSyllabus,
+									attributes: ["id"],
+									include: [
+										{
+											model: courseModule,
+											attributes: ["id"],
+											include: [
+												{
+													model: courseTasks,
+													attributes: ["id"]
+												}
+											]
+										}
+									]
 								}
-							]
+							],
+							attributes: ["title", "code"]
 						}
 					],
-					attributes: ["id"]
+					attributes: ["courseId"]
+				},
+				{
+					model: CourseEnrollmentUsers,
+					where: { userId, isActive: "Y" },
+					attributes: []
+				},
+				{
+					model: CourseTaskProgress,
+					where: { isActive: "Y", userId },
+					required: false,
+					attributes: ["courseTaskId", "percentage"]
 				}
 			],
-			attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
+			attributes: ["required", "completionDateOne"]
 		})
 			.then(async (data) => {
-				encryptHelper(data.rows);
+				encryptHelper(data);
 
-				let totalCompletedCourse = await CourseEnrollments.count({
-					where: { isActive: "Y" },
-					attributes: ["id"],
-					include: [
-						{
-							model: CourseEnrollmentUsers,
-							where: { userId: crypto.decrypt(req.userId), isActive: "Y" }
-						},
-						{
-							model: CourseAchievements,
-							required: true
+				var updatedRes = [];
+				data.forEach((element) => {
+					const course = {
+						id: element.courseAssignment.courseId,
+						code: element.courseAssignment.course.code,
+						title: element.courseAssignment.course.title,
+						courseDepartment: element.course.courseDepartment,
+						tasks: {
+							total: 0,
+							completed: element.courseTaskProgresses.length
 						}
-					]
+					};
+
+					element.courseAssignment.course.courseSyllabus.courseModules.forEach((element) => {
+						course.tasks.total += element.courseTasks.length;
+					});
+					updatedRes.push(course);
 				});
 
-				res.send({ data: data, totalCompletedCourse: totalCompletedCourse });
+				res.send(updatedRes);
 			})
 			.catch((err) => {
 				emails.errorEmail(req, err);
@@ -180,46 +204,6 @@ exports.listForUser = (req, res) => {
 					message: err.message || "Some error occurred while retrieving Classes."
 				});
 			});
-
-		// Courses.findAll({
-		// 	where: { isActive: "Y" },
-		// 	include: [
-		// 		{
-		// 			model: courseDepartment,
-		// 			where: { isActive: "Y" },
-		// 			required: false,
-		// 			attributes: ["id", "title", "isActive"]
-		// 		},
-		// 		{
-		// 			model: courseInstructor,
-		// 			where: { isActive: "Y" },
-		// 			required: false,
-		// 			attributes: ["id", "name", "isActive"]
-		// 		},
-		// 		{
-		// 			model: courseAssignments,
-		// 			where: { clientId, isActive: "Y" },
-		// 			// include: [
-		// 			// 	{
-		// 			// 		model: CourseEnrollments,
-		// 			// 		where: { isActive: "Y" }
-		// 			// 	}
-		// 			// ],
-		// 			attributes: ["id"]
-		// 		}
-		// 	],
-		// 	attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
-		// })
-		// 	.then((data) => {
-		// 		encryptHelper(data);
-		// 		res.send(data);
-		// 	})
-		// 	.catch((err) => {
-		// 		emails.errorEmail(req, err);
-		// 		res.status(500).send({
-		// 			message: err.message || "Some error occurred while retrieving Classes."
-		// 		});
-		// 	});
 	} catch (err) {
 		emails.errorEmail(req, err);
 		res.status(500).send({
