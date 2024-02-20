@@ -161,8 +161,19 @@ exports.userDashboard = async (req, res) => {
 
 		const myCourses = await CourseEnrollments.findAll({
 			where: { isActive: "Y" },
-			attributes: ["id"],
 			include: [
+				{
+					model: CourseAssignments,
+					where: { isActive: "Y" },
+					include: [
+						{
+							model: Courses,
+							where: { isActive: "Y" },
+							attributes: ["title", "code"]
+						}
+					],
+					attributes: ["courseId"]
+				},
 				{
 					model: CourseTaskProgress,
 					where: {
@@ -170,47 +181,13 @@ exports.userDashboard = async (req, res) => {
 						isActive: "Y"
 					},
 					required: true,
-					attributes: ["id"],
-					include: [
-						{
-							model: CourseTasks,
-							where: { isActive: "Y" },
-							attributes: ["id"],
-							include: [
-								{
-									model: CourseTaskTypes,
-									where: { isActive: "Y" },
-									attributes: ["id"]
-								},
-								{
-									model: CourseModules,
-									where: { isActive: "Y" },
-									attributes: ["id"],
-									include: [
-										{
-											model: CourseSyllabus,
-											where: { isActive: "Y" },
-											attributes: ["id"],
-											include: [
-												{
-													model: Courses,
-													where: { isActive: "Y" },
-													attributes: [
-														"id",
-														"title",
-														"code",
-														[Sequelize.fn("COUNT", Sequelize.col("courseTaskId")), "tasksTotal"],
-														[Sequelize.fn("COUNT", Sequelize.literal("CASE WHEN percentage = 100 THEN 1 ELSE NULL END")), "tasksCompleted"],
-													],
-												}
-											]
-										}
-									]
-								}
-							]
-						}
-					]
+					attributes: []
 				}
+			],
+			attributes: [
+				"required",
+				[Sequelize.fn("COUNT", Sequelize.col("courseTaskId")), "tasksTotal"],
+				[Sequelize.fn("COUNT", Sequelize.literal("CASE WHEN percentage = 100 THEN 1 ELSE NULL END")), "tasksCompleted"]
 			]
 		});
 
