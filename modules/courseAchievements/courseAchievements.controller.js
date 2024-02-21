@@ -6,8 +6,8 @@ const Joi = require("@hapi/joi");
 const { sequelize } = require("../../models");
 
 const CourseAchievements = db.courseAchievements;
-const CourseEnrollments = db.courseEnrollments;
 const CourseAssignments = db.courseAssignments;
+const CourseEnrollments = db.courseEnrollments;
 const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 
 exports.list = (req, res) => {
@@ -21,7 +21,7 @@ exports.list = (req, res) => {
 			isActive: "Y"
 		};
 		if (courseId) whereAssignments.courseId = courseId;
-		console.log(whereAssignments);
+		console.log(CourseEnrollments, CourseEnrollmentUsers);
 
 		CourseAchievements.findAll({
 			where: { isActive: "Y" },
@@ -37,7 +37,8 @@ exports.list = (req, res) => {
 						},
 						{
 							model: CourseEnrollmentUsers,
-							where: { userId, isActive: "Y" }
+							where: { userId, isActive: "Y" },
+							attributes: []
 						}
 					],
 					attributes: []
