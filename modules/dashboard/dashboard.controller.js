@@ -283,13 +283,41 @@ exports.userDashboard = async (req, res) => {
 			],
 			attributes: ["percentage"]
 		});
-		const assessmentsPercentages = 0;
+		var assessmentsPercentages = 0;
 		tasksAssessments.forEach((element) => {
 			assessmentsPercentages += Number(element.percentage);
 		});
-		const assessmentsPercentage = (assessmentsPercentages / tasksAssessments.length) * 100;
+		var assessmentsPercentage = (assessmentsPercentages / tasksAssessments.length) * 100;
 
-		const enrollments = await CourseEnrollments.findAll({
+		var CoursesCompletions = await Courses.findAll({
+			where: { isActive: "Y" },
+			attributes: ["title"],
+			include: [
+				{
+					model: CourseAssignments,
+					where: { isActive: "Y" },
+					include: [
+						{
+							model: CourseEnrollments,
+							where: { isActive: "Y" },
+							include: [
+								{
+									model: CourseEnrollmentUsers,
+									where: { userId: userId, isActive: "Y" },
+									attributes: ["progress"]
+								}
+							],
+							// attributes: ["courseProgress", "completionDateOne"]
+							attributes: ["completionDateOne"]
+						}
+					],
+					attributes: ["createdAt"]
+				}
+			]
+		});
+
+		var upcomingTasks = {};
+		var enrollments = await CourseEnrollments.findAll({
 			where: { isActive: "Y" },
 			attributes: ["id"],
 			include: [
@@ -336,35 +364,6 @@ exports.userDashboard = async (req, res) => {
 				}
 			]
 		});
-
-		const CoursesCompletions = await Courses.findAll({
-			where: { isActive: "Y" },
-			attributes: ["title"],
-			include: [
-				{
-					model: CourseAssignments,
-					where: { isActive: "Y" },
-					include: [
-						{
-							model: CourseEnrollments,
-							where: { isActive: "Y" },
-							include: [
-								{
-									model: CourseEnrollmentUsers,
-									where: { userId: userId, isActive: "Y" },
-									attributes: ["progress"]
-								}
-							],
-							// attributes: ["courseProgress", "completionDateOne"]
-							attributes: ["completionDateOne"]
-						}
-					],
-					attributes: ["createdAt"]
-				}
-			]
-		});
-
-		const upcomingTasks = {};
 		enrollments.forEach((course) => {
 			course.courseTaskProgresses.forEach((task) => {
 				const courseId = task.courseId;
@@ -376,9 +375,9 @@ exports.userDashboard = async (req, res) => {
 				}
 			});
 		});
-		const upcomingTasksArray = Object.values(upcomingTasks);
+		var upcomingTasksArray = Object.values(upcomingTasks);
 
-		const data = {
+		var data = {
 			stats: {
 				courses: {
 					enrolled: coursesEnrolled,
