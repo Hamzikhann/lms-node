@@ -100,7 +100,7 @@ exports.listForClient = (req, res) => {
 					updatedRes.push(course);
 				});
 
-				res.send(data);
+				res.send(updatedRes);
 			})
 			.catch((err) => {
 				emails.errorEmail(req, err);
