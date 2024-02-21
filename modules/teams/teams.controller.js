@@ -88,7 +88,7 @@ exports.list = (req, res) => {
 	}
 };
 
-exports.update = (req, res) => {
+exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
 			title: Joi.string().required(),
@@ -107,11 +107,17 @@ exports.update = (req, res) => {
 			const teamObj = {
 				title: req.body.title
 			};
-			Teams.update(teamObj, { where: { id: crypto.decrypt(req.body.teamId) } })
-				.then((response) => {
+			let transaction = await sequelize.transaction();
+
+			Teams.update(teamObj, { where: { id: crypto.decrypt(req.body.teamId) } }, { transaction })
+				.then(async (response) => {
+					await transaction.commit();
+
 					res.send({ message: "The team is updated", data: response });
 				})
-				.catch((err) => {
+				.catch(async (err) => {
+					if (transaction) await transaction.rollback();
+
 					emails.errorEmail(req, err);
 					res.status(500).send({
 						message: err.message || "Some error occurred while creating the Quiz."
