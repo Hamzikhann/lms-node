@@ -283,67 +283,15 @@ exports.userDashboard = async (req, res) => {
 			],
 			attributes: ["percentage"]
 		});
-		const assessmentsPercentages = 0;
+		var taskAssessmentsPercentages = 0;
 		tasksAssessments.forEach((element) => {
-			assessmentsPercentages += Number(element.percentage);
+			taskAssessmentsPercentages += Number(element.percentage);
 		});
-		const assessmentsPercentage = (assessmentsPercentages / tasksAssessments.length) * 100;
+		var assessmentsPercentage = taskAssessmentsPercentages / tasksAssessments.length;
 
-		const enrollments = await CourseEnrollments.findAll({
+		var CoursesCompletions = await Courses.findAll({
 			where: { isActive: "Y" },
-			attributes: ["id"],
-			include: [
-				{
-					model: CourseTaskProgress,
-					where: {
-						// userId: userId,
-						isActive: "Y"
-					},
-					attributes: ["percentage", "id", "courseId"],
-					include: [
-						{
-							model: CourseTasks,
-							where: { isActive: "Y" },
-							attributes: ["title", "estimatedTime"],
-							include: [
-								{
-									model: CourseTaskTypes,
-									where: { isActive: "Y" },
-									attributes: ["title"]
-								},
-								{
-									model: CourseModules,
-									where: { isActive: "Y" },
-									attributes: ["id"],
-									include: [
-										{
-											model: CourseSyllabus,
-											where: { isActive: "Y" },
-											attributes: ["id"],
-											include: [
-												{
-													model: Courses,
-													where: { isActive: "Y" },
-													attributes: ["title"]
-												}
-											]
-										}
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					model: CourseEnrollmentUsers,
-					where: { userId: userId }
-				}
-			]
-		});
-
-		const CoursesCompletions = await Courses.findAll({
-			where: { isActive: "Y" },
-			attributes: ["title"],
+			attributes: ["id", "title"],
 			include: [
 				{
 					model: CourseAssignments,
@@ -368,6 +316,58 @@ exports.userDashboard = async (req, res) => {
 			]
 		});
 
+		// var upcomingTasks = {};
+		// var enrollments = await CourseEnrollments.findAll({
+		// 	where: { isActive: "Y" },
+		// 	attributes: ["id"],
+		// 	include: [
+		// 		{
+		// 			model: CourseTaskProgress,
+		// 			where: {
+		// 				// userId: userId,
+		// 				isActive: "Y"
+		// 			},
+		// 			attributes: ["percentage", "id", "courseId"],
+		// 			include: [
+		// 				{
+		// 					model: CourseTasks,
+		// 					where: { isActive: "Y" },
+		// 					attributes: ["title", "estimatedTime"],
+		// 					include: [
+		// 						{
+		// 							model: CourseTaskTypes,
+		// 							where: { isActive: "Y" },
+		// 							attributes: ["title"]
+		// 						},
+		// 						{
+		// 							model: CourseModules,
+		// 							where: { isActive: "Y" },
+		// 							attributes: ["id"],
+		// 							include: [
+		// 								{
+		// 									model: CourseSyllabus,
+		// 									where: { isActive: "Y" },
+		// 									attributes: ["id"],
+		// 									include: [
+		// 										{
+		// 											model: Courses,
+		// 											where: { isActive: "Y" },
+		// 											attributes: ["title"]
+		// 										}
+		// 									]
+		// 								}
+		// 							]
+		// 						}
+		// 					]
+		// 				}
+		// 			]
+		// 		},
+		// 		{
+		// 			model: CourseEnrollmentUsers,
+		// 			where: { userId: userId }
+		// 		}
+		// 	]
+		// });
 		// const upcomingTasks = {};
 		// enrollments.forEach((course) => {
 		// 	course.courseTaskProgresses.forEach((task) => {
@@ -417,6 +417,9 @@ exports.userDashboard = async (req, res) => {
 																	model: CourseTaskProgress,
 																	required: false,
 																	where: { userId: userId }
+																},
+																{
+																	model: CourseTaskTypes
 																}
 															]
 														}
@@ -444,10 +447,12 @@ exports.userDashboard = async (req, res) => {
 				module.courseTasks.forEach((tasks) => {
 					if (tasks.courseTaskProgresses.length == 0) {
 						let Obj = {
-							id: enrollment.courseEnrollment.courseAssignment.course.id,
+							courseid: enrollment.courseEnrollment.courseAssignment.course.id,
 							courseName: enrollment.courseEnrollment.courseAssignment.course.title,
 							taskId: tasks.id,
-							taskName: tasks.title
+							taskName: tasks.title,
+							taskType: tasks.courseTaskType.title,
+							estimatedTime: tasks.estimatedTime
 						};
 						comingTask.push(Obj);
 					}
@@ -455,7 +460,9 @@ exports.userDashboard = async (req, res) => {
 			});
 		});
 		let upcomingTasks = getFirstObjectsWithCourseChange(comingTask);
-		const data = {
+		// var upcomingTasksArray = Object.values(upcomingTasks);
+
+		var data = {
 			stats: {
 				courses: {
 					enrolled: coursesEnrolled,
