@@ -283,11 +283,11 @@ exports.userDashboard = async (req, res) => {
 			],
 			attributes: ["percentage"]
 		});
-		var assessmentsPercentages = 0;
+		var taskAssessmentsPercentages = 0;
 		tasksAssessments.forEach((element) => {
-			assessmentsPercentages += Number(element.percentage);
+			taskAssessmentsPercentages += Number(element.percentage);
 		});
-		var assessmentsPercentage = (assessmentsPercentages / tasksAssessments.length) * 100;
+		var assessmentsPercentage = taskAssessmentsPercentages / tasksAssessments.length;
 
 		var CoursesCompletions = await Courses.findAll({
 			where: { isActive: "Y" },
