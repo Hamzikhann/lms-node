@@ -79,7 +79,7 @@ exports.listForClient = (req, res) => {
 						attributes: ["title", "code"]
 					}
 				],
-				attributes: ["courseId"]
+				attributes: ["courseId", "id"]
 			})
 			.then((data) => {
 				encryptHelper(data);
@@ -91,6 +91,7 @@ exports.listForClient = (req, res) => {
 						code: element.course.code,
 						title: element.course.title,
 						courseDepartment: element.course.courseDepartment,
+						courseAssignmentId: element.id,
 						tasks: {
 							total: 0,
 							completed: 0
@@ -139,14 +140,20 @@ exports.listForUser = (req, res) => {
 								},
 								{
 									model: courseSyllabus,
+									where: { isActive: "Y" },
+									required: false,
 									attributes: ["id"],
 									include: [
 										{
 											model: courseModule,
+											where: { isActive: "Y" },
+											required: false,
 											attributes: ["id"],
 											include: [
 												{
 													model: courseTasks,
+													where: { isActive: "Y" },
+													required: false,
 													attributes: ["id"]
 												}
 											]
@@ -157,7 +164,7 @@ exports.listForUser = (req, res) => {
 							attributes: ["title", "code"]
 						}
 					],
-					attributes: ["courseId"]
+					attributes: ["id", "courseId"]
 				},
 				{
 					model: CourseEnrollmentUsers,
@@ -171,18 +178,20 @@ exports.listForUser = (req, res) => {
 					attributes: ["courseTaskId", "percentage"]
 				}
 			],
-			attributes: ["required", "completionDateOne"]
+			attributes: ["id", "required", "completionDateOne"]
 		})
 			.then(async (data) => {
 				encryptHelper(data);
 
 				var updatedRes = [];
-				data.forEach((element) => {
+				await data.forEach((element) => {
 					const course = {
 						id: element.courseAssignment.courseId,
 						code: element.courseAssignment.course.code,
 						title: element.courseAssignment.course.title,
-						courseDepartment: element.course.courseDepartment,
+						courseDepartment: element.courseAssignment.course.courseDepartment,
+						courseAssignmentId: element.courseAssignment.id,
+						courseEnrollmentId: element.id,
 						tasks: {
 							total: 0,
 							completed: element.courseTaskProgresses.length
@@ -192,6 +201,7 @@ exports.listForUser = (req, res) => {
 					element.courseAssignment.course.courseSyllabus.courseModules.forEach((element) => {
 						course.tasks.total += element.courseTasks.length;
 					});
+
 					updatedRes.push(course);
 				});
 
@@ -577,7 +587,6 @@ exports.reset = async (req, res) => {
 		} else {
 			const clientId = crypto.decrypt(req.clientId);
 			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
-			// console.log(clientId, courseEnrollmentId);
 
 			const updateProgress = await CourseEnrollmentUsers.update(
 				{ progress: "0" },
