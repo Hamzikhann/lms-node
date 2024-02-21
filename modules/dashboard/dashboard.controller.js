@@ -382,7 +382,7 @@ exports.userDashboard = async (req, res) => {
 		// });
 		// const upcomingTasksArray = Object.values(upcomingTasks);
 
-		const allTasks = await CourseEnrollmentUsers.findAll({
+		var allTasks = await CourseEnrollmentUsers.findAll({
 			where: {
 				userId: userId,
 				isActive: "Y"
@@ -442,12 +442,14 @@ exports.userDashboard = async (req, res) => {
 		});
 
 		let comingTask = [];
+		encryptHelper(allTasks);
+
 		allTasks.forEach((enrollment) => {
 			enrollment.courseEnrollment.courseAssignment.course.courseSyllabus.courseModules.forEach((module) => {
 				module.courseTasks.forEach((tasks) => {
 					if (tasks.courseTaskProgresses.length == 0) {
 						let Obj = {
-							courseid: enrollment.courseEnrollment.courseAssignment.course.id,
+							courseId: enrollment.courseEnrollment.courseAssignment.course.id,
 							courseName: enrollment.courseEnrollment.courseAssignment.course.title,
 							taskId: tasks.id,
 							taskName: tasks.title,
