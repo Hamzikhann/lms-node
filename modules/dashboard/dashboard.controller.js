@@ -296,7 +296,7 @@ exports.userDashboard = async (req, res) => {
 				{
 					model: CourseTaskProgress,
 					where: {
-						userId: userId,
+						// userId: userId,
 						isActive: "Y"
 					},
 					attributes: ["percentage", "id", "courseId"],
@@ -314,12 +314,12 @@ exports.userDashboard = async (req, res) => {
 								{
 									model: CourseModules,
 									where: { isActive: "Y" },
-									attributes: [],
+									attributes: ["id"],
 									include: [
 										{
 											model: CourseSyllabus,
 											where: { isActive: "Y" },
-											attributes: [],
+											attributes: ["id"],
 											include: [
 												{
 													model: Courses,
@@ -333,6 +333,10 @@ exports.userDashboard = async (req, res) => {
 							]
 						}
 					]
+				},
+				{
+					model: CourseEnrollmentUsers,
+					where: { userId: userId }
 				}
 			]
 		});
@@ -364,20 +368,93 @@ exports.userDashboard = async (req, res) => {
 			]
 		});
 
-		const upcomingTasks = {};
-		enrollments.forEach((course) => {
-			course.courseTaskProgresses.forEach((task) => {
-				const courseId = task.courseId;
-				if (task.percentage != "0") {
-					return;
+		// const upcomingTasks = {};
+		// enrollments.forEach((course) => {
+		// 	course.courseTaskProgresses.forEach((task) => {
+		// 		const courseId = task.courseId;
+		// 		if (task.percentage != "0") {
+		// 			return;
+		// 		}
+		// 		if (!upcomingTasks[courseId]) {
+		// 			upcomingTasks[courseId] = task;
+		// 		}
+		// 	});
+		// });
+		// const upcomingTasksArray = Object.values(upcomingTasks);
+
+		const allTasks = await CourseEnrollmentUsers.findAll({
+			where: {
+				userId: userId,
+				isActive: "Y"
+			},
+			include: [
+				{
+					model: CourseEnrollments,
+					where: { isActive: "Y" },
+					include: [
+						{
+							model: CourseAssignments,
+							where: { isActive: "Y" },
+
+							include: [
+								{
+									model: Courses,
+									where: { isActive: "Y" },
+									include: [
+										{
+											model: CourseSyllabus,
+											where: { isActive: "Y" },
+											include: [
+												{
+													model: CourseModules,
+													where: { isActive: "Y" },
+													include: [
+														{
+															model: CourseTasks,
+															where: { isActive: "Y" },
+															include: [
+																{
+																	model: CourseTaskProgress,
+																	required: false,
+																	where: { userId: userId }
+																}
+															]
+														}
+													]
+												}
+											],
+											attributes: ["title"]
+										}
+									],
+									attributes: ["id", "title"]
+								}
+							],
+							attributes: ["id"]
+						}
+					],
+					attributes: ["id", "courseAssignmentId"]
 				}
-				if (!upcomingTasks[courseId]) {
-					upcomingTasks[courseId] = task;
-				}
+			],
+			attributes: ["id", "userId"]
+		});
+
+		let comingTask = [];
+		allTasks.forEach((enrollment) => {
+			enrollment.courseEnrollment.courseAssignment.course.courseSyllabus.courseModules.forEach((module) => {
+				module.courseTasks.forEach((tasks) => {
+					if (tasks.courseTaskProgresses.length == 0) {
+						let Obj = {
+							id: enrollment.courseEnrollment.courseAssignment.course.id,
+							courseName: enrollment.courseEnrollment.courseAssignment.course.title,
+							taskId: tasks.id,
+							taskName: tasks.title
+						};
+						comingTask.push(Obj);
+					}
+				});
 			});
 		});
-		const upcomingTasksArray = Object.values(upcomingTasks);
-
+		let upcomingTasks = getFirstObjectsWithCourseChange(comingTask);
 		const data = {
 			stats: {
 				courses: {
@@ -392,7 +469,7 @@ exports.userDashboard = async (req, res) => {
 				}
 			},
 			tasks: {
-				upcoming: encryptHelper(upcomingTasksArray)
+				upcoming: upcomingTasks
 			},
 			courses: {
 				completion: encryptHelper(CoursesCompletions)
@@ -464,3 +541,19 @@ exports.clientDashboard = async (req, res) => {
 		});
 	}
 };
+
+function getFirstObjectsWithCourseChange(data) {
+	const result = [];
+	let currentCourse = null;
+
+	for (let i = 0; i < data.length; i++) {
+		const currentItem = data[i];
+
+		if (currentCourse !== currentItem.courseName) {
+			result.push(currentItem);
+			currentCourse = currentItem.courseName;
+		}
+	}
+
+	return result;
+}
