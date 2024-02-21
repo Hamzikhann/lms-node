@@ -48,7 +48,8 @@ exports.create = async (req, res) => {
 				};
 				teamUserObj.push(teamUser);
 			});
-			// console.log(teamUserObj);
+
+			console.log(teamUserObj);
 			let transaction = await sequelize.transaction();
 			TeamUsers.bulkCreate(teamUserObj, { transaction })
 				.then(async (response) => {
@@ -59,6 +60,7 @@ exports.create = async (req, res) => {
 							attributes: ["courseAssignmentId"],
 							raw: true
 						});
+						console.log("team", team);
 						const userExistedCourses = await CourseEnrollments.findAll({
 							where: { isActive: "Y" },
 							attributes: ["courseAssignmentId"],
@@ -70,6 +72,7 @@ exports.create = async (req, res) => {
 							],
 							raw: true
 						});
+						console.log("userExistedCourses", userExistedCourses);
 						const teamIds = team.map((item) => item.courseAssignmentId);
 						const userExistedCoursesIds = userExistedCourses.map((item) => item.courseAssignmentId);
 
@@ -88,7 +91,7 @@ exports.create = async (req, res) => {
 								enrollmentObj.push(obj);
 								// });
 							});
-							console.log(enrollmentObj);
+							console.log("enrollmentObj", enrollmentObj);
 							const courseEnrollment = await CourseEnrollments.bulkCreate(enrollmentObj, { transaction });
 							courseEnrollment.forEach((e) => {
 								uniqueUsers.forEach((j) => {
@@ -101,6 +104,12 @@ exports.create = async (req, res) => {
 							});
 
 							const courseEnrollmentUsers = await CourseEnrollmentUsers.bulkCreate(enrollmentUserObj, { transaction });
+							await transaction.commit();
+							encryptHelper(response);
+							res.status(200).send({
+								message: "Team users are created",
+								data: response
+							});
 						}
 					} else {
 						await transaction.commit();
