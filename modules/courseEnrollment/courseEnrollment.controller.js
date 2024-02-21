@@ -459,3 +459,74 @@ exports.reset = async (req, res) => {
 		});
 	}
 };
+
+exports.close = async (req, res) => {
+	try {
+		const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
+
+		CourseEnrollments.update({ isActive: "C" }, { where: { id: courseEnrollmentId } })
+			.then((response) => {
+				res.send({ message: "Enrollment is closed", data: response });
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
+exports.pastList = (req, res) => {
+	try {
+		CourseEnrollments.findAll({
+			where: { isActive: "C" },
+			include: [
+				{
+					model: CourseAssignments,
+					include: [
+						{
+							model: Courses,
+							where: { isActive: "Y" },
+							attributes: ["title"]
+						}
+					],
+					attributes: ["id", "dateFrom", "dateTo"]
+				},
+				{
+					model: CourseEnrollmentUsers,
+					where: { isActive: "Y" },
+					include: [
+						{
+							model: Users,
+							where: { isActive: "Y" },
+							attributes: ["id", "firstName", "lastName", "email"]
+						}
+					],
+					attributes: ["id", "progress", "userId"]
+				}
+			],
+			attributes: ["id", "required", "isActive", "completionDateOne", "completionDateTwo"]
+		})
+			.then((response) => {
+				encryptHelper(response);
+				res.send({ message: "List of Closed Enrollments", data: response });
+			})
+			.catch((err) => {
+				emails.errorEmail(req, err);
+				res.status(500).send({
+					message: err.message || "Some error occurred."
+				});
+			});
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};

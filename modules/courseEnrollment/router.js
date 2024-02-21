@@ -53,4 +53,12 @@ router.post("/progress/reset", (req, res) => {
 	courseEnrollmentController.reset(req, res);
 });
 
+router.post("/close", (req, res) => {
+	courseEnrollmentController.close(req, res);
+});
+
+router.post("/past/list", (req, res) => {
+	courseEnrollmentController.pastList(req, res);
+});
+
 module.exports = router;
