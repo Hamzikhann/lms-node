@@ -10,10 +10,18 @@ const CourseEnrollments = db.courseEnrollments;
 const CourseAssignments = db.courseAssignments;
 const CourseEnrollmentUsers = db.courseEnrollmentUsers;
 
-exports.listByUser = (req, res) => {
+exports.list = (req, res) => {
 	try {
 		const userId = crypto.decrypt(req.userId);
 		const clientId = crypto.decrypt(req.clientId);
+		const courseId = crypto.decrypt(req.body.courseId);
+
+		var whereAssignments = {
+			clientId,
+			isActive: "Y"
+		};
+		if (courseId) whereAssignments.courseId = courseId;
+		console.log(whereAssignments);
 
 		CourseAchievements.findAll({
 			where: { isActive: "Y" },
@@ -24,7 +32,7 @@ exports.listByUser = (req, res) => {
 					include: [
 						{
 							model: CourseAssignments,
-							where: { clientId, isActive: "Y" },
+							where: whereAssignments,
 							attributes: []
 						},
 						{
@@ -48,66 +56,6 @@ exports.listByUser = (req, res) => {
 					message: err.message || "Some error occurred while creating the Quiz."
 				});
 			});
-	} catch (err) {
-		emails.errorEmail(req, err);
-		res.status(500).send({
-			message: err.message || "Some error occurred while creating the Quiz."
-		});
-	}
-};
-
-exports.listByCourse = (req, res) => {
-	try {
-		const joiSchema = Joi.object({
-			courseId: Joi.string().required()
-		});
-		const { error, value } = joiSchema.validate(req.body);
-		if (error) {
-			emails.errorEmail(req, error);
-
-			const message = error.details[0].message.replace(/"/g, "");
-			res.status(400).send({
-				message: message
-			});
-		} else {
-			const courseId = crypto.decrypt(req.body.courseId);
-			const clientId = crypto.decrypt(req.clientId);
-			const userId = crypto.decrypt(req.userId);
-
-			CourseAchievements.findAll({
-				where: { isActive: "Y" },
-				include: [
-					{
-						model: CourseEnrollments,
-						where: { isActive: "Y" },
-						include: [
-							{
-								model: CourseAssignments,
-								where: { courseId, clientId, isActive: "Y" },
-								attributes: []
-							},
-							{
-								model: CourseEnrollmentUsers,
-								where: { userId, isActive: "Y" }
-							}
-						],
-						attributes: []
-					}
-				],
-				order: [["id", "DESC"]],
-				attributes: ["id", "createdAt", "courseEnrollmentId", "result"]
-			})
-				.then((response) => {
-					encryptHelper(response);
-					res.send({ data: response });
-				})
-				.catch((err) => {
-					emails.errorEmail(req, err);
-					res.status(500).send({
-						message: err.message || "Some error occurred while creating the Quiz."
-					});
-				});
-		}
 	} catch (err) {
 		emails.errorEmail(req, err);
 		res.status(500).send({
