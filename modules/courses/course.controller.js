@@ -140,14 +140,20 @@ exports.listForUser = (req, res) => {
 								},
 								{
 									model: courseSyllabus,
+									where: { isActive: "Y" },
+									required: false,
 									attributes: ["id"],
 									include: [
 										{
 											model: courseModule,
+											where: { isActive: "Y" },
+											required: false,
 											attributes: ["id"],
 											include: [
 												{
 													model: courseTasks,
+													where: { isActive: "Y" },
+													required: false,
 													attributes: ["id"]
 												}
 											]
@@ -199,7 +205,7 @@ exports.listForUser = (req, res) => {
 					updatedRes.push(course);
 				});
 
-				res.send(updatedRes);
+				res.send(data);
 			})
 			.catch((err) => {
 				emails.errorEmail(req, err);
