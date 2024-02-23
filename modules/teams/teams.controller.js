@@ -153,6 +153,8 @@ exports.delete = (req, res) => {
 					res.send({ message: "This team is deleted", data: response });
 				})
 				.catch((err) => {
+					console.log(err);
+
 					emails.errorEmail(req, err);
 					res.status(500).send({
 						message: err.message || "Some error occurred while creating the Quiz."
@@ -160,6 +162,7 @@ exports.delete = (req, res) => {
 				});
 		}
 	} catch (err) {
+		console.log(err);
 		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred while creating the Quiz."
