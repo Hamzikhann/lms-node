@@ -584,40 +584,54 @@ exports.clientDashboard = async (req, res) => {
 			attributes: ["id", "completionDateOne", "completionDateTwo", "courseAssignmentId"]
 		});
 
-		const recentAchivements = await CourseAchievements.findAll({
-			where: { isActive: "Y" },
+		const recentAchivements = await CourseAssignments.findAll({
+			where: { isActive: "Y", clientId: clientId },
 			include: [
+				{
+					model: Courses,
+					required: true,
+					where: { isActive: "Y" },
+					attributes: ["id", "title", "code"]
+				},
 				{
 					model: CourseEnrollments,
 					where: { isActive: "Y" },
 					include: [
 						{
-							model: CourseAssignments,
-							where: { isActive: "Y", clientId: clientId },
-							attributes: ["id"],
-							include: [
-								{
-									model: Courses,
-									required: true,
-									where: { isActive: "Y" },
-									attributes: ["id", "title", "code"]
-								}
-							]
+							model: CourseAchievements,
+							where: { isActive: "Y" },
+							attributes: ["id", "result"]
 						},
 						{
 							model: CourseEnrollmentUsers,
 							where: { isActive: "Y" },
-							attributes: ["id"]
-							// include: [
-							// 	{ model: Users, where: { isActive: "Y" }, attributes: ["id", "firstName", "lastName", "email"] }
-							// ]
+							attributes: ["id", "progress"],
+							include: [
+								{ model: Users, where: { isActive: "Y" }, attributes: ["id", "firstName", "lastName", "email"] }
+							]
 						}
 					],
 					attributes: ["id"]
 				}
 			],
 			// order: [["id", "DESC"]],
-			attributes: ["id", "createdAt", "courseEnrollmentId", "result"]
+			attributes: ["id", "dateFrom", "dateTo"]
+		});
+		encryptHelper(recentAchivements);
+		let achivements = [];
+		recentAchivements.forEach((assignments) => {
+			assignments.courseEnrollments.forEach((enrollments) => {
+				enrollments.courseEnrollmentUsers.forEach((enrollUsers) => {
+					if (enrollUsers.progress == "100") {
+						let obj = {
+							course: assignments.course,
+							user: enrollUsers,
+							achivement: enrollments.courseAchievements
+						};
+						achivements.push(obj);
+					}
+				});
+			});
 		});
 
 		const testing = await CourseAssignments.findAll({
@@ -648,9 +662,11 @@ exports.clientDashboard = async (req, res) => {
 			include: [
 				{
 					model: Courses,
-					where: { isActive: "Y", status: "P", id: uniqueIds }
+					where: { isActive: "Y", status: "P", id: uniqueIds },
+					attributes: ["id", "title", "code", "approximateTime"]
 				}
-			]
+			],
+			attributes: ["id", "dateFrom", "dateTo"]
 		});
 
 		var data = {
@@ -666,7 +682,8 @@ exports.clientDashboard = async (req, res) => {
 				upcoming: encryptHelper(upcommingCourse),
 				enrolled: encryptHelper(enrolledCourses)
 			},
-			users: encryptHelper(totalUsers.row),
+			recentAchivements: achivements,
+			users: encryptHelper(totalUsers.rows),
 			teams: encryptHelper(teamsUser)
 		};
 
