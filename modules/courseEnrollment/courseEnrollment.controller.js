@@ -358,13 +358,19 @@ exports.delete = async (req, res) => {
 				where: { id: enrollmentId, isActive: "Y" }
 			});
 
-			if (updatedObj == 1) {
+			const updateCourseEnrolledUser = await CourseEnrollmentUsers.update(enrollment, {
+				where: { courseEnrollmentId: enrollmentId }
+			});
+
+			if (updatedObj && updateCourseEnrolledUser) {
 				res.status(200).send({
 					message: "Course enrollment deleted"
 				});
 			} else {
 				res.status(400).send({
-					message: "Unable to delete course enrollment, maybe it doesn't exists"
+					message: "Unable to delete course enrollment, maybe it doesn't exists",
+					updateCourseEnrolledUser,
+					updatedObj
 				});
 			}
 		}
@@ -465,7 +471,13 @@ exports.close = async (req, res) => {
 		const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 
 		CourseEnrollments.update({ isActive: "C" }, { where: { id: courseEnrollmentId } })
-			.then((response) => {
+			.then(async (response) => {
+				let updateCourseEnrollmentUsers = await CourseEnrollmentUsers.update(
+					{ isActive: "C" },
+					{
+						where: { courseEnrollmentId: courseEnrollmentId }
+					}
+				);
 				res.send({ message: "Enrollment is closed", data: response });
 			})
 			.catch((err) => {
