@@ -170,80 +170,92 @@ exports.create = async (req, res) => {
 				console.log(allUsersIds);
 				console.log(uniqueUsers);
 			} else if (courseEnrollmentTypeId == 2) {
-				var allUsers = await Users.findAll({
-					where: { clientId: clientId, isActive: "Y", roleId: 3, userDepartmentId },
-					attributes: ["id"],
-					raw: true
-				});
-				var allUsersIds = allUsers.map((obj) => obj.id);
-				// console.log(allUsersIds);
-				// console.log(alreadyEnrolledUsersIds);
+				if (userDepartmentId == null) {
+					res.send({ message: "userDepartmentId is null " });
+				} else {
+					var allUsers = await Users.findAll({
+						where: { clientId: clientId, isActive: "Y", roleId: 3, userDepartmentId },
+						attributes: ["id"],
+						raw: true
+					});
+					var allUsersIds = allUsers.map((obj) => obj.id);
+					// console.log(allUsersIds);
+					// console.log(alreadyEnrolledUsersIds);
 
-				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
-				// uniqueUsers.forEach((user) => {
-				enrollmentObj = {
-					required: req.body.required,
-					courseAssignmentId,
-					courseEnrollmentTypeId,
-					userDepartmentId,
-					completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
-					completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
-					passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
-				};
-				// });
-				console.log(uniqueUsers);
+					var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
+					// uniqueUsers.forEach((user) => {
+					enrollmentObj = {
+						required: req.body.required,
+						courseAssignmentId,
+						courseEnrollmentTypeId,
+						userDepartmentId,
+						completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
+						completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
+						passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
+					};
+					// });
+					console.log(uniqueUsers);
+				}
 			} else if (courseEnrollmentTypeId == 3) {
-				var allUsers = await Users.findAll({
-					where: { clientId: clientId, isActive: "Y", roleId: 3, id: userId },
-					attributes: ["id"],
-					raw: true
-				});
-				var allUsersIds = allUsers.map((obj) => obj.id);
-				console.log(allUsersIds);
-				console.log(alreadyEnrolledUsers);
+				if (userId == null) {
+					res.send({ message: "userId is null " });
+				} else {
+					var allUsers = await Users.findAll({
+						where: { clientId: clientId, isActive: "Y", roleId: 3, id: userId },
+						attributes: ["id"],
+						raw: true
+					});
+					var allUsersIds = allUsers.map((obj) => obj.id);
+					console.log(allUsersIds);
+					console.log(alreadyEnrolledUsers);
 
-				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
+					var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
 
-				// uniqueUsers.forEach((user) => {
-				enrollmentObj = {
-					required: req.body.required,
-					courseAssignmentId,
-					courseEnrollmentTypeId,
-					userDepartmentId,
-					completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
-					completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
-					passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
-				};
-				// });
-				console.log(uniqueUsers);
+					// uniqueUsers.forEach((user) => {
+					enrollmentObj = {
+						required: req.body.required,
+						courseAssignmentId,
+						courseEnrollmentTypeId,
+						userDepartmentId,
+						completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
+						completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
+						passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
+					};
+					// });
+					console.log(uniqueUsers);
+				}
 			} else if (courseEnrollmentTypeId == 4) {
-				var allUsers = await TeamUsers.findAll({
-					where: { teamId, clientId, isActive: "Y" },
-					include: [
-						{
-							model: Users,
-							where: { roleId: 3 },
-							attributes: []
-						}
-					],
-					attributes: ["userId"],
-					raw: true
-				});
-				var allUsersIds = allUsers.map((obj) => obj.userId);
+				if (teamId == null) {
+					res.send({ message: "teamId is null " });
+				} else {
+					var allUsers = await TeamUsers.findAll({
+						where: { teamId, clientId, isActive: "Y" },
+						include: [
+							{
+								model: Users,
+								where: { roleId: 3 },
+								attributes: []
+							}
+						],
+						attributes: ["userId"],
+						raw: true
+					});
+					var allUsersIds = allUsers.map((obj) => obj.userId);
 
-				var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
+					var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
 
-				// uniqueUsers.forEach((user) => {
-				enrollmentObj = {
-					required: req.body.required,
-					courseAssignmentId,
-					courseEnrollmentTypeId,
-					teamId,
-					completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
-					completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
-					passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
-				};
-				// });
+					// uniqueUsers.forEach((user) => {
+					enrollmentObj = {
+						required: req.body.required,
+						courseAssignmentId,
+						courseEnrollmentTypeId,
+						teamId,
+						completionDateOne: req.body.completionDateOne ? req.body.completionDateOne : null,
+						completionDateTwo: req.body.completionDateTwo ? req.body.completionDateTwo : null,
+						passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
+					};
+					// });
+				}
 			}
 
 			let transaction = await sequelize.transaction();
