@@ -368,9 +368,7 @@ exports.delete = async (req, res) => {
 				});
 			} else {
 				res.status(400).send({
-					message: "Unable to delete course enrollment, maybe it doesn't exists",
-					updateCourseEnrolledUser,
-					updatedObj
+					message: "Unable to delete course enrollment, maybe it doesn't exists"
 				});
 			}
 		}
