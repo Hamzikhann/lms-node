@@ -657,7 +657,7 @@ exports.clientDashboard = async (req, res) => {
 								{
 									model: Users,
 									where: { isActive: "Y" },
-									attributes: ["firstName", "lastName"]
+									attributes: ["id", "firstName", "lastName"]
 								}
 							],
 							attributes: ["progress"]
