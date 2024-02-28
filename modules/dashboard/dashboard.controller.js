@@ -655,11 +655,10 @@ exports.clientDashboard = async (req, res) => {
 									attributes: ["courseId"]
 								}
 							],
-							attributes: ["id", "completionDateOne", "completionDateTwo"]
+							attributes: ["required"]
 						},
 						{
 							model: Users,
-							required: false,
 							where: { isActive: "Y" },
 							attributes: ["id", "firstName", "lastName"]
 						}
