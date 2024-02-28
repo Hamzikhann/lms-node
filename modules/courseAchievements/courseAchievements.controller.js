@@ -21,23 +21,23 @@ exports.list = (req, res) => {
 			isActive: "Y"
 		};
 		if (courseId) whereAssignments.courseId = courseId;
-		console.log(CourseEnrollments, CourseEnrollmentUsers);
+		// console.log(CourseEnrollments, CourseEnrollmentUsers);
 
 		CourseAchievements.findAll({
 			where: { isActive: "Y" },
 			include: [
 				{
-					model: CourseEnrollments,
-					where: { isActive: "Y" },
+					model: CourseEnrollmentUsers,
+					where: { userId, isActive: "Y" },
 					include: [
 						{
-							model: CourseAssignments,
-							where: whereAssignments,
+							model: CourseEnrollments,
+							where: { isActive: "Y" },
 							attributes: []
 						},
 						{
-							model: CourseEnrollmentUsers,
-							where: { userId, isActive: "Y" },
+							model: CourseAssignments,
+							where: whereAssignments,
 							attributes: []
 						}
 					],

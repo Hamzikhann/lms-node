@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
 		{ timestamps: true }
 	);
 	table.associate = function (models) {
-		table.belongsTo(models.courseEnrollments);
+		table.belongsTo(models.courseEnrollmentUsers);
 	};
 	return table;
 };

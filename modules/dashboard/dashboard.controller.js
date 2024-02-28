@@ -635,36 +635,36 @@ exports.clientDashboard = async (req, res) => {
 			where: { isActive: "Y" },
 			include: [
 				{
-					model: CourseEnrollments,
+					model: CourseEnrollmentUsers,
 					where: { isActive: "Y" },
 					include: [
 						{
-							model: CourseAssignments,
-							where: { clientId, isActive: "Y" },
-							include: [
-								{
-									model: Courses,
-									where: { isActive: "Y" },
-									attributes: ["title", "code"]
-								}
-							],
-							attributes: ["courseId"]
-						},
-						{
-							model: CourseEnrollmentUsers,
+							model: CourseEnrollments,
 							where: { isActive: "Y" },
 							include: [
 								{
-									model: Users,
-									required: false,
-									where: { isActive: "Y" },
-									attributes: ["id", "firstName", "lastName"]
+									model: CourseAssignments,
+									where: { clientId, isActive: "Y" },
+									include: [
+										{
+											model: Courses,
+											where: { isActive: "Y" },
+											attributes: ["title", "code"]
+										}
+									],
+									attributes: ["courseId"]
 								}
 							],
-							attributes: ["progress"]
+							attributes: ["id", "completionDateOne", "completionDateTwo"]
+						},
+						{
+							model: Users,
+							required: false,
+							where: { isActive: "Y" },
+							attributes: ["id", "firstName", "lastName"]
 						}
 					],
-					attributes: ["required"]
+					attributes: ["progress"]
 				}
 			],
 			order: [["id", "DESC"]],

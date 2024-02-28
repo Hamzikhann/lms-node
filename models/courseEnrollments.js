@@ -24,8 +24,7 @@ module.exports = (sequelize, DataTypes) => {
 		table.belongsTo(models.courseAssignments);
 		table.belongsTo(models.userDepartments);
 		table.belongsTo(models.teams);
-		table.hasMany(models.courseAchievements);
-		table.hasMany(models.courseTaskProgress)
+		table.hasMany(models.courseTaskProgress);
 		table.hasMany(models.courseEnrollmentUsers);
 	};
 	return table;
