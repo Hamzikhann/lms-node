@@ -656,6 +656,7 @@ exports.clientDashboard = async (req, res) => {
 							include: [
 								{
 									model: Users,
+									required: false,
 									where: { isActive: "Y" },
 									attributes: ["id", "firstName", "lastName"]
 								}
@@ -693,6 +694,7 @@ exports.clientDashboard = async (req, res) => {
 			data: data
 		});
 	} catch (err) {
+		console.log(err);
 		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred while retrieving assignment courses."
