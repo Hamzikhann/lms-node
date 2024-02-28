@@ -1,8 +1,8 @@
 {
 	"development": {
 		"username": "root",
-		"password": "Ahmad12!@",
-		"database": "lmsDB",
+		"password": "",
+		"database": "newlmsdblive",
 		"host": "localhost",
 		"dialect": "mysql",
 		"port": "3306",
