@@ -33,11 +33,13 @@ exports.list = (req, res) => {
 						{
 							model: CourseEnrollments,
 							where: { isActive: "Y" },
-							attributes: []
-						},
-						{
-							model: CourseAssignments,
-							where: whereAssignments,
+							include: [
+								{
+									model: CourseAssignments,
+									where: whereAssignments,
+									attributes: []
+								}
+							],
 							attributes: []
 						}
 					],
@@ -45,7 +47,7 @@ exports.list = (req, res) => {
 				}
 			],
 			order: [["id", "DESC"]],
-			attributes: ["id", "createdAt", "courseEnrollmentId", "result"]
+			attributes: ["id", "createdAt", "courseEnrollmentUserId", "result"]
 		})
 			.then((response) => {
 				encryptHelper(response);

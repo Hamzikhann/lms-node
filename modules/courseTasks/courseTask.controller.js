@@ -585,7 +585,7 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 
 	if (courseProgress == 100 && existedProgress.courseEnrollmentUsers.progress != 100) {
 		const achivements = await CourseAchievements.create({
-			courseEnrollmentId: courseEnrollmentId,
+			courseEnrollmentUserId: existedProgress.courseEnrollmentUsers.id,
 			result: achievementProgress
 		});
 	}
