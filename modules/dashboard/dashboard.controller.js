@@ -653,7 +653,14 @@ exports.clientDashboard = async (req, res) => {
 						{
 							model: CourseEnrollmentUsers,
 							where: { isActive: "Y" },
-							attributes: []
+							include: [
+								{
+									model: Users,
+									where: { isActive: "Y" },
+									attributes: ["firstName", "lastName"]
+								}
+							],
+							attributes: ["progress"]
 						}
 					],
 					attributes: ["required"]
