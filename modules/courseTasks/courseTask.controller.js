@@ -541,7 +541,7 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 			{
 				model: CourseEnrollmentUsers,
 				where: { isActive: "Y", userId: userId },
-				attributes: ["progress"]
+				attributes: ["id", "progress"]
 			}
 		],
 		attributes: ["id"]
@@ -585,7 +585,7 @@ async function courseProgressUpdate(clientId, userId, courseId, courseEnrollment
 
 	if (courseProgress == 100 && existedProgress.courseEnrollmentUsers.progress != 100) {
 		const achivements = await CourseAchievements.create({
-			courseEnrollmentUserId: existedProgress.courseEnrollmentUsers.id,
+			courseEnrollmentUserId: existedProgress.courseEnrollmentUsers[0].id,
 			result: achievementProgress
 		});
 	}
