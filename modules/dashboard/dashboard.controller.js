@@ -504,14 +504,14 @@ exports.clientDashboard = async (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
 
-		const coursesEnrolled = await CourseEnrollments.count({
+		const totalCoursesEnrolled = await CourseEnrollments.count({
 			where: {
 				isActive: "Y"
 			},
 			include: [
 				{
 					model: CourseAssignments,
-					where: { isActive: "Y", clientId: clientId },
+					where: { isActive: "Y", clientId },
 					include: [
 						{
 							model: Courses,
@@ -521,8 +521,9 @@ exports.clientDashboard = async (req, res) => {
 				}
 			]
 		});
-		const courseAssigned = await CourseAssignments.count({
-			where: { isActive: "Y", clientId: clientId },
+
+		const totalCourseAssigned = await CourseAssignments.count({
+			where: { isActive: "Y", clientId },
 			include: [
 				{
 					model: Courses,
@@ -530,40 +531,41 @@ exports.clientDashboard = async (req, res) => {
 				}
 			]
 		});
+
 		const totalTeams = await Teams.count({
-			where: { isActive: "Y", clientId: clientId }
+			where: { isActive: "Y", clientId }
 		});
-		const teamsUser = await Teams.findAll({
-			where: { isActive: "Y", clientId: clientId },
+
+		const users = await Users.findAndCountAll({
+			where: { isActive: "Y", clientId },
+			attributes: ["id", "firstName", "lastName", "email"]
+		});
+
+		const teamsUsers = await Teams.findAll({
+			where: { isActive: "Y", clientId },
 			include: [
 				{
 					model: TeamUsers,
-					where: { clientId: clientId, isActive: "Y" },
+					where: { clientId, isActive: "Y" },
 					include: [
 						{
 							model: Users,
 							where: { isActive: "Y" },
-							attributes: ["id", "firstName", "lastName", "email"]
+							attributes: ["id", "firstName", "lastName", "imageURL"]
 						}
 					],
-					attributes: ["id", "teamId", "userId", "clientId"]
+					attributes: ["teamId"]
 				}
-			]
+			],
+			attributes: ["id", "title"]
 		});
 
-		const totalUsers = await Users.findAndCountAll({
-			where: { isActive: "Y", clientId: clientId },
-			attributes: ["id", "firstName", "lastName", "email"]
-		});
-
-		const enrolledCourses = await CourseEnrollments.findAll({
-			where: {
-				isActive: "Y"
-			},
+		const coursesEnrolled = await CourseEnrollments.findAll({
+			where: { isActive: "Y" },
 			include: [
 				{
 					model: CourseAssignments,
-					where: { isActive: "Y", clientId: clientId },
+					where: { isActive: "Y", clientId },
 					include: [
 						{
 							model: Courses,
@@ -575,119 +577,110 @@ exports.clientDashboard = async (req, res) => {
 									attributes: ["title"]
 								}
 							],
-							attributes: ["id", "title", "code", "approximateTime"]
+							attributes: ["title", "code", "approximateTime"]
 						}
 					],
-					attributes: ["id", "dateFrom", "dateTo", "clientId", "courseId"]
+					attributes: ["courseId"]
 				}
 			],
-			attributes: ["id", "completionDateOne", "completionDateTwo", "courseAssignmentId"]
+			attributes: ["id", "completionDateOne", "completionDateTwo"]
 		});
 
-		const recentAchivements = await CourseAssignments.findAll({
-			where: { isActive: "Y", clientId: clientId },
+		const coursesPast = await CourseEnrollments.findAll({
+			where: { isActive: "C" },
 			include: [
 				{
-					model: Courses,
-					required: true,
-					where: { isActive: "Y" },
-					attributes: ["id", "title", "code"]
-				},
+					model: CourseAssignments,
+					where: { isActive: "Y", clientId },
+					include: [
+						{
+							model: Courses,
+							where: { isActive: "Y", status: "P" },
+							include: [
+								{
+									model: CourseDepartments,
+									where: { isActive: "Y" },
+									attributes: ["title"]
+								}
+							],
+							attributes: ["title", "code", "approximateTime"]
+						}
+					],
+					attributes: ["courseId"]
+				}
+			],
+			attributes: ["id", "completionDateOne", "completionDateTwo"]
+		});
+
+		const coursesCompletion = await Courses.findAll({
+			where: { isActive: "Y" },
+			attributes: ["id", "title"],
+			include: [
+				{
+					model: CourseAssignments,
+					where: { isActive: "Y", clientId },
+					include: [
+						{
+							model: CourseEnrollments,
+							where: { isActive: "Y" },
+							attributes: ["completionDateOne"]
+						}
+					],
+					attributes: ["createdAt"]
+				}
+			]
+		});
+
+		const recentAchivements = await CourseAchievements.findAll({
+			where: { isActive: "Y" },
+			include: [
 				{
 					model: CourseEnrollments,
 					where: { isActive: "Y" },
 					include: [
 						{
-							model: CourseAchievements,
-							where: { isActive: "Y" },
-							attributes: ["id", "result"]
+							model: CourseAssignments,
+							where: { clientId, isActive: "Y" },
+							include: [
+								{
+									model: Courses,
+									where: { isActive: "Y" },
+									attributes: ["title", "code"]
+								}
+							],
+							attributes: ["courseId"]
 						},
 						{
 							model: CourseEnrollmentUsers,
 							where: { isActive: "Y" },
-							attributes: ["id", "progress"],
-							include: [
-								{ model: Users, where: { isActive: "Y" }, attributes: ["id", "firstName", "lastName", "email"] }
-							]
+							attributes: []
 						}
 					],
-					attributes: ["id"]
+					attributes: ["required"]
 				}
 			],
-			// order: [["id", "DESC"]],
-			attributes: ["id", "dateFrom", "dateTo"]
-		});
-		encryptHelper(recentAchivements);
-		let achivements = [];
-		recentAchivements.forEach((assignments) => {
-			assignments.courseEnrollments.forEach((enrollments) => {
-				enrollments.courseEnrollmentUsers.forEach((enrollUsers) => {
-					if (enrollUsers.progress == "100") {
-						let obj = {
-							course: assignments.course,
-							user: enrollUsers,
-							achivement: enrollments.courseAchievements
-						};
-						achivements.push(obj);
-					}
-				});
-			});
-		});
-
-		const testing = await CourseAssignments.findAll({
-			where: { isActive: "Y", clientId: clientId },
-			include: [
-				{
-					model: Courses,
-					where: { isActive: "Y", status: "P" }
-				}
-			]
-		});
-
-		let assignedCourseIds = [];
-		let enrolledCourseIds = [];
-
-		testing.forEach((coursAssign) => {
-			assignedCourseIds.push(coursAssign.course.id);
-		});
-
-		enrolledCourses.forEach((courseEnroll) => {
-			enrolledCourseIds.push(courseEnroll.courseAssignment.course.id);
-		});
-
-		const uniqueIds = assignedCourseIds.filter((id) => !enrolledCourseIds.includes(id));
-
-		const upcommingCourse = await CourseAssignments.findOne({
-			where: { isActive: "Y", clientId: clientId },
-			include: [
-				{
-					model: Courses,
-					where: { isActive: "Y", status: "P", id: uniqueIds },
-					attributes: ["id", "title", "code", "approximateTime"]
-				}
-			],
-			attributes: ["id", "dateFrom", "dateTo"]
+			order: [["id", "DESC"]],
+			limit: 5,
+			attributes: ["createdAt", "result"]
 		});
 
 		var data = {
 			stats: {
-				overview: {
-					allUsers: totalUsers.count,
-					teams: totalTeams,
-					allCourses: courseAssigned,
-					activeCourses: coursesEnrolled
-				}
+				allUsers: users.count,
+				teams: totalTeams,
+				allCourses: totalCourseAssigned,
+				activeCourses: totalCoursesEnrolled
 			},
 			courses: {
-				upcoming: encryptHelper(upcommingCourse),
-				enrolled: encryptHelper(enrolledCourses)
+				upcoming: encryptHelper(coursesCompletion),
+				enrolled: encryptHelper(coursesEnrolled),
+				past: encryptHelper(coursesPast)
 			},
-			recentAchivements: achivements,
-			users: encryptHelper(totalUsers.rows),
-			teams: encryptHelper(teamsUser)
+			achivements: encryptHelper(recentAchivements),
+			users: encryptHelper(users.rows),
+			teams: encryptHelper(teamsUsers)
 		};
 
-		// encryptHelper(assignments);
 		res.send({
 			message: "Retrieved statistics for the client",
 			data: data

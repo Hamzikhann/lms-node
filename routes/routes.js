@@ -36,8 +36,6 @@ class Routes {
 		this.app.use("/api/roles", jwt.protect, rolesRouteHandler);
 		this.app.use("/api/clients", jwt.protect, clientsRouteHandler);
 		this.app.use("/api/users", jwt.protect, usersRouteHandler);
-		this.app.use("/api/teams", jwt.protect, teamRouteHandler);
-		this.app.use("/api/team/users", jwt.protect, teamUserRouteHandler);
 		this.app.use("/api/learning-paths", jwt.protect, learningPathRouteHandler);
 		this.app.use("/api/learning-paths/classes", jwt.protect, classRouteHandler);
 		this.app.use("/api/courses", jwt.protect, courseRouteHadler);
@@ -55,6 +53,8 @@ class Routes {
 		this.app.use("/api/course/faqs", jwt.protect, couresFaqsRouteHandler);
 		this.app.use("/api/course/useful-links", jwt.protect, courseUsefulLinksRouteHandler);
 		this.app.use("/api/course/achievements", jwt.protect, courseAchievementsRouteHandler);
+		this.app.use("/api/teams", jwt.protect, teamRouteHandler);
+		this.app.use("/api/team/users", jwt.protect, teamUserRouteHandler);
 		this.app.use("/api/dashboard", jwt.protect, dashboardRouteHandler);
 		// this.app.use("/api/classes", jwt.protect, classesRouteHandler);
 	}
