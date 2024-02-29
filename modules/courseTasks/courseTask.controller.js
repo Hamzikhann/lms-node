@@ -211,6 +211,7 @@ exports.detailForUser = async (req, res) => {
 			const courseTaskId = crypto.decrypt(req.body.courseTaskId);
 			const userId = crypto.decrypt(req.userId);
 			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
+			console.log(courseId, courseTaskId, userId, courseEnrollmentId);
 
 			const courseTask = await CourseTasks.findAll({
 				where: { isActive: "Y" },
