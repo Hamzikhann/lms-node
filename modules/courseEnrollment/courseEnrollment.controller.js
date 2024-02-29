@@ -366,11 +366,11 @@ exports.delete = async (req, res) => {
 		} else {
 			const enrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 			const clientId = crypto.decrypt(req.clientId);
+			console.log("enrollmentId", enrollmentId);
 
 			let achivementIds = [];
 			let taskProgressIds = [];
 			let enrolledUserIds = [];
-
 			const enrollment = await CourseEnrollments.findOne({
 				where: { id: enrollmentId, isActive: "Y" },
 				include: [
@@ -394,6 +394,7 @@ exports.delete = async (req, res) => {
 				],
 				attributes: ["id"]
 			});
+			console.log(enrollment);
 
 			enrollment.courseEnrollmentUsers.forEach((enrolledUser) => {
 				enrolledUserIds.push(enrollUser.id);
@@ -405,7 +406,6 @@ exports.delete = async (req, res) => {
 				taskProgressIds.push(progress.id);
 			});
 
-			console.log("enrollmentId", enrollmentId);
 			console.log("achivementids", achivementIds);
 			console.log("enrolleduserids", enrolledUserIds);
 			console.log("taskProgressids", taskProgressIds);
