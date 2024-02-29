@@ -351,6 +351,7 @@ exports.update = async (req, res) => {
 };
 
 exports.delete = async (req, res) => {
+	let transaction = await sequelize.transaction();
 	try {
 		const joiSchema = Joi.object({
 			courseEnrollmentId: Joi.string().required()
@@ -358,7 +359,6 @@ exports.delete = async (req, res) => {
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
 			emails.errorEmail(req, error);
-
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
@@ -366,20 +366,12 @@ exports.delete = async (req, res) => {
 		} else {
 			const enrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 			const clientId = crypto.decrypt(req.clientId);
-			// const enrollment = { isActive: "N" };
+
 			let achivementIds = [];
 			let taskProgressIds = [];
 			let enrolledUserIds = [];
 
-			// const updatedObj = await CourseEnrollments.update(enrollment, {
-			// 	where: { id: enrollmentId, isActive: "Y" }
-			// });
-
-			// const updateCourseEnrolledUser = await CourseEnrollmentUsers.update(enrollment, {
-			// 	where: { courseEnrollmentId: enrollmentId }
-			// });
-
-			const enrollments = await CourseEnrollments.findAll({
+			const enrollment = await CourseEnrollments.findOne({
 				where: { id: enrollmentId, isActive: "Y" },
 				include: [
 					{
@@ -403,51 +395,28 @@ exports.delete = async (req, res) => {
 				attributes: ["id"]
 			});
 
-			enrollments.forEach((enrollment) => {
-				enrollment.courseEnrollmentUsers.forEach((enrollUser) => {
-					enrollUser.courseAchievements.forEach((achivement) => {
-						achivementIds.push(achivement.id);
-						enrolledUserIds.push(enrollUser.id);
-					});
-				});
-				enrollment.courseTaskProgresses.forEach((progress) => {
-					taskProgressIds.push(progress.id);
+			enrollment.courseEnrollmentUsers.forEach((enrolledUser) => {
+				enrolledUserIds.push(enrollUser.id);
+				enrolledUser.courseAchievements.forEach((achivement) => {
+					achivementIds.push(achivement.id);
 				});
 			});
+			enrollment.courseTaskProgresses.forEach((progress) => {
+				taskProgressIds.push(progress.id);
+			});
 
+			console.log("enrollmentId", enrollmentId);
 			console.log("achivementids", achivementIds);
 			console.log("enrolleduserids", enrolledUserIds);
 			console.log("taskProgressids", taskProgressIds);
-			let transaction = await sequelize.transaction();
 
-			CourseAchivements.destroy({ where: { id: achivementIds } }, { transaction })
-				.then(async (response) => {
-					if (response) {
-						let deleteCourseTaskProgress = await CourseTaskProgress.destroy(
-							{ where: { id: taskProgressIds } },
-							{ transaction }
-						);
-						let deleteCourseEnrolledUsers = await CourseEnrollmentUsers.destroy(
-							{ where: { id: enrolledUserIds } },
-							{ transaction }
-						);
-						let deleteCourseEnrollment = await CourseEnrollments.destroy(
-							{ where: { id: enrollmentId } },
-							{ transaction }
-						);
-						await transaction.commit();
+			await CourseAchivements.destroy({ where: { id: achivementIds } }, { transaction });
+			await CourseTaskProgress.destroy({ where: { id: taskProgressIds } }, { transaction });
+			await CourseEnrollmentUsers.destroy({ where: { id: enrolledUserIds } }, { transaction });
+			await CourseEnrollments.destroy({ where: { id: enrollmentId } }, { transaction });
+			await transaction.commit();
 
-						res.send({ message: "Course Enrollment id Deleted" });
-					}
-				})
-				.catch(async (err) => {
-					if (transaction) await transaction.rollback();
-
-					emails.errorEmail(req, err);
-					res.status(500).send({
-						message: err.message || "Some error occurred."
-					});
-				});
+			res.send({ message: "Course Enrollment Deleted" });
 		}
 	} catch (err) {
 		if (transaction) await transaction.rollback();
@@ -526,13 +495,7 @@ exports.reset = async (req, res) => {
 			)
 				.then(async (response) => {
 					if (response) {
-						const restTaskProgress = await CourseTaskProgress.destroy(
-							{
-								where: { courseEnrollmentId, userId, clientId }
-							},
-							{ transaction }
-						);
-
+						await CourseTaskProgress.destroy({ where: { courseEnrollmentId, userId, clientId } }, { transaction });
 						await transaction.commit();
 
 						res.send({ message: "Coures progress is reseted and task progresses are deleted" });
@@ -548,8 +511,6 @@ exports.reset = async (req, res) => {
 				});
 		}
 	} catch (err) {
-		if (transaction) await transaction.rollback();
-
 		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
