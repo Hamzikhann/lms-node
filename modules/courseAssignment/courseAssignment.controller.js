@@ -259,15 +259,13 @@ exports.report = async (req, res) => {
 					{
 						model: CourseEnrollments,
 						where: { courseAssignmentId: courseAssignmentId, isActive: "Y" },
-						include: [
-							{
-								model: CourseAchivements,
-								where: { isActive: "Y" },
-								attributes: ["id", "createdAt", "result"],
-								required: false
-							}
-						],
 						attributes: ["id"]
+					},
+					{
+						model: CourseAchivements,
+						where: { isActive: "Y" },
+						attributes: ["id", "createdAt", "result"],
+						required: false
 					}
 				],
 				attributes: ["progress"]
