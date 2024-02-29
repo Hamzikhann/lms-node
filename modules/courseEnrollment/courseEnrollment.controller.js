@@ -401,7 +401,7 @@ exports.delete = async (req, res) => {
 
 			if (enrollment.courseEnrollmentUsers.length > 0)
 				enrollment.courseEnrollmentUsers.forEach((enrolledUser) => {
-					enrolledUserIds.push(enrollUser.id);
+					enrolledUserIds.push(enrolledUser.id);
 					enrolledUser.courseAchievements.forEach((achivement) => {
 						achivementIds.push(achivement.id);
 					});
