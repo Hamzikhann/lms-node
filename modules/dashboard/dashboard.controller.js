@@ -608,7 +608,7 @@ exports.clientDashboard = async (req, res) => {
 					attributes: ["courseId"]
 				}
 			],
-			attributes: ["id", "completionDateOne"]
+			attributes: ["id", "completionDateOne", "createdAt"]
 		});
 
 		const coursesPast = await CourseEnrollments.findAll({
