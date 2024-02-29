@@ -448,8 +448,6 @@ exports.delete = async (req, res) => {
 						message: err.message || "Some error occurred."
 					});
 				});
-
-			// res.send({ data: enrollments });
 		}
 	} catch (err) {
 		if (transaction) await transaction.rollback();
