@@ -399,26 +399,37 @@ exports.delete = async (req, res) => {
 			});
 			console.log(enrollment);
 
-			enrollment.courseEnrollmentUsers.forEach((enrolledUser) => {
-				enrolledUserIds.push(enrollUser.id);
-				enrolledUser.courseAchievements.forEach((achivement) => {
-					achivementIds.push(achivement.id);
+			if (enrollment.courseEnrollmentUsers.length > 0)
+				enrollment.courseEnrollmentUsers.forEach((enrolledUser) => {
+					enrolledUserIds.push(enrollUser.id);
+					enrolledUser.courseAchievements.forEach((achivement) => {
+						achivementIds.push(achivement.id);
+					});
 				});
-			});
-			enrollment.courseTaskProgresses.forEach((progress) => {
-				taskProgressIds.push(progress.id);
-			});
+
+			if (enrollment.courseTaskProgresses.length > 0)
+				enrollment.courseTaskProgresses.forEach((progress) => {
+					taskProgressIds.push(progress.id);
+				});
 
 			console.log("achivementids", achivementIds);
 			console.log("enrolleduserids", enrolledUserIds);
 			console.log("taskProgressids", taskProgressIds);
 
-			await CourseAchivements.destroy({ where: { id: achivementIds } }, { transaction });
-			await CourseTaskProgress.destroy({ where: { id: taskProgressIds } }, { transaction });
-			await CourseEnrollmentUsers.destroy({ where: { id: enrolledUserIds } }, { transaction });
-			await CourseEnrollments.destroy({ where: { id: enrollmentId } }, { transaction });
-			await transaction.commit();
+			if (achivementIds.length > 0) {
+				await CourseAchivements.destroy({ where: { id: achivementIds } }, { transaction });
+			}
+			if (taskProgressIds.length > 0) {
+				await CourseTaskProgress.destroy({ where: { id: taskProgressIds } }, { transaction });
+			}
+			if (enrolledUserIds.length > 0) {
+				await CourseEnrollmentUsers.destroy({ where: { id: enrolledUserIds } }, { transaction });
+			}
+			if (enrollmentId) {
+				await CourseEnrollments.destroy({ where: { id: enrollmentId } }, { transaction });
+			}
 
+			await transaction.commit();
 			res.send({ message: "Course Enrollment Deleted" });
 		}
 	} catch (err) {
