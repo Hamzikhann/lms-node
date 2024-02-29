@@ -20,6 +20,8 @@ const CourseModules = db.courseModules;
 const CourseTaskTypes = db.courseTaskTypes;
 const CourseSyllabus = db.courseSyllabus;
 const CourseAchievements = db.courseAchievements;
+const CourseEnrollmentTypes = db.courseEnrollmentTypes;
+const UserDepartments = db.userDepartments;
 const Teams = db.teams;
 const TeamUsers = db.teamUsers;
 
@@ -564,6 +566,29 @@ exports.clientDashboard = async (req, res) => {
 			where: { isActive: "Y" },
 			include: [
 				{
+					model: CourseEnrollmentTypes,
+					attributes: ["title"]
+				},
+				{
+					model: UserDepartments,
+					attributes: ["title"]
+				},
+				{
+					model: Teams,
+					attributes: ["title"]
+				},
+				{
+					model: CourseEnrollmentUsers,
+					attributes: ["id"],
+					include: [
+						{
+							model: Users,
+							where: { isActive: "Y" },
+							attributes: ["firstName", "lastName"]
+						}
+					]
+				},
+				{
 					model: CourseAssignments,
 					where: { isActive: "Y", clientId },
 					include: [
@@ -583,7 +608,7 @@ exports.clientDashboard = async (req, res) => {
 					attributes: ["courseId"]
 				}
 			],
-			attributes: ["id", "completionDateOne", "completionDateTwo"]
+			attributes: ["id", "completionDateOne"]
 		});
 
 		const coursesPast = await CourseEnrollments.findAll({
