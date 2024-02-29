@@ -683,7 +683,7 @@ exports.clientDashboard = async (req, res) => {
 				enrolled: encryptHelper(coursesEnrolled),
 				past: encryptHelper(coursesPast)
 			},
-			achivements: encryptHelper(recentAchivements),
+			achievements: encryptHelper(recentAchivements),
 			users: encryptHelper(users.rows),
 			teams: encryptHelper(teamsUsers)
 		};
