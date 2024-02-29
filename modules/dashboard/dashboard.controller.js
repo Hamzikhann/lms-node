@@ -540,7 +540,7 @@ exports.clientDashboard = async (req, res) => {
 
 		const users = await Users.findAndCountAll({
 			where: { isActive: "Y", clientId },
-			attributes: ["id", "firstName", "lastName", "email"]
+			attributes: ["id", "firstName", "lastName", "imageURL"]
 		});
 
 		const teamsUsers = await Teams.findAll({
