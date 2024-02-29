@@ -7,6 +7,7 @@ const fileUpload = require("../../utils/fileUpload");
 const { upload } = fileUpload("documents");
 
 router.post("/list/types", courseTaskController.listTypes);
+
 router.post("/detail", (req, res) => {
 	if (req.role == "User") {
 		courseTaskController.detailForUser(req, res);

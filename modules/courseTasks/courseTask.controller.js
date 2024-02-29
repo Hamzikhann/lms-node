@@ -238,6 +238,7 @@ exports.detailForUser = async (req, res) => {
 				attributes: ["id"],
 				orderby: [["id", "ASC"]]
 			});
+			console.log(courseTask, courseTaskId);
 
 			let previousTaskId = null;
 			courseTask.forEach((e, index) => {
@@ -245,6 +246,7 @@ exports.detailForUser = async (req, res) => {
 					previousTaskId = typeof courseTask[index - 1] !== "undefined" ? courseTask[index - 1]["id"] : null;
 				}
 			});
+			console.log(previousTaskId);
 
 			var statusCode = 200;
 			var message = "";
@@ -254,6 +256,7 @@ exports.detailForUser = async (req, res) => {
 					where: { courseTaskId: previousTaskId, courseEnrollmentId, isActive: "Y" },
 					attributes: ["id", "percentage"]
 				});
+				console.log(previousTask);
 
 				if (previousTask && previousTask.percentage != "0") {
 					message = "The course task detail has been retrived";
