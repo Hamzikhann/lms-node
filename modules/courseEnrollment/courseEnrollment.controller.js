@@ -376,11 +376,13 @@ exports.delete = async (req, res) => {
 				include: [
 					{
 						model: CourseEnrollmentUsers,
+						required: false,
 						where: { isActive: "Y" },
 						include: [
 							{
 								model: CourseAchivements,
 								where: { isActive: "Y" },
+								required: false,
 								attributes: ["id"]
 							}
 						],
@@ -388,6 +390,7 @@ exports.delete = async (req, res) => {
 					},
 					{
 						model: CourseTaskProgress,
+						required: false,
 						where: { clientId: clientId },
 						attributes: ["id"]
 					}
