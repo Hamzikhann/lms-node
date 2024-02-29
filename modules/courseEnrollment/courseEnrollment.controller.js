@@ -18,6 +18,7 @@ const Teams = db.teams;
 const TeamUsers = db.teamUsers;
 const CourseTaskProgress = db.courseTaskProgress;
 const CourseEnrollmentUsers = db.courseEnrollmentUsers;
+const CourseAchivements = db.courseAchievements;
 
 exports.list = async (req, res) => {
 	try {
@@ -364,27 +365,96 @@ exports.delete = async (req, res) => {
 			});
 		} else {
 			const enrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
-			const enrollment = { isActive: "N" };
+			const clientId = crypto.decrypt(req.clientId);
+			// const enrollment = { isActive: "N" };
+			let achivementIds = [];
+			let taskProgressIds = [];
+			let enrolledUserIds = [];
 
-			const updatedObj = await CourseEnrollments.update(enrollment, {
-				where: { id: enrollmentId, isActive: "Y" }
+			// const updatedObj = await CourseEnrollments.update(enrollment, {
+			// 	where: { id: enrollmentId, isActive: "Y" }
+			// });
+
+			// const updateCourseEnrolledUser = await CourseEnrollmentUsers.update(enrollment, {
+			// 	where: { courseEnrollmentId: enrollmentId }
+			// });
+
+			const enrollments = await CourseEnrollments.findAll({
+				where: { id: enrollmentId, isActive: "Y" },
+				include: [
+					{
+						model: CourseEnrollmentUsers,
+						where: { isActive: "Y" },
+						include: [
+							{
+								model: CourseAchivements,
+								where: { isActive: "Y" },
+								attributes: ["id"]
+							}
+						],
+						attributes: ["id"]
+					},
+					{
+						model: CourseTaskProgress,
+						where: { clientId: clientId },
+						attributes: ["id"]
+					}
+				],
+				attributes: ["id"]
 			});
 
-			const updateCourseEnrolledUser = await CourseEnrollmentUsers.update(enrollment, {
-				where: { courseEnrollmentId: enrollmentId }
+			enrollments.forEach((enrollment) => {
+				enrollment.courseEnrollmentUsers.forEach((enrollUser) => {
+					enrollUser.courseAchievements.forEach((achivement) => {
+						achivementIds.push(achivement.id);
+						enrolledUserIds.push(enrollUser.id);
+					});
+				});
+				enrollment.courseTaskProgresses.forEach((progress) => {
+					taskProgressIds.push(progress.id);
+				});
 			});
 
-			if (updatedObj && updateCourseEnrolledUser) {
-				res.status(200).send({
-					message: "Course enrollment deleted"
+			console.log("achivementids", achivementIds);
+			console.log("enrolleduserids", enrolledUserIds);
+			console.log("taskProgressids", taskProgressIds);
+			let transaction = await sequelize.transaction();
+
+			CourseAchivements.destroy({ where: { id: achivementIds } }, { transaction })
+				.then(async (response) => {
+					if (response) {
+						let deleteCourseTaskProgress = await CourseTaskProgress.destroy(
+							{ where: { id: taskProgressIds } },
+							{ transaction }
+						);
+						let deleteCourseEnrolledUsers = await CourseEnrollmentUsers.destroy(
+							{ where: { id: enrolledUserIds } },
+							{ transaction }
+						);
+						let deleteCourseEnrollment = await CourseEnrollments.destroy(
+							{ where: { id: enrollmentId } },
+							{ transaction }
+						);
+						await transaction.commit();
+
+						res.send({ message: "Course Enrollment id Deleted" });
+					}
+				})
+				.catch(async (err) => {
+					if (transaction) await transaction.rollback();
+
+					emails.errorEmail(req, err);
+					res.status(500).send({
+						message: err.message || "Some error occurred."
+					});
 				});
-			} else {
-				res.status(400).send({
-					message: "Unable to delete course enrollment, maybe it doesn't exists"
-				});
-			}
+
+			// res.send({ data: enrollments });
 		}
 	} catch (err) {
+		if (transaction) await transaction.rollback();
+
+		console.log(err);
 		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
@@ -448,20 +518,31 @@ exports.reset = async (req, res) => {
 		} else {
 			const courseEnrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 			const userId = crypto.decrypt(req.userId);
+			const clientId = crypto.decrypt(req.clientId);
+			let transaction = await sequelize.transaction();
 
-			CourseEnrollmentUsers.update({ progress: "0" }, { where: { courseEnrollmentId, userId, isActive: "Y" } })
+			CourseEnrollmentUsers.update(
+				{ progress: "0" },
+				{ where: { courseEnrollmentId, userId, isActive: "Y" } },
+				{ transaction }
+			)
 				.then(async (response) => {
 					if (response) {
-						const restTaskProgress = await CourseTaskProgress.update(
-							{ percentage: "0" },
-							{ where: { courseEnrollmentId, userId } }
+						const restTaskProgress = await CourseTaskProgress.destroy(
+							{
+								where: { courseEnrollmentId, userId, clientId }
+							},
+							{ transaction }
 						);
-						if (restTaskProgress) {
-							res.send({ message: "Coures progress and task progresses are reseted" });
-						}
+
+						await transaction.commit();
+
+						res.send({ message: "Coures progress is reseted and task progresses are deleted" });
 					}
 				})
-				.catch((err) => {
+				.catch(async (err) => {
+					if (transaction) await transaction.rollback();
+
 					emails.errorEmail(req, err);
 					res.status(500).send({
 						message: err.message || "Some error occurred."
@@ -469,6 +550,8 @@ exports.reset = async (req, res) => {
 				});
 		}
 	} catch (err) {
+		if (transaction) await transaction.rollback();
+
 		emails.errorEmail(req, err);
 		res.status(500).send({
 			message: err.message || "Some error occurred."
