@@ -60,7 +60,7 @@ router.post("/delete", (req, res) => {
 });
 
 router.post("/reset/credentials", (req, res) => {
-	if (req.role == "Client") {
+	if (req.role == "Administrator" || req.role == "Client") {
 		usersController.reset(req, res);
 	} else {
 		res.status(403).send({ message: "Forbidden Access" });

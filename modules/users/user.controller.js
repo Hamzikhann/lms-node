@@ -622,12 +622,11 @@ exports.reset = (req, res) => {
 			});
 		} else {
 			const userId = crypto.decrypt(req.body.userId);
-			const clientId = crypto.decrypt(req.clientId);
 			const newPassword = req.body.newPassword;
-			Users.findOne({ where: { id: userId, isActive: "Y", clientId: clientId } })
+			Users.findOne({ where: { id: userId, isActive: "Y" } })
 				.then((response) => {
 					if (response) {
-						Users.update({ password: newPassword }, { where: { id: userId, isActive: "Y", clientId: clientId } })
+						Users.update({ password: newPassword }, { where: { id: userId, isActive: "Y" } })
 							.then((response) => {
 								res.send({ message: "Credentiales are updated" });
 							})
