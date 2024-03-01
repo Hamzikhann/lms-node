@@ -6,6 +6,7 @@ const crypto = require("../../utils/crypto");
 const Joi = require("@hapi/joi");
 const Sequelize = require("sequelize");
 const Users = db.users;
+const UserProfile = db.userProfile;
 const Roles = db.roles;
 const Clients = db.clients;
 const Courses = db.courses;
@@ -570,7 +571,13 @@ exports.clientDashboard = async (req, res) => {
 
 		const users = await Users.findAndCountAll({
 			where: { isActive: "Y", clientId },
-			attributes: ["id", "firstName", "lastName", "imageURL"]
+			include: [
+				{
+					model: UserProfile,
+					attribute: ["imageUrl"]
+				}
+			],
+			attributes: ["id", "firstName", "lastName"]
 		});
 
 		const teamsUsers = await Teams.findAll({
@@ -583,7 +590,13 @@ exports.clientDashboard = async (req, res) => {
 						{
 							model: Users,
 							where: { isActive: "Y" },
-							attributes: ["id", "firstName", "lastName", "imageURL"]
+							include: [
+								{
+									model: UserProfile,
+									attribute: ["imageUrl"]
+								}
+							],
+							attributes: ["id", "firstName", "lastName"]
 						}
 					],
 					attributes: ["teamId"]
