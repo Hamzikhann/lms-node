@@ -27,61 +27,91 @@ const TeamUsers = db.teamUsers;
 
 exports.adminDashboard = async (req, res) => {
 	try {
-		const clients = await Clients.findAll({
-			include: [
-				{
-					model: Users,
-					where: { isActive: "Y" },
-					required: false,
-					attributes: { exclude: ["isActive", "createdAt", "updatedAt"] },
-					include: [
-						{
-							model: Courses,
-							where: { isActive: "Y" },
-							required: false,
-							attributes: { exclude: ["isActive", "createdAt", "updatedAt"] },
-							include: [
-								{
-									model: CourseTasks,
-									where: { isActive: "Y" },
-									required: false,
-									attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
-								}
-							]
-						}
-					]
+		// const clients = await Clients.findAll({
+		// 	include: [
+		// 		{
+		// 			model: Users,
+		// 			where: { isActive: "Y" },
+		// 			required: false,
+		// 			attributes: { exclude: ["isActive", "createdAt", "updatedAt"] },
+		// 			include: [
+		// 				{
+		// 					model: Courses,
+		// 					where: { isActive: "Y" },
+		// 					required: false,
+		// 					attributes: { exclude: ["isActive", "createdAt", "updatedAt"] },
+		// 					include: [
+		// 						{
+		// 							model: CourseTasks,
+		// 							where: { isActive: "Y" },
+		// 							required: false,
+		// 							attributes: { exclude: ["isActive", "createdAt", "updatedAt"] }
+		// 						}
+		// 					]
+		// 				}
+		// 			]
+		// 		}
+		// 	]
+		// });
+		// const dashboardData = clients.map((client) => {
+		// 	const users = client.users.map((user) => {
+		// 		const courses = user.courses.map((course) => {
+		// 			const totalTasks = course.courseTasks.length;
+		// 			const draftTasks = course.courseTasks.filter((task) => task.status === "D").length;
+		// 			const publishedTasks = course.courseTasks.filter((task) => task.status === "P").length;
+
+		// 			return {
+		// 				...course.toJSON(),
+		// 				totalTasks,
+		// 				draftTasks,
+		// 				publishedTasks
+		// 			};
+		// 		});
+
+		// 		return {
+		// 			...user.toJSON(),
+		// 			courses
+		// 		};
+		// 	});
+
+		// 	return {
+		// 		...client.toJSON(),
+		// 		users,
+		// 		userCount: users.length
+		// 	};
+		// });
+
+		const allUsers = await Users.count({
+			where: {
+				isActive: "Y",
+				[Op.not]: {
+					roleId: 1
 				}
-			]
+			}
 		});
-		const dashboardData = clients.map((client) => {
-			const users = client.users.map((user) => {
-				const courses = user.courses.map((course) => {
-					const totalTasks = course.courseTasks.length;
-					const draftTasks = course.courseTasks.filter((task) => task.status === "D").length;
-					const publishedTasks = course.courseTasks.filter((task) => task.status === "P").length;
-
-					return {
-						...course.toJSON(),
-						totalTasks,
-						draftTasks,
-						publishedTasks
-					};
-				});
-
-				return {
-					...user.toJSON(),
-					courses
-				};
-			});
-
-			return {
-				...client.toJSON(),
-				users,
-				userCount: users.length
-			};
+		const allClients = await Clients.count({
+			where: {
+				isActive: "Y"
+			}
 		});
 
-		res.json(dashboardData);
+		const allCourses = await Courses.count({ where: { isActive: "Y" } });
+		const allTeams = await Teams.count({ where: { isActive: "Y" } });
+		const activeEnrollments = await CourseEnrollments.count({ where: { isActive: "Y" } });
+		var data = {
+			stats: {
+				totalUsers: allUsers,
+				totalClients: allClients,
+				totalTeams: allTeams,
+				totalCourses: allCourses,
+				activeEnrollments: activeEnrollments
+			}
+		};
+
+		res.send({
+			message: "Retrieved statistics for the Admin",
+			data
+		});
 	} catch (err) {
 		emails.errorEmail(req, err);
 		res.status(500).send({
