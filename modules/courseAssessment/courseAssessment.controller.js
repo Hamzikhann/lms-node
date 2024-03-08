@@ -55,7 +55,7 @@ exports.create = async (req, res) => {
 			title: Joi.string().max(255).required(),
 			description: Joi.string().optional().allow(""),
 			estimatedTime: Joi.string().required(),
-			startTime: Joi.string().optional().allow(""),
+			startTime: Joi.number().optional().allow(""),
 			courseTaskId: Joi.string().required(),
 			questions: Joi.array().items(
 				Joi.object().keys({
@@ -123,7 +123,7 @@ exports.update = async (req, res) => {
 			title: Joi.string().max(255).required(),
 			description: Joi.string().optional().allow(""),
 			estimatedTime: Joi.string().required(),
-			startTime: Joi.string().optional().allow(""),
+			startTime: Joi.number().optional().allow(""),
 			courseTaskAssessmentId: Joi.string().required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
