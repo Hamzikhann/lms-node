@@ -26,7 +26,7 @@ exports.create = async (req, res) => {
 			firstName: Joi.string().required(),
 			lastName: Joi.string().required(),
 			email: Joi.string().required(),
-			password: Joi.string().required(),
+			password: Joi.string().min(8).max(16).required(),
 			managerId: Joi.string().optional().allow(null).allow(""),
 			departmentId: Joi.string().optional().allow(null).allow(""),
 			designationId: Joi.string().optional().allow(null).allow(""),
@@ -612,10 +612,8 @@ exports.reset = (req, res) => {
 			newPassword: Joi.string().min(8).max(16).required()
 		});
 		const { error, value } = joiSchema.validate(req.body);
-
 		if (error) {
 			emails.errorEmail(req, error);
-
 			const message = error.details[0].message.replace(/"/g, "");
 			res.status(400).send({
 				message: message
