@@ -28,7 +28,6 @@ router.post("/list/assigned", (req, res) => {
 });
 
 router.post("/create", upload.single("image"), (req, res) => {
-	console.log(req.role);
 	if (req.role == "Administrator") {
 		courseController.create(req, res);
 	} else {
@@ -46,6 +45,10 @@ router.post("/update", (req, res) => {
 
 router.post("/detail", (req, res) => {
 	courseController.detail(req, res);
+});
+
+router.post("/enrollment/detail", (req, res) => {
+	courseController.detailEnrollment(req, res);
 });
 
 router.post("/delete", (req, res) => {

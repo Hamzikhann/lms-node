@@ -23,7 +23,7 @@ const CourseAchivements = db.courseAchievements;
 exports.list = async (req, res) => {
 	try {
 		const clientId = crypto.decrypt(req.clientId);
-		console.log(clientId);
+		// console.log(clientId);
 		const enrollments = await CourseEnrollments.findAll({
 			where: { isActive: "Y" },
 			include: [
@@ -168,8 +168,8 @@ exports.create = async (req, res) => {
 					passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
 				};
 				// });
-				console.log(allUsersIds);
-				console.log(uniqueUsers);
+				// console.log(allUsersIds);
+				// console.log(uniqueUsers);
 			} else if (courseEnrollmentTypeId == 2) {
 				if (userDepartmentId == null) {
 					res.send({ message: "userDepartmentId is null " });
@@ -195,7 +195,7 @@ exports.create = async (req, res) => {
 						passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
 					};
 					// });
-					console.log(uniqueUsers);
+					// console.log(uniqueUsers);
 				}
 			} else if (courseEnrollmentTypeId == 3) {
 				if (userId == null) {
@@ -207,8 +207,8 @@ exports.create = async (req, res) => {
 						raw: true
 					});
 					var allUsersIds = allUsers.map((obj) => obj.id);
-					console.log(allUsersIds);
-					console.log(alreadyEnrolledUsers);
+					// console.log(allUsersIds);
+					// console.log(alreadyEnrolledUsers);
 
 					var uniqueUsers = allUsersIds.filter((item) => !alreadyEnrolledUsersIds.includes(item));
 
@@ -223,7 +223,7 @@ exports.create = async (req, res) => {
 						passingThreshold: req.body.passingThreshold ? req.body.passingThreshold : null
 					};
 					// });
-					console.log(uniqueUsers);
+					// console.log(uniqueUsers);
 				}
 			} else if (courseEnrollmentTypeId == 4) {
 				if (teamId == null) {
@@ -366,7 +366,7 @@ exports.delete = async (req, res) => {
 		} else {
 			const enrollmentId = crypto.decrypt(req.body.courseEnrollmentId);
 			const clientId = crypto.decrypt(req.clientId);
-			console.log("enrollmentId", enrollmentId);
+			// console.log("enrollmentId", enrollmentId);
 
 			let achivementIds = [];
 			let taskProgressIds = [];
@@ -397,7 +397,7 @@ exports.delete = async (req, res) => {
 				],
 				attributes: ["id"]
 			});
-			console.log(enrollment);
+			// console.log(enrollment);
 
 			if (enrollment.courseEnrollmentUsers.length > 0)
 				enrollment.courseEnrollmentUsers.forEach((enrolledUser) => {
@@ -412,9 +412,9 @@ exports.delete = async (req, res) => {
 					taskProgressIds.push(progress.id);
 				});
 
-			console.log("achivementids", achivementIds);
-			console.log("enrolleduserids", enrolledUserIds);
-			console.log("taskProgressids", taskProgressIds);
+			// console.log("achivementids", achivementIds);
+			// console.log("enrolleduserids", enrolledUserIds);
+			// console.log("taskProgressids", taskProgressIds);
 
 			if (achivementIds.length > 0) {
 				await CourseAchivements.destroy({ where: { id: achivementIds } }, { transaction });

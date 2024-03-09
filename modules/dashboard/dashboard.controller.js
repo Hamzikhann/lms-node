@@ -343,8 +343,7 @@ exports.userDashboard = async (req, res) => {
 									attributes: ["progress"]
 								}
 							],
-							// attributes: ["courseProgress", "completionDateOne"]
-							attributes: ["completionDateOne"]
+							attributes: ["id", "completionDateOne"]
 						}
 					],
 					attributes: ["createdAt"]
@@ -485,6 +484,7 @@ exports.userDashboard = async (req, res) => {
 				module.courseTasks.forEach((tasks) => {
 					if (tasks.courseTaskProgresses.length == 0) {
 						let Obj = {
+							enrollmentId: enrollment.courseEnrollment.id,
 							courseId: enrollment.courseEnrollment.courseAssignment.course.id,
 							courseName: enrollment.courseEnrollment.courseAssignment.course.title,
 							taskId: tasks.id,

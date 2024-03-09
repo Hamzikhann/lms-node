@@ -142,7 +142,9 @@ exports.listTypes = (req, res) => {
 exports.detail = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
-			courseTaskId: Joi.string().required()
+			courseTaskId: Joi.string().required(),
+			courseId: Joi.string().optional().allow("").allow(null),
+			courseEnrollmentId: Joi.string().optional().allow("").allow(null)
 		});
 		const { error, value } = joiSchema.validate(req.body);
 		if (error) {
@@ -499,7 +501,7 @@ exports.createProgress = async (req, res) => {
 					});
 				// console.log("Task progress exists updating: ", updatedProgressTask);
 			} else {
-				console.log("task progress doesn't exists");
+				// console.log("task progress doesn't exists");
 				await CourseTaskProgress.create({
 					currentTime: req.body.currentTime,
 					percentage: req.body.percentage ? req.body.percentage : "0",

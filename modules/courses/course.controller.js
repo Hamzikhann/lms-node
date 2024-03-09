@@ -465,6 +465,115 @@ exports.detail = (req, res) => {
 	}
 };
 
+exports.detailEnrollment = async (req, res) => {
+	try {
+		const joiSchema = Joi.object({
+			enrollmentId: Joi.string().required()
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			emails.errorEmail(req, error);
+
+			const message = error.details[0].message.replace(/"/g, "");
+			res.status(400).send({
+				message: message
+			});
+		} else {
+			const userId = crypto.decrypt(req.userId);
+			const clientId = req.clientId ? crypto.decrypt(req.clientId) : null;
+			const enrollmentId = crypto.decrypt(req.body.enrollmentId);
+
+			console.log(enrollmentId, userId, clientId);
+			const enrollmentDetails = await CourseEnrollmentUsers.findOne({
+				where: { userId, isActive: "Y" },
+				include: [
+					{
+						model: CourseEnrollments,
+						where: { id: enrollmentId, isActive: "Y" },
+						include: [
+							{
+								model: courseAssignments,
+								where: { clientId, isActive: "Y" },
+								attributes: ["id", "courseId"]
+							}
+						],
+						attributes: ["id"]
+					}
+				],
+				attributes: ["id", "progress"]
+			});
+
+			const courseId = enrollmentDetails?.courseEnrollment?.courseAssignment?.courseId;
+			// console.log("enrollmentDetails", enrollmentDetails);
+			console.log("courseId", courseId);
+			const courseDetails = await Courses.findOne({
+				where: { id: courseId, isActive: "Y" },
+				include: [
+					{
+						model: courseDepartment,
+						where: { isActive: "Y" },
+						required: false,
+						attributes: ["id", "title"]
+					},
+					{
+						model: Classes,
+						where: { isActive: "Y" },
+						include: [
+							{
+								model: learningPaths,
+								where: { isActive: "Y" },
+								attributes: ["id", "title"]
+							}
+						],
+						attributes: ["id", "title"]
+					},
+					{
+						model: courseObjectives,
+						where: { isActive: "Y" },
+						required: false,
+						attributes: ["id", "description"]
+					},
+					{
+						model: courseInstructor,
+						where: { isActive: "Y" },
+						required: false,
+						attributes: ["id", "name", "about", "imageUrl"]
+					},
+					{
+						model: courseSyllabus,
+						where: { isActive: "Y" },
+						attributes: ["id", "title"]
+					}
+				],
+				attributes: { exclude: ["isActive", "createdAt", "updatedAt", "classId", "courseDepartmentId"] }
+			});
+
+			encryptHelper(enrollmentDetails);
+			encryptHelper(courseDetails);
+
+			res.send({
+				message: "Details retrieved",
+				data: {
+					assignment: {
+						id: enrollmentDetails?.courseEnrollment?.courseAssignment?.id
+					},
+					enrollment: {
+						id: crypto.encrypt(enrollmentId),
+						progress: enrollmentDetails.progress
+					},
+					courseId: crypto.encrypt(courseId),
+					course: courseDetails
+				}
+			});
+		}
+	} catch (err) {
+		emails.errorEmail(req, err);
+		res.status(500).send({
+			message: err.message || "Some error occurred."
+		});
+	}
+};
+
 exports.update = async (req, res) => {
 	try {
 		const joiSchema = Joi.object({
