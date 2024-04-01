@@ -326,7 +326,7 @@ exports.userDashboard = async (req, res) => {
 		var assessmentsPercentage = taskAssessmentsPercentages / tasksAssessments.length;
 
 		var CoursesCompletions = await Courses.findAll({
-			where: { isActive: "Y" },
+			where: { isActive: "Y", status: "P" },
 			attributes: ["id", "title"],
 			include: [
 				{
@@ -434,7 +434,7 @@ exports.userDashboard = async (req, res) => {
 							include: [
 								{
 									model: Courses,
-									where: { isActive: "Y" },
+									where: { isActive: "Y", status: "P"  },
 									include: [
 										{
 											model: CourseSyllabus,
