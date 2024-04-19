@@ -370,10 +370,12 @@ exports.listUsers = (req, res) => {
 				},
 				{
 					model: Roles,
+					where: { isActive: "Y" },
 					attributes: ["title"]
 				},
 				{
 					model: Clients,
+					where: { isActive: "Y" },
 					attributes: ["name", "website", "logoURL"]
 				}
 			],
