@@ -47,6 +47,7 @@ exports.create = async (req, res) => {
 
 			if (userExists) {
 				res.status(401).send({
+					title: "Email already exists!",
 					mesage: "Email already registered."
 				});
 			} else {
@@ -68,9 +69,10 @@ exports.create = async (req, res) => {
 					userObj.roleId = 3;
 				}
 
-				console.log("asdas");
+				// console.log("asdas");
 				console.log(userObj);
-				console.log(req.clientId);
+				// console.log(req.clientId);
+				// console.log(req.body.clientId);
 
 				let transaction = await sequelize.transaction();
 				Users.create(userObj, { transaction })
@@ -208,6 +210,15 @@ exports.update = async (req, res) => {
 			});
 		} else {
 			const userId = crypto.decrypt(req.body.userId);
+			const userExists = await Users.findOne({ where: { email: req.body.email?.trim(), isActive: "Y" } });
+
+			if (userExists) {
+				res.status(401).send({
+					title: "Email already exists!",
+					mesage: "Email already registered."
+				});
+				return;
+			}
 			const user = {
 				firstName: req.body.firstName?.trim(),
 				lastName: req.body.lastName?.trim(),
@@ -223,7 +234,7 @@ exports.update = async (req, res) => {
 					message: "User updated successfully."
 				});
 			} else {
-				res.send({
+				res.status(500).send({
 					message: "Failed to update user."
 				});
 			}
