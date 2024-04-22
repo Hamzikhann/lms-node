@@ -103,8 +103,18 @@ exports.adminDashboard = async (req, res) => {
 		});
 
 		const allCourses = await Courses.count({ where: { isActive: "Y" } });
-		const allTeams = await Teams.count({ where: { isActive: "Y" } });
-		const activeEnrollments = await CourseEnrollments.count({ where: { isActive: "Y" } });
+		const allTeams = await Teams.count({
+			where: { isActive: "Y" },
+			include: [
+				{
+					model: Clients,
+					where: { isActive: "Y" }
+				}
+			]
+		});
+		const activeEnrollments = await CourseEnrollments.count({
+			where: { isActive: "Y" }
+		});
 		var data = {
 			stats: {
 				totalUsers: allUsers,
