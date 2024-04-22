@@ -88,7 +88,13 @@ exports.adminDashboard = async (req, res) => {
 				[Op.not]: {
 					roleId: 1
 				}
-			}
+			},
+			include: [
+				{
+					model: Clients,
+					where: { isActive: "Y" }
+				}
+			]
 		});
 		const allClients = await Clients.count({
 			where: {
@@ -434,7 +440,7 @@ exports.userDashboard = async (req, res) => {
 							include: [
 								{
 									model: Courses,
-									where: { isActive: "Y", status: "P"  },
+									where: { isActive: "Y", status: "P" },
 									include: [
 										{
 											model: CourseSyllabus,
@@ -652,8 +658,8 @@ exports.clientDashboard = async (req, res) => {
 				}
 			],
 			attributes: ["id", "completionDateOne", "createdAt"],
-			order: [['createdAt', 'DESC']],
-    		limit: 4
+			order: [["createdAt", "DESC"]],
+			limit: 4
 		});
 
 		const coursesPast = await CourseEnrollments.findAll({
