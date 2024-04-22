@@ -25,7 +25,7 @@ exports.create = async (req, res) => {
 		const joiSchema = Joi.object({
 			firstName: Joi.string().required(),
 			lastName: Joi.string().required(),
-			email: Joi.string().required(),
+			email: Joi.string().email().required(),
 			password: Joi.string().min(8).max(16).required(),
 			managerId: Joi.string().optional().allow(null).allow(""),
 			departmentId: Joi.string().optional().allow(null).allow(""),
