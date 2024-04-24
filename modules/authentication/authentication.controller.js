@@ -15,7 +15,9 @@ exports.login = async (req, res) => {
 			where: {
 				email: req.body.email.trim(),
 				isActive: "Y"
-			}
+			},
+			attributes:["password"],
+			raw: true
 		});
 		if (userExist) {
 			const user = await Users.findOne({
@@ -38,24 +40,27 @@ exports.login = async (req, res) => {
 						attributes: ["name", "website", "logoURL"]
 					}
 				],
-				attributes: ["id", "firstName", "lastName", "email", "clientId", "roleId"]
+				attributes: ["id", "firstName", "lastName", "email", "clientId", "roleId"],
+
 			});
-			if (user) {
-				encryptHelper(user);
-				const token = jwt.signToken({
-					userId: user.id,
-					profileId: user.userProfile.id,
-					clientId: user.clientId,
-					roleId: user.roleId,
-					role: user.role.title
-				});
-				res.status(200).send({
-					messgae: "Logged in successful",
-					data: { user },
-					token
-				});
+			if (user && userExist.password === req.body.password) {
+                encryptHelper(user);
+                const token = jwt.signToken({
+                    userId: user.id,
+                    profileId: user.userProfile.id,
+                    clientId: user.clientId,
+                    roleId: user.roleId,
+                    role: user.role.title
+                });
+                res.status(200).send({
+                    message: "Logged in successful",
+                    data: { user },
+                    token
+                });
 			} else {
-				res.status(403).send({ message: "Incorrect Logins" });
+				res.status(403).send({
+					title: "Incorrect Logins",
+					message: "Incorrect Logins" });
 			}
 		} else {
 			res.status(401).send({
