@@ -2,7 +2,12 @@ const Joi = require("@hapi/joi");
 const encryptHelper = require("../../utils/encryptHelper");
 const emails = require("../../utils/emails");
 const db = require("../../models");
-const { sequelize } = require("../../models");
+const { Configuration, OpenAIApi } = require('openai');
+// import { Configuration, OpenAIApi } from "openai";
+const configuration = new Configuration({
+  apiKey: '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',
+});
+const openai = new OpenAIApi(configuration);
 
 const CourseTaskAssessmentQuestions = db.courseTaskAssessmentQuestions;
 
@@ -132,3 +137,52 @@ exports.delete = async (req, res) => {
 		});
 	}
 };
+
+exports.check=async(req,res)=>{
+	try {
+		const joiSchema = Joi.object({
+			question: Joi.string().required(),
+			answer: Joi.string().required(),
+		});
+		const { error, value } = joiSchema.validate(req.body);
+		if (error) {
+			emails.errorEmail(req, error);
+
+			const message = error.details[0].message.replace(/"/g, "");
+			return res.status(400).json({
+				message: message
+			});
+		} else {
+			let answer=req.body.answer.trim()
+			let question=req.body.question.trim()
+
+// 			const prompt = `
+//       Evaluate the following response to determine if it sufficiently answers the question based on relevance, accuracy, and completeness:
+//       Question: ${question}
+//       Student Answer: ${answer}
+//       Respond with "true" if the answer sufficiently matches the question by at least 70%, otherwise respond with "false".
+//     `;
+//     console.log(prompt)
+// 	// const re = await openai.listModels();
+//     // console.log('Available Models:', re.data.data);
+// 	const response = await openai.createChatCompletion({
+// 		model: "gpt-3.5-turbo",
+// 		messages: [{ role: "user", content: "what is OOP?" }], // Chat-based format
+// 	  });
+// console.log(response)
+//     const result = response.data.choices[0].text.trim().toLowerCase();
+// console.log(result)
+
+    // const isValid = result === 'true';
+    const isValid = 'true';
+
+    res.status(200).json({result: isValid });
+		}
+	} catch (err) {
+		// emails.errorEmail(req, err);
+		console.log(err.message)
+		res.status(500).json({
+			message: err.message || "Some error occurred."
+		});		
+	}
+}

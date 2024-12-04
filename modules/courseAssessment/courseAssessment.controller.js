@@ -57,6 +57,7 @@ exports.create = async (req, res) => {
 			estimatedTime: Joi.string().required(),
 			startTime: Joi.number().optional().allow(""),
 			courseTaskId: Joi.string().required(),
+			// questionType:Joi.string().required(),
 			questions: Joi.array().items(
 				Joi.object().keys({
 					title: Joi.string().max(255).required(),
@@ -80,6 +81,7 @@ exports.create = async (req, res) => {
 				description: req.body.description,
 				estimatedTime: req.body.estimatedTime,
 				startTime: req.body.startTime,
+				// questionType: req.body.questionType,
 				courseTaskId: crypto.decrypt(req.body.courseTaskId)
 			};
 			let transaction = await sequelize.transaction();

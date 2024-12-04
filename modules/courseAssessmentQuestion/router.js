@@ -26,4 +26,12 @@ router.post("/delete", (req, res) => {
 	}
 });
 
+router.post("/check", (req, res) => {
+	// if (req.role == "Administrator") {
+		courseAssesmentQuestionController.check(req, res);
+	// } else {
+		// res.status(403).send({ message: "Forbidden Access" });
+	// }
+});
+
 module.exports = router;

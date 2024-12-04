@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
 		description: DataTypes.TEXT,
 		estimatedTime: DataTypes.STRING,
 		startTime: DataTypes.STRING,
+		questionType: DataTypes.STRING,
 		isActive: {
 			type: DataTypes.STRING,
 			allowNull: false,

@@ -27,6 +27,7 @@
     "mysql2": "^3.5.2",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.7",
+    "openai": "^3.2.1",
     "sequelize": "^6.33.0"
   },
   "devDependencies": {
